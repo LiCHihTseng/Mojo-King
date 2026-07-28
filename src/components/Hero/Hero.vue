@@ -57,14 +57,14 @@ onMounted(async () => {
 
   tl.to(
     contentRef.value,
-    { scale: 0.8, opacity: 0, ease: "none" },
+    { y: -200, opacity: 0, ease: "none" },
     0,
   );
 
   // 照片 + 遮罩，作為同一個群組一起縮放、一起淡出（霧化消失）
   tl.to(
     visualGroupRef.value,
-    { scale: 0.9, opacity: 1, ease: "none" },
+    { scale: 1, opacity: 1, ease: "none" },
     0,
   );
 
@@ -84,23 +84,23 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <section ref="sectionRef" class="relative m-2 md:m-5 min-h-screen overflow-hidden rounded-[2rem] ">
+  <section ref="sectionRef" class="relative min-h-screen overflow-hidden ">
     <!-- 群組容器：照片 + 所有遮罩，一起被 GSAP 縮放，永遠對齊 -->
     <div ref="visualGroupRef" class="absolute inset-0" style="transform-origin: center center;">
       <img
         :src="Portrait"
         alt="王郁婷，慕玖共享人資長"
-        class="absolute inset-0 h-full w-full rounded-[2rem] object-cover"
+        class="absolute inset-0 h-full w-full  object-cover "
         loading="eager"
         fetchpriority="high"
       />
 
       <!-- 灰暗遮罩：深灰色，非純黑 -->
-      <div ref="dimOverlayRef" class="pointer-events-none absolute inset-0 z-[5] rounded-[2rem] bg-[#1f1f1f] opacity-0"></div>
+      <div ref="dimOverlayRef" class="pointer-events-none absolute inset-0 z-[5]  bg-[#1f1f1f] opacity-0"></div>
 
-      <div class="pointer-events-none absolute inset-0 z-0 rounded-[2rem] bg-gradient-to-r from-black via-black/65 to-transparent"></div>
+      <div class="pointer-events-none absolute inset-0 z-0  bg-gradient-to-r from-black via-black/65 to-transparent"></div>
 
-      <div class="pointer-events-none absolute inset-x-0 bottom-0 z-0 h-60 rounded-b-[2rem] bg-gradient-to-t from-black/70 to-transparent"></div>
+      <div class="pointer-events-none absolute inset-x-0 bottom-0 z-0 h-60  bg-gradient-to-t from-black/70 to-transparent"></div>
     </div>
 
     <div

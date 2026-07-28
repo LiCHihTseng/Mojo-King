@@ -109,7 +109,7 @@ onMounted(async () => {
         return `+=${window.innerHeight * totalUnits * 0.9}`;
       },
       pin: true,
-      scrub: 0.6,
+      scrub: 1.2,
       anticipatePin: 1,
     },
   });

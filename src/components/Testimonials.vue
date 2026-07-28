@@ -1,6 +1,12 @@
 <script setup lang="ts">
 import { nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+gsap.registerPlugin(ScrollTrigger);
+
+const sectionRef = ref<HTMLElement | null>(null);
+const cardWrapRef = ref<HTMLElement | null>(null); // 新增：整個卡片外框
+const btnGroupRef = ref<HTMLElement | null>(null); // 新增：兩個箭頭按鈕的容器
 
 interface Review {
   name: string;
@@ -68,6 +74,7 @@ let prefersReducedMotion = false;
 let isUnmounted = false;
 let isAnimating = false;
 let switchTimeline: gsap.core.Timeline | null = null;
+let entranceTrigger: ScrollTrigger | null = null;
 
 /* ----------------------------------
    數字格式化：01/05
@@ -78,6 +85,7 @@ const formatCounter = (index: number, total: number) =>
 
 /* ----------------------------------
    切換：文案先顯現 → 數字接著顯現
+   (卡片切換邏輯完全不變)
 ---------------------------------- */
 
 const switchTo = (newIndex: number) => {
@@ -98,7 +106,6 @@ const switchTo = (newIndex: number) => {
   });
 
   switchTimeline
-    // Exit：圖示 + 文案 + 姓名 + 數字 一起快速淡出
     .to(
       [quoteIconRef.value, quoteRef.value, nameRef.value, counterRef.value],
       {
@@ -110,16 +117,11 @@ const switchTo = (newIndex: number) => {
       },
       0,
     )
-    .to(
-      avatarRef.value,
-      { opacity: 0, duration: 0.3, ease: "power2.in" },
-      0,
-    )
+    .to(avatarRef.value, { opacity: 0, duration: 0.3, ease: "power2.in" }, 0)
     .call(() => {
       if (isUnmounted) return;
       activeIndex.value = newIndex;
     })
-    // Enter：圖示 + 文案 一起先出現（用 stagger 讓兩者有些微時間差，圖示先、文字接著）
     .fromTo(
       [quoteIconRef.value, quoteRef.value],
       { opacity: 0, y: 18 },
@@ -132,21 +134,18 @@ const switchTo = (newIndex: number) => {
       },
       "+=0",
     )
-    // 頭像從中心擴散
     .fromTo(
       avatarRef.value,
       { opacity: 1, clipPath: "circle(0% at center)" },
       { clipPath: "circle(75% at center)", duration: 0.6, ease: "power2.out" },
       "<0.2",
     )
-    // 姓名 + 公司
     .fromTo(
       nameRef.value,
       { opacity: 0, y: 12 },
       { opacity: 1, y: 0, duration: 0.4, ease: "power3.out" },
       "<0.15",
     )
-    // 數字最後才顯現
     .fromTo(
       counterRef.value,
       { opacity: 0, y: -10 },
@@ -204,6 +203,93 @@ const handleMagneticLeave = (event: MouseEvent) => {
 };
 
 /* ----------------------------------
+   進場動畫：高級質感的整體揭幕
+   容器本身「模糊→清晰 + 微幅上移 + 縮放」，
+   內部按鈕、文案、頭像依序優雅浮現。
+---------------------------------- */
+
+const setupEntrance = () => {
+  if (!sectionRef.value || !cardWrapRef.value) return;
+
+  const buttons = btnGroupRef.value
+    ? Array.from(btnGroupRef.value.children)
+    : [];
+
+  // 初始隱藏狀態
+  gsap.set(cardWrapRef.value, {
+    opacity: 0,
+    y: 48,
+    scale: 0.97,
+    filter: "blur(10px)",
+  });
+  gsap.set(buttons, { opacity: 0, scale: 0.6 });
+  gsap.set(
+    [quoteIconRef.value, quoteRef.value, nameRef.value, counterRef.value],
+    { opacity: 0, y: 20 },
+  );
+  gsap.set(avatarRef.value, { opacity: 1, clipPath: "circle(0% at center)" });
+
+  entranceTrigger = ScrollTrigger.create({
+    trigger: sectionRef.value,
+    start: "top 78%",
+    once: true,
+    onEnter: () => {
+      // "expo.out" 是業界公認最具高級感的緩動曲線之一，
+      // 常見於精品品牌與 Awwwards 得獎作品的進場動畫。
+      const EXPO = "expo.out";
+
+      gsap
+        .timeline()
+        // 1. 整體卡片框：由模糊、略縮小、略下沉，優雅浮現定位
+        .to(cardWrapRef.value, {
+          opacity: 1,
+          y: 0,
+          scale: 1,
+          filter: "blur(0px)",
+          duration: 1.1,
+          ease: EXPO,
+        })
+        // 2. 按鈕：帶彈性感地依序放大出現
+        .to(
+          buttons,
+          {
+            opacity: 1,
+            scale: 1,
+            duration: 0.6,
+            ease: "back.out(1.8)",
+            stagger: 0.08,
+          },
+          "-=0.7",
+        )
+        // 3. 數字/標題
+        .to(
+          counterRef.value,
+          { opacity: 1, y: 0, duration: 0.5, ease: EXPO },
+          "-=0.55",
+        )
+        // 4. 引號圖示 + 引言文字
+        .to(
+          [quoteIconRef.value, quoteRef.value],
+          { opacity: 1, y: 0, duration: 0.6, ease: EXPO, stagger: 0.1 },
+          "-=0.4",
+        )
+        // 5. 頭像：從中心優雅擴散
+        .to(
+          avatarRef.value,
+          { clipPath: "circle(75% at center)", duration: 0.7, ease: "power2.out" },
+          "-=0.35",
+        )
+        // 6. 姓名 + 公司
+        .to(
+          nameRef.value,
+          { opacity: 1, y: 0, duration: 0.5, ease: EXPO },
+          "-=0.45",
+        );
+    },
+  });
+};
+
+/* ----------------------------------
    Lifecycle
 ---------------------------------- */
 
@@ -213,29 +299,36 @@ onMounted(async () => {
   prefersReducedMotion = window.matchMedia(
     "(prefers-reduced-motion: reduce)",
   ).matches;
+
+  if (prefersReducedMotion) return;
+
+  setupEntrance();
+
+  requestAnimationFrame(() => ScrollTrigger.refresh());
 });
 
 onBeforeUnmount(() => {
   isUnmounted = true;
   switchTimeline?.kill();
+  entranceTrigger?.kill();
 
   if (quoteIconRef.value) gsap.killTweensOf(quoteIconRef.value);
   if (quoteRef.value) gsap.killTweensOf(quoteRef.value);
   if (avatarRef.value) gsap.killTweensOf(avatarRef.value);
   if (nameRef.value) gsap.killTweensOf(nameRef.value);
   if (counterRef.value) gsap.killTweensOf(counterRef.value);
+  if (cardWrapRef.value) gsap.killTweensOf(cardWrapRef.value);
 });
 </script>
-
 <template>
-  <section class="min-h-screen w-full bg-white py-20 sm:py-28 flex items-center">
+  <section ref="sectionRef" class="min-h-screen w-full bg-white py-20 sm:py-28 flex items-center">
     <div class="mx-auto max-w-[1800px] px-6">
-      <div class="rounded-3xl border border-gray-200 px-8 py-10 sm:px-14 sm:py-14">
+      <div ref="cardWrapRef" class="rounded-3xl border border-gray-200 px-8 py-10 sm:px-14 sm:py-14" style="will-change: transform, filter;">
         <div class="grid grid-cols-1 gap-6 lg:grid-cols-3 lg:gap-6">
           <!-- 手機版：按鈕 + 數字/標題 同一行；桌機版：按鈕獨立一欄 -->
           <div class="flex items-center justify-between gap-4 lg:col-span-1 lg:block">
             <!-- 按鈕 -->
-            <div class="flex gap-3">
+            <div ref="btnGroupRef" class="flex gap-3">
               <button type="button"
                 class="flex h-11 w-11 items-center justify-center rounded-full border border-gray-300 text-[#1a1a1a] transition-colors hover:border-[#B55F00] hover:text-[#B55F00] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#B55F00]"
                 aria-label="上一則評價" @click="handlePrev" @mousemove="handleMagneticMove" @mouseleave="handleMagneticLeave">
@@ -255,7 +348,7 @@ onBeforeUnmount(() => {
               </button>
             </div>
 
-            <!-- 數字/標題：只在手機版顯示在這裡（跟按鈕同一行），桌機版隱藏（會在右欄重複顯示一次） -->
+            <!-- 數字/標題：只在手機版顯示在這裡 -->
             <div class="flex items-baseline gap-3 lg:hidden">
               <span class="text-lg font-medium text-gray-400">
                 {{ formatCounter(activeIndex, reviews.length) }}
@@ -268,7 +361,6 @@ onBeforeUnmount(() => {
 
           <!-- 右欄：桌機版顯示完整的數字/標題 + 引言 + 姓名頭像 -->
           <div class="lg:col-span-2">
-            <!-- 數字/標題：只在桌機版顯示在這裡 -->
             <div class="hidden items-baseline gap-4 lg:flex">
               <span ref="counterRef" class="text-lg font-medium text-gray-400">
                 {{ formatCounter(activeIndex, reviews.length) }}
@@ -277,13 +369,12 @@ onBeforeUnmount(() => {
                 {{ eyebrow }}
               </h2>
             </div>
-            <div class="sm:mt-16  lg:mt-16">
+            <div class="sm:mt-16 lg:mt-16">
               <img src="../assets/quote.svg" alt="" ref="quoteIconRef" class="mb-4 h-8 w-8" aria-hidden="true" />
               <p ref="quoteRef" class="mt-6 text-2xl font-medium leading-snug text-[#1a1a1a] sm:text-5xl">
                 「{{ reviews[activeIndex].quote }}」
               </p>
             </div>
-
 
             <div class="mt-8 flex items-center gap-4 sm:mt-12">
               <img ref="avatarRef" :src="reviews[activeIndex].avatar" :alt="reviews[activeIndex].name"
