@@ -11,7 +11,6 @@ import Testimonials from "./components/Testimonials.vue";
 import Navigation from "./components/Navigation.vue";
 import Contact from "./components/Contact.vue";
 import Footer from "./components/Footer.vue";
-import CurveReveal from "./components/CurveReveal.vue"
 
 gsap.registerPlugin(ScrollTrigger);
 

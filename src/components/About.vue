@@ -52,7 +52,6 @@ withDefaults(defineProps<Props>(), {
 
 const wrapperRef = ref<HTMLElement | null>(null);
 const travelRef = ref<HTMLElement | null>(null);
-const scene1Ref = ref<HTMLElement | null>(null);
 const scene2Ref = ref<HTMLElement | null>(null);
 const scene3Ref = ref<HTMLElement | null>(null);
 const imageSlot1Ref = ref<HTMLElement | null>(null);

@@ -14,7 +14,7 @@ withDefaults(defineProps<Props>(), {
 
 const linkRef = ref<HTMLElement | null>(null);
 const pillRef = ref<HTMLElement | null>(null);
-const iconWrapRef = ref<HTMLElement | null>(null);
+
 const arrowRef = ref<HTMLElement | null>(null);
 
 let prefersReducedMotion = false;

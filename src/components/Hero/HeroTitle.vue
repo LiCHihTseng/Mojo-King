@@ -23,13 +23,7 @@ const descriptionRef = ref<HTMLElement | null>(null);
 
 let gsapContext: gsap.Context | null = null;
 
-const setHeadingRef = (element: Element | null) => {
-  if (!(element instanceof HTMLElement)) return;
 
-  if (!headingRefs.value.includes(element)) {
-    headingRefs.value.push(element);
-  }
-};
 
 onMounted(async () => {
   await nextTick();
