@@ -5,7 +5,7 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 import HeroTitle from "./HeroTitle.vue";
 import HeroCTA from "./HeroCTA.vue";
-import Portrait from "../../assets/test.png";
+import Portrait from "../../assets/Test.png";
 
 gsap.registerPlugin(ScrollTrigger);
 
