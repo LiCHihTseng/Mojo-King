@@ -1,4 +1,91 @@
+<script setup lang="ts">
+import { ref, watch, onBeforeUnmount } from 'vue'
+import gsap from 'gsap'
 
+const props = defineProps({
+  loading: { type: Boolean, default: true },
+})
+const emit = defineEmits(['done'])
+
+const rootRef = ref<HTMLDivElement | null>(null)
+const wipeRef = ref<SVGSVGElement | null>(null)
+const barFillRef = ref<HTMLDivElement | null>(null)
+
+let crawlTween: gsap.core.Tween | null = null
+
+const visible = ref(true)
+
+// 背景色：B55F00 的降飽和版本，直接改這個變數
+const BG_COLOR = '#8B4900'
+
+const CRAWL_TARGET = 0.85     // loading 期間先「假爬」到 85% 就停住
+const CRAWL_DURATION = 3.2    // 爬到 85% 的時間 (秒)
+const FINISH_DURATION = 0.6   // loading 結束後，補滿到 100% 的時間 (秒)
+const HOLD_AFTER_FINISH = 0.3 // 補滿之後，停留看清楚的時間 (秒)
+const EXIT_DURATION = 0.85    // 整體往上收走的時間 (秒)
+
+// 唯一的進度來源（0~1），GSAP 直接 tween 這個純 JS 物件，
+// 不透過 Vue 的響應式系統，效能較好、也比較符合 GSAP 慣用寫法
+const state = { progress: 0 }
+
+
+// 進度改變時，同步更新 loading 條跟擦白層
+function applyProgress() {
+  const p = state.progress
+  if (barFillRef.value) barFillRef.value.style.transform = `scaleX(${p})`
+  if (wipeRef.value) wipeRef.value.style.clipPath = `inset(0 ${(1 - p) * 100}% 0 0)`
+}
+
+function startCrawl() {
+  crawlTween?.kill()
+  state.progress = 0
+  applyProgress()
+  crawlTween = gsap.to(state, {
+    progress: CRAWL_TARGET,
+    duration: CRAWL_DURATION,
+    ease: 'power1.out',
+    onUpdate: applyProgress,
+  })
+}
+
+function finishAndExit() {
+  crawlTween?.kill()
+  gsap.timeline()
+    .to(state, {
+      progress: 1,
+      duration: FINISH_DURATION,
+      ease: 'power2.out',
+      onUpdate: applyProgress,
+    })
+    .to(rootRef.value, {
+      yPercent: -100,
+      duration: EXIT_DURATION,
+      ease: 'power3.inOut',
+      delay: HOLD_AFTER_FINISH,
+      onComplete: () => {
+        visible.value = false
+        emit('done')
+      },
+    })
+}
+
+watch(
+  () => props.loading,
+  (isLoading) => {
+    if (isLoading) {
+      startCrawl()
+    } else {
+      finishAndExit()
+    }
+  },
+  { immediate: true }
+)
+
+onBeforeUnmount(() => {
+  crawlTween?.kill()
+  if (rootRef.value) gsap.killTweensOf(rootRef.value)
+})
+</script>
 <template>
   <div v-if="visible" ref="rootRef" class="msl-loader" :style="{ background: BG_COLOR }">
     <!-- 霧面紋理：極淡的雜訊，避免大面積色塊看起來死板 -->
@@ -36,161 +123,63 @@
   </div>
 </template>
 
-<script setup lang="ts">
-import {
-  nextTick,
-  onBeforeUnmount,
-  onMounted,
-  ref,
-  watch,
-  type WatchStopHandle,
-} from "vue";
-import gsap from "gsap";
 
-interface Props {
-  loading?: boolean;
+
+<style>
+.msl-loader {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  overflow: hidden;
 }
 
-const props = withDefaults(defineProps<Props>(), {
-  loading: true,
-});
+.msl-center {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 28px;
+}
 
-const emit = defineEmits<{
-  (event: "done"): void;
-}>();
+/* 霧面紋理：極淡的雜訊，避免大面積色塊看起來死板 */
+.msl-grain {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0.025;
+  pointer-events: none;
+  mix-blend-mode: multiply;
+}
 
-const rootRef = ref<HTMLDivElement | null>(null);
-const wipeRef = ref<SVGSVGElement | null>(null);
-const barFillRef = ref<HTMLDivElement | null>(null);
-const visible = ref(true);
+.msl-logo-stack {
+  position: relative;
+}
+.msl-logo {
+  display: block;
+}
+.msl-logo-wipe {
+  position: absolute;
+  inset: 0;
+}
 
-const BG_COLOR = "#8B4900";
-
-const CRAWL_TARGET = 0.85;
-const CRAWL_DURATION = 3.2;
-const FINISH_DURATION = 0.6;
-const HOLD_AFTER_FINISH = 0.3;
-const EXIT_DURATION = 0.85;
-
-const state = {
-  progress: 0,
-};
-
-let crawlTween: gsap.core.Tween | null = null;
-let exitTimeline: gsap.core.Timeline | null = null;
-let stopLoadingWatch: WatchStopHandle | null = null;
-
-const applyProgress = () => {
-  const progress = state.progress;
-
-  if (barFillRef.value) {
-    barFillRef.value.style.transform = `scaleX(${progress})`;
-  }
-
-  if (wipeRef.value) {
-    const remaining = (1 - progress) * 100;
-
-    wipeRef.value.style.clipPath =
-      `inset(0 ${remaining}% 0 0)`;
-  }
-};
-
-const startCrawl = async () => {
-  crawlTween?.kill();
-  exitTimeline?.kill();
-
-  crawlTween = null;
-  exitTimeline = null;
-
-  if (!visible.value) {
-    visible.value = true;
-    await nextTick();
-  }
-
-  if (rootRef.value) {
-    gsap.set(rootRef.value, {
-      yPercent: 0,
-    });
-  }
-
-  state.progress = 0;
-  applyProgress();
-
-  crawlTween = gsap.to(state, {
-    progress: CRAWL_TARGET,
-    duration: CRAWL_DURATION,
-    ease: "power1.out",
-    onUpdate: applyProgress,
-    onComplete: () => {
-      crawlTween = null;
-    },
-  });
-};
-
-const finishAndExit = () => {
-  const root = rootRef.value;
-
-  if (!root) {
-    return;
-  }
-
-  crawlTween?.kill();
-  exitTimeline?.kill();
-
-  crawlTween = null;
-
-  exitTimeline = gsap
-    .timeline()
-    .to(state, {
-      progress: 1,
-      duration: FINISH_DURATION,
-      ease: "power2.out",
-      onUpdate: applyProgress,
-    })
-    .to(root, {
-      yPercent: -100,
-      duration: EXIT_DURATION,
-      ease: "power3.inOut",
-      delay: HOLD_AFTER_FINISH,
-      onComplete: () => {
-        exitTimeline = null;
-        visible.value = false;
-        emit("done");
-      },
-    });
-};
-
-onMounted(() => {
-  // 等 DOM 掛載完成後才啟動 immediate watch，
-  // 避免將 null 傳給 GSAP。
-  stopLoadingWatch = watch(
-    () => props.loading,
-    (isLoading) => {
-      if (isLoading) {
-        void startCrawl();
-      } else {
-        finishAndExit();
-      }
-    },
-    {
-      immediate: true,
-    },
-  );
-});
-
-onBeforeUnmount(() => {
-  stopLoadingWatch?.();
-  crawlTween?.kill();
-  exitTimeline?.kill();
-
-  gsap.killTweensOf(state);
-
-  if (rootRef.value) {
-    gsap.killTweensOf(rootRef.value);
-  }
-
-  crawlTween = null;
-  exitTimeline = null;
-  stopLoadingWatch = null;
-});
-</script>
+.msl-bar-track {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.25);
+  overflow: hidden;
+  border-radius: 0;
+}
+.msl-bar-fill {
+  width: 100%;
+  height: 100%;
+  background: #ffffff;
+  transform-origin: left center;
+}
+</style>
