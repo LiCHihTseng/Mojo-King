@@ -68,7 +68,7 @@ const scene3StatRef = ref<HTMLElement | null>(null);
 ---------------------------------- */
 
 const mWrapperRef = ref<HTMLElement | null>(null);
-const mScene1Ref = ref<HTMLElement | null>(null);
+
 const mScene2Ref = ref<HTMLElement | null>(null);
 const mTravel12Ref = ref<HTMLElement | null>(null);
 const mSlot1Ref = ref<HTMLElement | null>(null);
@@ -79,7 +79,7 @@ const mScene2TextRef = ref<HTMLElement | null>(null);
 const mScene2StatRef = ref<HTMLElement | null>(null);
 
 const mScene3WrapRef = ref<HTMLElement | null>(null);
-const mScene3Ref = ref<HTMLElement | null>(null);
+
 const mScene3SecondRowRef = ref<HTMLElement | null>(null);
 const mTravel3Ref = ref<HTMLElement | null>(null);
 const mStatSlot1Ref = ref<HTMLElement | null>(null);

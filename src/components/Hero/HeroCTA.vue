@@ -19,7 +19,7 @@ const props = withDefaults(defineProps<Props>(), {
 });
 
 const linkRef = ref<HTMLAnchorElement | null>(null);
-const buttonRef = ref<HTMLElement | null>(null);
+// const buttonRef = ref<HTMLElement | null>(null);
 const arrowCurrentRef = ref<SVGElement | null>(null);
 const arrowNextRef = ref<SVGElement | null>(null);
 
