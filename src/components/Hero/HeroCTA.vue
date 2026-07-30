@@ -1,5 +1,11 @@
 <script setup lang="ts">
-import { nextTick, onBeforeUnmount, onMounted, ref } from "vue";
+import {
+  computed,
+  nextTick,
+  onBeforeUnmount,
+  onMounted,
+  ref,
+} from "vue";
 import gsap from "gsap";
 
 interface Props {
@@ -7,18 +13,25 @@ interface Props {
   href?: string;
 }
 
-withDefaults(defineProps<Props>(), {
-  text: "預約諮詢",
+const props = withDefaults(defineProps<Props>(), {
+  text: "Book a Consultation",
   href: "#contact",
 });
 
-const linkRef = ref<HTMLElement | null>(null);
-const pillRef = ref<HTMLElement | null>(null);
+const linkRef = ref<HTMLAnchorElement | null>(null);
+const buttonRef = ref<HTMLElement | null>(null);
+const arrowCurrentRef = ref<SVGElement | null>(null);
+const arrowNextRef = ref<SVGElement | null>(null);
 
-const arrowRef = ref<HTMLElement | null>(null);
+const characters = computed(() =>
+  Array.from(props.text).map((character) =>
+    character === " " ? "\u00A0" : character,
+  ),
+);
 
 let prefersReducedMotion = false;
 let gsapContext: gsap.Context | null = null;
+let hoverTimeline: gsap.core.Timeline | null = null;
 
 onMounted(async () => {
   await nextTick();
@@ -27,107 +40,224 @@ onMounted(async () => {
     "(prefers-reduced-motion: reduce)",
   ).matches;
 
-  gsapContext = gsap.context(() => {
-    // 初始狀態：箭頭旋轉 30 度（跟 handleLeave 的還原角度一致）
-    gsap.set(arrowRef.value, { rotate: 5 });
-  }, linkRef.value ?? undefined);
-});
+  const link = linkRef.value;
+  const currentArrow = arrowCurrentRef.value;
+  const nextArrow = arrowNextRef.value;
 
-onBeforeUnmount(() => {
-  gsapContext?.revert();
+  // 通過這裡之後，TypeScript 就知道它們不會是 null
+  if (!link || !currentArrow || !nextArrow) return;
+
+  const characterStacks = Array.from(
+    link.querySelectorAll<HTMLElement>(
+      ".cta-character-stack",
+    ),
+  );
+
+  gsapContext = gsap.context(() => {
+    gsap.set(characterStacks, {
+      yPercent: 0,
+    });
+
+    gsap.set(currentArrow, {
+      x: 0,
+      opacity: 1,
+    });
+
+    gsap.set(nextArrow, {
+      x: -24,
+      opacity: 0,
+    });
+
+    if (prefersReducedMotion) return;
+
+    hoverTimeline = gsap.timeline({
+      paused: true,
+      defaults: {
+        overwrite: "auto",
+      },
+    });
+
+    // 文字波浪向上
+    hoverTimeline.to(
+      characterStacks,
+      {
+        yPercent: -50,
+        duration: 0.5,
+        stagger: {
+          each: 0.025,
+          from: "start",
+        },
+        ease: "power3.inOut",
+      },
+      0,
+    );
+
+    // 原本箭頭向右飛出
+    hoverTimeline.to(
+      currentArrow,
+      {
+        x: 24,
+        opacity: 0,
+        duration: 0.28,
+        ease: "power2.in",
+      },
+      0.08,
+    );
+
+    // 新箭頭從左側飛入
+    hoverTimeline.fromTo(
+      nextArrow,
+      {
+        x: -24,
+        opacity: 0,
+      },
+      {
+        x: 0,
+        opacity: 1,
+        duration: 0.38,
+        ease: "power3.out",
+      },
+      0.16,
+    );
+
+    // 整顆按鈕輕微向上
+    // hoverTimeline.to(
+    //   link,
+    //   {
+    //     y: -2,
+    //     duration: 0.35,
+    //     ease: "power3.out",
+    //   },
+    //   0,
+    // );
+  }, link);
 });
 
 const handleEnter = () => {
   if (prefersReducedMotion) return;
 
-  gsap.to(linkRef.value, {
-    scale: 1.03,
-    duration: 0.3,
-    ease: "power2.out",
-    overwrite: "auto",
-  });
-
-  gsap.to(pillRef.value, {
-    backgroundColor: "#B55F00",
-    color: "#FFFFFF",
-    duration: 0.35,
-    ease: "power2.out",
-    overwrite: "auto",
-  });
-
-  gsap.to(arrowRef.value, {
-    rotate: 45,
-    duration: 0.4,
-    ease: "back.out(1.6)",
-    overwrite: "auto",
-  });
-
-
+  hoverTimeline?.play();
 };
 
 const handleLeave = () => {
-  gsap.to(linkRef.value, {
-    scale: 1,
-    duration: 0.35,
-    ease: "power3.out",
-    overwrite: "auto",
-  });
+  if (prefersReducedMotion) return;
 
-  gsap.to(pillRef.value, {
-    backgroundColor: "#FFFFFF",
-    color: "#1a1a1a",
-    duration: 0.35,
-    ease: "power2.out",
-    overwrite: "auto",
-  });
-
-  gsap.to(arrowRef.value, {
-    rotate: 5,
-    duration: 0.4,
-    ease: "power3.inOut",
-    overwrite: "auto",
-  });
-
-
+  hoverTimeline?.reverse();
 };
+
+onBeforeUnmount(() => {
+  hoverTimeline?.kill();
+  gsapContext?.revert();
+
+  hoverTimeline = null;
+  gsapContext = null;
+});
 </script>
 
 <template>
   <a
     ref="linkRef"
-    :href="href"
-    class="inline-flex origin-center items-center focus-visible:outline-none"
+    :href="props.href"
+    class="
+      inline-flex origin-center
+      focus-visible:outline-none
+      focus-visible:ring-2
+      focus-visible:ring-[#B55F00]
+      focus-visible:ring-offset-2
+    "
     @mouseenter="handleEnter"
     @mouseleave="handleLeave"
+    @focus="handleEnter"
+    @blur="handleLeave"
   >
-    <!-- 按鈕本體：文字 pill，預設白底，hover 變香檳金 -->
     <span
-      ref="pillRef"
-      class="inline-flex items-center rounded-full bg-white px-8 py-3.5 text-lg font-medium text-[#1a1a1a] shadow-lg"
+      ref="buttonRef"
+      class="
+        inline-flex min-h-[52px] items-center gap-3
+        rounded-[2px] bg-[#F2F2EF] px-4
+        text-[#171717]
+        shadow-[0_1px_4px_rgba(0,0,0,0.12)]
+      "
     >
-      {{ text }}
-    </span>
+      <!-- 真正提供給螢幕閱讀器的文字 -->
+      <span class="sr-only">
+        {{ props.text }}
+      </span>
 
-    <!-- 圓形箭頭圖示：緊貼在按鈕旁，背景固定香檳金 -->
-    <span
-      ref="iconWrapRef"
-      class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#B55F00] shadow-lg ring-2 ring-transparent transition-shadow focus-visible:ring-white"
-      aria-hidden="true"
-    >
-      <svg
-        ref="arrowRef"
-        viewBox="0 0 20 20"
-        fill="none"
-        class="h-6 w-6 text-white"
+      <!-- 波浪文字 -->
+      <span
+        aria-hidden="true"
+        class="
+          inline-flex h-[1em] items-start overflow-hidden
+          whitespace-nowrap text-[14px] font-medium leading-none
+        "
       >
-        <path
-          d="M5 15L15 5M15 5H7M15 5V13"
-          stroke="currentColor"
-          stroke-width="1.8"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        />
-      </svg>
+        <span
+          v-for="(character, index) in characters"
+          :key="`${character}-${index}`"
+          class="inline-block h-[1em] overflow-hidden"
+        >
+          <span
+            class="
+              cta-character-stack
+              flex flex-col
+              will-change-transform
+            "
+          >
+            <!-- 第一份文字 -->
+            <span class="block h-[1em] leading-none">
+              {{ character }}
+            </span>
+
+            <!-- 第二份相同文字 -->
+            <span class="block h-[1em] leading-none">
+              {{ character }}
+            </span>
+          </span>
+        </span>
+      </span>
+
+      <!-- 箭頭裁切圓框 -->
+      <span
+        aria-hidden="true"
+        class="
+          relative flex h-6 w-6 shrink-0 items-center
+          justify-center overflow-hidden rounded-full
+          border border-current
+        "
+      >
+        <!-- 原本箭頭 -->
+        <svg
+          ref="arrowCurrentRef"
+          viewBox="0 0 20 20"
+          fill="none"
+          class="absolute h-4 w-4 will-change-transform"
+        >
+          <path
+            d="M4 10H16M12 6L16 10L12 14"
+            stroke="currentColor"
+            stroke-width="1.4"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </svg>
+
+        <!-- 從左邊進來的新箭頭 -->
+        <svg
+          ref="arrowNextRef"
+          viewBox="0 0 20 20"
+          fill="none"
+          class="absolute h-4 w-4 will-change-transform"
+        >
+          <path
+            d="M4 10H16M12 6L16 10L12 14"
+            stroke="currentColor"
+            stroke-width="1.4"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </svg>
+      </span>
     </span>
   </a>
 </template>

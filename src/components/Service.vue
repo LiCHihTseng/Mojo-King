@@ -162,75 +162,70 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-    <section
-      ref="sectionRef"
-      class="relative flex h-screen w-full items-center justify-center overflow-hidden bg-cover bg-center"
-      :style="{ backgroundImage: `url(${backgroundImage})` }"
-    >
-      <div class="pointer-events-none absolute inset-0 bg-black/30"></div>
-  
-      <div
-        class="relative w-[94%]"
-        style="height: clamp(480px, 62vw, 720px); max-width: clamp(900px, 78vw, 1600px);"
-      >
-        <div
-          v-for="(card, index) in cards"
-          :key="index"
-          :ref="(el) => setCardRef(el as Element | null, index)"
-          class="absolute inset-0 grid grid-cols-1 overflow-hidden rounded-2xl shadow-2xl sm:grid-cols-2"
-          style="will-change: transform;"
-        >
-          <!-- 左欄：深色底，文字資訊 -->
-          <div
-            class="flex flex-col justify-center bg-white"
-            style="padding: clamp(2.5rem, 4vw, 4.5rem);"
-          >
-            <span
-              class="mb-5 inline-flex w-fit items-center rounded-full bg-[#BF5F00] font-medium text-white"
-              style="padding: clamp(0.4rem, 0.6vw, 0.6rem) clamp(1rem, 1.4vw, 1.5rem); font-size: clamp(0.85rem, 1vw, 1.05rem);"
-            >
-              {{ card.tag }}
-            </span>
-  
-            <h3
-              class="font-bold leading-tight tracking-tight text-[#1a1a1a]"
-              style="font-size: clamp(1.75rem, 3.2vw, 3.25rem);"
-            >
-              {{ card.titleLine1 }}
-              <br />
-              {{ card.titleLine2 }}
-            </h3>
-  
-            <p
-              class="mt-5 max-w-lg leading-7 text-[#1a1a1a]/60"
-              style="font-size: clamp(0.95rem, 1.3vw, 1.375rem); line-height: 1.7;"
-            >
-              {{ card.body }}
-            </p>
-  
-            <div style="margin-top: clamp(1.5rem, 2.5vw, 2.5rem);">
-              <HeroCTA text="了解服務" />
-            </div>
+  <section ref="sectionRef"
+    class="relative flex h-screen w-full items-center justify-center overflow-hidden bg-cover bg-center"
+>
+
+    <div
+    class="absolute inset-0 scale-[1.02] bg-cover bg-center"
+    :style="{
+      backgroundImage: `url(${backgroundImage})`,
+      filter: 'saturate(0.8) contrast(0.9) brightness(0.85)'
+    }"
+  ></div>
+
+    <!-- Dark overlay -->
+    <div class="pointer-events-none absolute inset-0 bg-black/10"></div>
+
+    <!-- Film Grain -->
+    <div class="noise-overlay pointer-events-none absolute inset-0"></div>
+
+    <div class="relative w-[94%]" style="height: clamp(480px, 62vw, 720px); max-width: clamp(900px, 78vw, 1600px);">
+      <div v-for="(card, index) in cards" :key="index" :ref="(el) => setCardRef(el as Element | null, index)"
+        class="absolute inset-0 grid grid-cols-1 overflow-hidden rounded-2xl shadow-2xl sm:grid-cols-2"
+        style="will-change: transform;">
+        <!-- 左欄：深色底，文字資訊 -->
+        <div class="flex flex-col justify-center bg-white" style="padding: clamp(2.5rem, 4vw, 4.5rem);">
+          <span class="mb-5 inline-flex w-fit items-center rounded-full bg-[#BF5F00] font-medium text-white"
+            style="padding: clamp(0.4rem, 0.6vw, 0.6rem) clamp(1rem, 1.4vw, 1.5rem); font-size: clamp(0.85rem, 1vw, 1.05rem);">
+            {{ card.tag }}
+          </span>
+
+          <h3 class="font-bold leading-tight tracking-tight text-[#1a1a1a]"
+            style="font-size: clamp(1.75rem, 3.2vw, 3.25rem);">
+            {{ card.titleLine1 }}
+            <br />
+            {{ card.titleLine2 }}
+          </h3>
+
+          <p class="mt-5 max-w-lg leading-7 text-[#1a1a1a]/60"
+            style="font-size: clamp(0.95rem, 1.3vw, 1.375rem); line-height: 1.7;">
+            {{ card.body }}
+          </p>
+
+          <div style="margin-top: clamp(1.5rem, 2.5vw, 2.5rem);">
+            <HeroCTA text="了解服務" />
           </div>
-  
-          <!-- 右欄：真實圖片，帶輕微歪斜 -->
-          <div
-            class="relative hidden items-center justify-center overflow-hidden sm:flex"
-            :style="{ backgroundColor: card.visualBg }"
-          >
-            <div
-              class="overflow-hidden rounded-2xl border-4 border-white shadow-xl"
-              style="height: 75%; width: 60%; transform: rotate(-8deg);"
-            >
-              <img
-                :src="card.image"
-                :alt="card.tag"
-                class="h-full w-full object-cover"
-                loading="lazy"
-              />
-            </div>
+        </div>
+
+        <!-- 右欄：真實圖片，帶輕微歪斜 -->
+        <div class="relative hidden items-center justify-center overflow-hidden sm:flex"
+          :style="{ backgroundColor: card.visualBg }">
+          <div class="overflow-hidden rounded-2xl border-4 border-white shadow-xl"
+            style="height: 75%; width: 60%; transform: rotate(-8deg);">
+            <img :src="card.image" :alt="card.tag" class="h-full w-full object-cover" loading="lazy" />
           </div>
         </div>
       </div>
-    </section>
-  </template>
+    </div>
+  </section>
+</template>
+
+<style scoped>
+.noise-overlay {
+  opacity: 0.16;
+  mix-blend-mode: soft-light;
+
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='1'/%3E%3C/svg%3E");
+}
+</style>
