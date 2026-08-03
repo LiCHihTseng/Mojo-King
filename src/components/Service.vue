@@ -28,7 +28,7 @@ withDefaults(defineProps<Props>(), {
       titleLine1: "制度清楚透明，",
       titleLine2: "員工才願意留下來。",
       body: "從薪酬結構到工作規則，協助你把人事制度從零到一建立起來，不再依賴個人經驗運作。",
-      visualBg: "#FDE68A",
+      visualBg: "#F9F8F6",
       image: "https://picsum.photos/seed/svc-1/720/560",
     },
     {
@@ -36,7 +36,7 @@ withDefaults(defineProps<Props>(), {
       titleLine1: "解決的不是沒人投履歷，",
       titleLine2: "而是找不到對的人。",
       body: "重新定位職缺、設計面試流程，讓面試官不再各自為政，錄取的人也真的留得下來。",
-      visualBg: "#BFDBFE",
+      visualBg: "#F9F8F6",
       image: "https://picsum.photos/seed/svc-2/720/560",
     },
     {
@@ -44,7 +44,7 @@ withDefaults(defineProps<Props>(), {
       titleLine1: "讓主管不只會做事，",
       titleLine2: "更懂得帶人。",
       body: "透過一對一教練與績效面談訓練，讓主管真的敢開口談期望、給回饋。",
-      visualBg: "#FBCFE8",
+      visualBg: "#F9F8F6",
       image: "https://picsum.photos/seed/svc-3/720/560",
     },
     {
@@ -52,7 +52,7 @@ withDefaults(defineProps<Props>(), {
       titleLine1: "在問題發生前，",
       titleLine2: "先把地雷排掉。",
       body: "勞動法規健檢、資遣與爭議處理陪跑，讓你做每個決定時，心裡都有底。",
-      visualBg: "#BBF7D0",
+      visualBg: "#F9F8F6",
       image: "https://picsum.photos/seed/svc-4/720/560",
     },
   ],
@@ -163,16 +163,12 @@ onBeforeUnmount(() => {
 
 <template>
   <section ref="sectionRef"
-    class="relative flex h-screen w-full items-center justify-center overflow-hidden bg-cover bg-center"
->
+    class="relative flex h-screen w-full items-center justify-center overflow-hidden bg-cover bg-center">
 
-    <div
-    class="absolute inset-0 scale-[1.02] bg-cover bg-center"
-    :style="{
+    <div class="absolute inset-0 scale-[1.02] bg-cover bg-center" :style="{
       backgroundImage: `url(${backgroundImage})`,
       filter: 'saturate(0.8) contrast(0.9) brightness(0.85)'
-    }"
-  ></div>
+    }"></div>
 
     <!-- Dark overlay -->
     <div class="pointer-events-none absolute inset-0 bg-black/10"></div>
@@ -182,37 +178,38 @@ onBeforeUnmount(() => {
 
     <div class="relative w-[94%]" style="height: clamp(480px, 62vw, 720px); max-width: clamp(900px, 78vw, 1600px);">
       <div v-for="(card, index) in cards" :key="index" :ref="(el) => setCardRef(el as Element | null, index)"
-        class="absolute inset-0 grid grid-cols-1 overflow-hidden rounded-2xl shadow-2xl sm:grid-cols-2"
-        style="will-change: transform;">
+        class="absolute inset-0 grid grid-cols-1 overflow-hidden rounded-2xl bg-[#F9F8F6] shadow-2xl sm:grid-cols-2"
+        style="will-change: transform; backface-visibility: hidden;">
         <!-- 左欄：深色底，文字資訊 -->
-        <div class="flex flex-col justify-center bg-white" style="padding: clamp(2.5rem, 4vw, 4.5rem);">
-          <span class="mb-5 inline-flex w-fit items-center rounded-full bg-[#BF5F00] font-medium text-white"
+        <div class="flex flex-col justify-center bg-[#F9F8F6]" style="padding: clamp(2.5rem, 4vw, 4.5rem);">
+          <span class="mb-5 inline-flex w-fit items-center rounded-sm  font-medium rounded-md bg-[#FF891D2E] px-3 py-1.5 text-xs font-medium text-[#FF891D] sm:text-sm"
             style="padding: clamp(0.4rem, 0.6vw, 0.6rem) clamp(1rem, 1.4vw, 1.5rem); font-size: clamp(0.85rem, 1vw, 1.05rem);">
             {{ card.tag }}
           </span>
 
-          <h3 class="font-bold leading-tight tracking-tight text-[#1a1a1a]"
+          <h3 class="font-medium font-base leading-tight tracking-tight text-[#252525]"
             style="font-size: clamp(1.75rem, 3.2vw, 3.25rem);">
             {{ card.titleLine1 }}
             <br />
             {{ card.titleLine2 }}
           </h3>
 
-          <p class="mt-5 max-w-lg leading-7 text-[#1a1a1a]/60"
+          <p class="mt-5 max-w-lg leading-7 text-[#252525]/60"
             style="font-size: clamp(0.95rem, 1.3vw, 1.375rem); line-height: 1.7;">
             {{ card.body }}
           </p>
 
           <div style="margin-top: clamp(1.5rem, 2.5vw, 2.5rem);">
-            <HeroCTA text="了解服務" />
+            <HeroCTA text="了解服務" variant="ghost" text-color="#252525"/>
           </div>
         </div>
 
-        <!-- 右欄：真實圖片，帶輕微歪斜 -->
-        <div class="relative hidden items-center justify-center overflow-hidden sm:flex"
-          :style="{ backgroundColor: card.visualBg }">
-          <div class="overflow-hidden rounded-2xl border-4 border-white shadow-xl"
-            style="height: 75%; width: 60%; transform: rotate(-8deg);">
+        <!-- 右欄：真實圖片 -->
+        <div class="relative hidden items-center justify-center overflow-hidden sm:flex" :style="{
+          backgroundColor: card.visualBg,
+          padding: 'clamp(1.5rem, 3vw, 3.5rem)'
+        }">
+          <div class="aspect-[4/3] w-full max-h-full overflow-hidden rounded-lg shadow-xl">
             <img :src="card.image" :alt="card.tag" class="h-full w-full object-cover" loading="lazy" />
           </div>
         </div>

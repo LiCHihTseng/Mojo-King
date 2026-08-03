@@ -5,8 +5,8 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 gsap.registerPlugin(ScrollTrigger);
 
 const sectionRef = ref<HTMLElement | null>(null);
-const cardWrapRef = ref<HTMLElement | null>(null); // 新增：整個卡片外框
-const btnGroupRef = ref<HTMLElement | null>(null); // 新增：兩個箭頭按鈕的容器
+const cardWrapRef = ref<HTMLElement | null>(null); // 整個卡片外框
+const btnGroupRef = ref<HTMLElement | null>(null); // 兩個箭頭按鈕的容器
 
 interface Review {
   name: string;
@@ -85,7 +85,6 @@ const formatCounter = (index: number, total: number) =>
 
 /* ----------------------------------
    切換：文案先顯現 → 數字接著顯現
-   (卡片切換邏輯完全不變)
 ---------------------------------- */
 
 const switchTo = (newIndex: number) => {
@@ -203,9 +202,7 @@ const handleMagneticLeave = (event: MouseEvent) => {
 };
 
 /* ----------------------------------
-   進場動畫：高級質感的整體揭幕
-   容器本身「模糊→清晰 + 微幅上移 + 縮放」，
-   內部按鈕、文案、頭像依序優雅浮現。
+   進場動畫：整體揭幕
 ---------------------------------- */
 
 const setupEntrance = () => {
@@ -234,13 +231,11 @@ const setupEntrance = () => {
     start: "top 78%",
     once: true,
     onEnter: () => {
-      // "expo.out" 是業界公認最具高級感的緩動曲線之一，
-      // 常見於精品品牌與 Awwwards 得獎作品的進場動畫。
       const EXPO = "expo.out";
 
       gsap
         .timeline()
-        // 1. 整體卡片框：由模糊、略縮小、略下沉，優雅浮現定位
+        // 1. 整體卡片框：由模糊、略縮小、略下沉，浮現定位
         .to(cardWrapRef.value, {
           opacity: 1,
           y: 0,
@@ -273,7 +268,7 @@ const setupEntrance = () => {
           { opacity: 1, y: 0, duration: 0.6, ease: EXPO, stagger: 0.1 },
           "-=0.4",
         )
-        // 5. 頭像：從中心優雅擴散
+        // 5. 頭像：從中心擴散
         .to(
           avatarRef.value,
           { clipPath: "circle(75% at center)", duration: 0.7, ease: "power2.out" },
@@ -320,27 +315,48 @@ onBeforeUnmount(() => {
   if (cardWrapRef.value) gsap.killTweensOf(cardWrapRef.value);
 });
 </script>
+
 <template>
-  <section ref="sectionRef" class="min-h-screen w-full bg-white py-20 sm:py-28 flex items-center">
-    <div class="mx-auto max-w-[1800px] px-6">
-      <div ref="cardWrapRef" class="rounded-3xl border border-gray-200 px-8 py-10 sm:px-14 sm:py-14" style="will-change: transform, filter;">
+  <section ref="sectionRef" class="flex min-h-screen w-full items-center bg-[#F9F8F6] py-16 sm:py-20 lg:py-28">
+    <div class="mx-auto w-full max-w-[1800px] px-4 sm:px-6">
+      <div
+        ref="cardWrapRef"
+        class="rounded-3xl border border-gray-200 px-6 py-8 sm:px-10 sm:py-10 lg:px-14 lg:py-14"
+        style="will-change: transform, filter;"
+      >
         <div class="grid grid-cols-1 gap-6 lg:grid-cols-3 lg:gap-6">
-          <!-- 手機版：按鈕 + 數字/標題 同一行；桌機版：按鈕獨立一欄 -->
-          <div class="flex items-center justify-between gap-4 lg:col-span-1 lg:block">
+          <!--
+            手機：按鈕在上、數字/標題在下（直向堆疊）
+            平板：兩者同一行、左右分開
+            桌機：按鈕獨立成一欄
+          -->
+          <div
+            class="flex flex-col items-start gap-4 md:flex-row md:items-center md:justify-between lg:col-span-1 lg:block"
+          >
             <!-- 按鈕 -->
-            <div ref="btnGroupRef" class="flex gap-3">
-              <button type="button"
+            <div ref="btnGroupRef" class="flex gap-2 sm:gap-3">
+              <button
+                type="button"
                 class="flex h-11 w-11 items-center justify-center rounded-full border border-gray-300 text-[#1a1a1a] transition-colors hover:border-[#B55F00] hover:text-[#B55F00] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#B55F00]"
-                aria-label="上一則評價" @click="handlePrev" @mousemove="handleMagneticMove" @mouseleave="handleMagneticLeave">
+                aria-label="上一則評價"
+                @click="handlePrev"
+                @mousemove="handleMagneticMove"
+                @mouseleave="handleMagneticLeave"
+              >
                 <svg viewBox="0 0 20 20" fill="none" class="h-4 w-4">
                   <path d="M12.5 5L7.5 10L12.5 15" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
                     stroke-linejoin="round" />
                 </svg>
               </button>
 
-              <button type="button"
+              <button
+                type="button"
                 class="flex h-11 w-11 items-center justify-center rounded-full border border-gray-300 text-[#1a1a1a] transition-colors hover:border-[#B55F00] hover:text-[#B55F00] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#B55F00]"
-                aria-label="下一則評價" @click="handleNext" @mousemove="handleMagneticMove" @mouseleave="handleMagneticLeave">
+                aria-label="下一則評價"
+                @click="handleNext"
+                @mousemove="handleMagneticMove"
+                @mouseleave="handleMagneticLeave"
+              >
                 <svg viewBox="0 0 20 20" fill="none" class="h-4 w-4">
                   <path d="M7.5 5L12.5 10L7.5 15" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
                     stroke-linejoin="round" />
@@ -348,12 +364,12 @@ onBeforeUnmount(() => {
               </button>
             </div>
 
-            <!-- 數字/標題：只在手機版顯示在這裡 -->
+            <!-- 數字/標題：lg 以下顯示在這裡 -->
             <div class="flex items-baseline gap-3 lg:hidden">
-              <span class="text-lg font-medium text-gray-400">
+              <span class="text-base font-medium text-gray-400 sm:text-lg">
                 {{ formatCounter(activeIndex, reviews.length) }}
               </span>
-              <h2 class="text-lg font-bold text-[#1a1a1a]">
+              <h2 class="text-base font-bold text-[#1a1a1a] sm:text-lg">
                 {{ eyebrow }}
               </h2>
             </div>
@@ -365,24 +381,43 @@ onBeforeUnmount(() => {
               <span ref="counterRef" class="text-lg font-medium text-gray-400">
                 {{ formatCounter(activeIndex, reviews.length) }}
               </span>
-              <h2 class="text-xl font-bold text-[#1a1a1a] sm:text-2xl">
+              <h2 class="text-2xl font-bold text-[#1a1a1a]">
                 {{ eyebrow }}
               </h2>
             </div>
-            <div class="sm:mt-16 lg:mt-16">
-              <img src="../assets/quote.svg" alt="" ref="quoteIconRef" class="mb-4 h-8 w-8" aria-hidden="true" />
-              <p ref="quoteRef" class="mt-6 text-2xl font-medium leading-snug text-[#1a1a1a] sm:text-5xl">
+
+            <div class="mt-8 sm:mt-12 lg:mt-16">
+              <img
+                src="../assets/quote.svg"
+                alt=""
+                ref="quoteIconRef"
+                class="mb-4 h-6 w-6 sm:h-8 sm:w-8"
+                aria-hidden="true"
+              />
+              <p
+                ref="quoteRef"
+                class="mt-4 text-xl font-medium leading-snug text-[#1a1a1a] sm:mt-6 sm:text-2xl md:text-3xl lg:text-4xl"
+              >
                 「{{ reviews[activeIndex].quote }}」
               </p>
             </div>
 
             <div class="mt-8 flex items-center gap-4 sm:mt-12">
-              <img ref="avatarRef" :src="reviews[activeIndex].avatar" :alt="reviews[activeIndex].name"
-                class="h-18 w-18 shrink-0 rounded-full object-cover" style="transform-origin: center center;"
-                loading="lazy" />
+              <img
+                ref="avatarRef"
+                :src="reviews[activeIndex].avatar"
+                :alt="reviews[activeIndex].name"
+                class="h-14 w-14 shrink-0 rounded-full object-cover sm:h-16 sm:w-16 lg:h-20 lg:w-20"
+                style="transform-origin: center center;"
+                loading="lazy"
+              />
               <div ref="nameRef">
-                <p class="font-semibold text-[#1a1a1a] text-xl">{{ reviews[activeIndex].name }}</p>
-                <p class="text-sm text-gray-500">{{ reviews[activeIndex].company }}</p>
+                <p class="text-base font-semibold text-[#1a1a1a] sm:text-lg lg:text-xl">
+                  {{ reviews[activeIndex].name }}
+                </p>
+                <p class="text-xs text-gray-500 sm:text-sm">
+                  {{ reviews[activeIndex].company }}
+                </p>
               </div>
             </div>
           </div>

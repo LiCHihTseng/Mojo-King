@@ -9,7 +9,7 @@ import Portrait from "../../assets/Test.png";
 gsap.registerPlugin(ScrollTrigger);
 
 interface Props {
-  headingLine1?: string;
+  // headingLine1?: string;
   headingLine2?: string;
   headingLine3?: string;
   description?: string;
@@ -17,7 +17,7 @@ interface Props {
 }
 
 withDefaults(defineProps<Props>(), {
-  headingLine1: "為你的企業",
+  // headingLine1: "為你的企業",
   headingLine2: "打造清晰的",
   headingLine3: "人才策略",
   description:
@@ -110,7 +110,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <section ref="sectionRef" class="relative min-h-screen overflow-hidden">
+  <section ref="sectionRef" class="relative min-h-[100svh] overflow-hidden">
     <!-- 群組容器：照片 + 所有遮罩，一起被 GSAP 縮放，永遠對齊 -->
     <div ref="visualGroupRef" class="absolute inset-0" style="transform-origin: center center;">
       <img
@@ -128,41 +128,40 @@ onBeforeUnmount(() => {
 
     <!--
       內容容器：統一用同一組水平內距（px-6 md:px-10），
-      標題、說明文字、CTA 按鈕全部共用這一個基準，
-      不再各自疊加額外的 margin，確保任何尺寸下水平位置一致。
+      標題、說明文字、CTA 按鈕全部共用這一個基準。
+      justify-center 直接負責垂直置中，不再靠內層 flex-1 撐開，
+      避免 CTA 的高度把標題往上擠。
     -->
     <div
       ref="contentRef"
-      class="relative z-20 mx-auto flex min-h-screen w-full max-w-8xl flex-col px-6 md:px-10"
+      class="relative z-20 mx-auto flex min-h-[100svh] w-full max-w-8xl flex-col justify-center px-6 md:px-10"
       style="transform-origin: left center;"
     >
-      <div class="flex flex-1 items-center">
-        <div class="flex w-full min-w-0 max-w-xl flex-col">
-          <!-- 標題區塊（原本 HeroTitle.vue） -->
-          <div ref="headingWrapRef" class="flex flex-col gap-6 md:gap-10 lg:gap-14">
-            <h1 class="max-w-[13ch] text-5xl sm:text-6xl md:text-7xl xl:text-8xl font-medium leading-[0.98] tracking-[-0.045em] text-white leading-8">
-              <span :ref="(el) => setHeadingRef(el as Element | null, 0)" class="block whitespace-nowrap">
-                {{ headingLine1 }}
-              </span>
-              <span :ref="(el) => setHeadingRef(el as Element | null, 1)" class="block whitespace-nowrap">
-                {{ headingLine2 }}
-              </span>
-              <span :ref="(el) => setHeadingRef(el as Element | null, 2)" class="block whitespace-nowrap">
-                {{ headingLine3 }}
-              </span>
-            </h1>
+      <div class="flex w-full min-w-0 max-w-xl flex-col">
+        <!-- 標題區塊（原本 HeroTitle.vue） -->
+        <div ref="headingWrapRef" class="flex flex-col gap-6 md:gap-10 lg:gap-14">
+          <h1 class="max-w-[13ch] text-5xl font-medium leading-[0.98] tracking-[-0.045em] text-white sm:text-6xl md:text-7xl xl:text-8xl">
+            <!-- <span :ref="(el) => setHeadingRef(el as Element | null, 0)" class="block whitespace-nowrap">
+              {{ headingLine1 }}
+            </span> -->
+            <span :ref="(el) => setHeadingRef(el as Element | null, 1)" class="block whitespace-nowrap">
+              {{ headingLine2 }}
+            </span>
+            <span :ref="(el) => setHeadingRef(el as Element | null, 2)" class="block whitespace-nowrap">
+              {{ headingLine3 }}
+            </span>
+          </h1>
 
-            <p
-              ref="descriptionRef"
-              class="max-w-[52ch] border-l-2 border-white/30 pl-4 text-sm leading-7 text-white/70 sm:text-lg sm:leading-8"
-            >
-              {{ description }}
-            </p>
-          </div>
+          <p
+            ref="descriptionRef"
+            class="max-w-[52ch] border-l-2 border-white/30 pl-4 text-sm leading-7 text-white/70 sm:text-lg sm:leading-8"
+          >
+            {{ description }}
+          </p>
+        </div>
 
-          <div class="mt-6 sm:mt-8">
-            <HeroCTA :text="ctaText" />
-          </div>
+        <div class="mt-6 sm:mt-8">
+          <HeroCTA :text="ctaText" href="#contact"   bg-color="#f8f4eecc"  text-color="#252525" :blur="6" radius="4px"/>
         </div>
       </div>
     </div>

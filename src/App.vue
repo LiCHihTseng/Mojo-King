@@ -12,6 +12,8 @@ import Navigation from "./components/Navigation.vue";
 import Contact from "./components/Contact.vue";
 import Footer from "./components/Footer.vue";
 import MojoKingLoader from "./components/MojoKingLoader.vue";
+import Process from "./components/Process.vue";
+
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -81,16 +83,21 @@ onBeforeUnmount(() => {
     <Navigation />
 
     <div class="relative">
-      <section class="sticky top-0 z-0 h-screen w-full">
-        <Hero />
-      </section>
-      <section id="about" class="relative z-10 rounded-t-[2.5rem] bg-white shadow-[0_-30px_60px_-15px_rgba(0,0,0,0.25)]">
-        <About />
-      </section>
-    </div>
+  <section class="sticky top-0 z-0 h-screen w-full">
+    <Hero />
+  </section>
+
+
+
+  <section id="about" class="relative z-10 rounded-t-[2.5rem] bg-white shadow-[0_-30px_60px_-15px_rgba(0,0,0,0.25)]">
+    <About />
+  </section>
+</div>
+
 
     <Service id="service" />
     <Testimonials />
+    <Process />
     <Contact id="contact" />
     <Footer />
 

@@ -352,7 +352,7 @@ onBeforeUnmount(() => {
 <template>
   <div ref="rootRef">
     <!-- Navigation -->
-    <nav ref="navRef" class="fixed inset-x-0 top-0 z-[70] m-5 px-5 py-5 sm:px-8 sm:py-6">
+    <nav ref="navRef" class="fixed inset-x-0 top-0 z-[70] px-5 ">
       <div class="relative mx-auto flex max-w-8xl items-center justify-between">
         <!-- 左：Logo -->
         <div class="group flex items-center gap-3">
@@ -410,40 +410,31 @@ onBeforeUnmount(() => {
         <!-- 右：漢堡（手機／滾動後顯示） + CTA（永遠顯示） -->
         <div class="flex items-center gap-3">
           <div class="relative h-11 w-11">
-            <button ref="hamburgerRef" type="button" class="
-        absolute inset-0 flex items-center justify-center
-        rounded-xl text-white 
-        outline-none focus-visible:ring-2
-        focus-visible:ring-white
-      " :aria-expanded="isDrawerOpen" aria-controls="navigation-drawer" :aria-label="isDrawerOpen ? '關閉選單' : '開啟選單'"
+            <button ref="hamburgerRef" type="button"
+              class="absolute inset-0 flex items-center justify-center rounded-full outline-none transition-colors duration-300 focus-visible:ring-2 focus-visible:ring-offset-2"
+              :style="{
+                backgroundColor: hasReachedAbout ? '#F2F2EF' : 'rgba(255,255,255,0.15)',
+                color: hasReachedAbout ? '#171717' : '#ffffff',
+              }" :aria-expanded="isDrawerOpen" aria-controls="navigation-drawer" :aria-label="isDrawerOpen ? '關閉選單' : '開啟選單'"
               @click="toggleDrawer">
               <!-- List icon -->
-              <svg width="800px" height="800px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
-                transform="matrix(-1, 0, 0, 1, 0, 0)">
-
-                <g id="SVGRepo_bgCarrier" stroke-width="0" />
-
-                <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round" />
-
-                <g id="SVGRepo_iconCarrier">
-                  <path d="M20 7L4 7" stroke="#252525" stroke-width="1.5" stroke-linecap="round" />
-                  <path d="M15 12L4 12" stroke="#252525" stroke-width="1.5" stroke-linecap="round" />
-                  <path d="M9 17H4" stroke="#252525" stroke-width="1.5" stroke-linecap="round" />
-                </g>
-
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                class="feather feather-plus">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
               </svg>
 
               <!-- Drawer 開啟後顯示 X -->
-              <svg viewBox="0 0 24 24" fill="none" class="absolute h-6 w-6 transition-all duration-300" :class="isDrawerOpen
-                ? 'scale-100 rotate-0 opacity-100'
-                : 'scale-75 -rotate-45 opacity-0'
-                " aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" class="absolute h-6 w-6 transition-all duration-300"
+                :class="isDrawerOpen ? 'scale-100 rotate-0 opacity-100' : 'scale-75 -rotate-45 opacity-0'"
+                aria-hidden="true">
                 <path d="M6 6L18 18M18 6L6 18" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
               </svg>
             </button>
           </div>
 
-          <HeroCTA :text="ctaText" href="#contact" />
+          <HeroCTA :text="ctaText" href="#contact"   bg-color="#f8f4eecc"  text-color="#252525" :blur="6" radius="4px"/>
         </div>
       </div>
     </nav>
@@ -492,4 +483,5 @@ nav,
 nav * {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-}</style>
+}
+</style>

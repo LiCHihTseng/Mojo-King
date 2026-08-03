@@ -574,11 +574,11 @@ onBeforeUnmount(() => {
   <!-- ============ 桌機版 ============ -->
   <section
     ref="wrapperRef"
-    class="relative hidden min-h-[300vh] w-full overflow-hidden bg-white text-[#1a1a1a] lg:block"
+    class="relative hidden min-h-[200vh] w-full overflow-hidden bg-[#F9F8F6] text-[#1a1a1a] lg:block"
   >
     <div
       ref="travelRef"
-      class="pointer-events-none absolute z-20 h-[420px] w-[420px] xl:h-[480px] xl:w-[480px]"
+      class="pointer-events-none absolute z-20 h-[clamp(280px,38vh,480px)] w-[clamp(280px,38vh,480px)]"
     >
       <TreeIcon
         size="100%"
@@ -589,7 +589,7 @@ onBeforeUnmount(() => {
 
     <div
       ref="scene1Ref"
-      class="mx-auto grid min-h-screen w-full max-w-[1800px] grid-cols-2 items-center gap-16 px-6"
+      class="mx-auto grid min-h-[75vh] w-full max-w-[1800px] grid-cols-2 items-center gap-16 px-6"
     >
       <div class="flex items-center gap-6">
         <div ref="scene1StatRef">
@@ -619,7 +619,7 @@ onBeforeUnmount(() => {
 
     <div
       ref="scene2Ref"
-      class="mx-auto grid min-h-screen w-full max-w-[1800px] grid-cols-2 items-center gap-16 px-6"
+      class="mx-auto grid min-h-[75vh] w-full max-w-[1800px] grid-cols-2 items-center gap-16 px-6"
     >
       <div ref="scene2TextRef">
         <p class="max-w-lg text-xl leading-relaxed text-[#1a1a1a]/60 sm:text-2xl">
@@ -649,7 +649,7 @@ onBeforeUnmount(() => {
 
     <div
       ref="scene3Ref"
-      class="mx-auto grid min-h-screen w-full max-w-[1800px] grid-cols-2 items-center gap-16 px-6"
+      class="mx-auto grid min-h-[75vh] w-full max-w-[1800px] grid-cols-2 items-center gap-16 px-6"
     >
       <div class="flex items-center gap-6">
         <div ref="scene3StatRef">

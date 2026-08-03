@@ -64,7 +64,7 @@ onBeforeUnmount(() => {
 
 <template>
   <div ref="footerWrapRef" class="relative overflow-hidden">
-    <footer ref="footerRef" class="w-full bg-[#1a1a1a] px-6 py-16 text-white sm:py-20" style="will-change: transform;">
+    <footer ref="footerRef" class="w-full bg-[#252525] px-6 py-16 text-white sm:py-20" style="will-change: transform;">
       <div class="mx-auto max-w-[1800px]">
         <div class="flex flex-col gap-10 sm:flex-row sm:items-start sm:justify-between">
           <div>
