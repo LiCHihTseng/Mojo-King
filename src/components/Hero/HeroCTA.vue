@@ -7,6 +7,7 @@ import {
   ref,
 } from "vue";
 import gsap from "gsap";
+import { lenisInstance } from "../../lib/lenis";
 
 /** 預設陰影：外投影 + 四邊內光，做出微微浮起的實體感 */
 const DEFAULT_SHADOW =
@@ -37,7 +38,7 @@ interface Props {
 
 const props = withDefaults(defineProps<Props>(), {
   text: "Book a Consultation",
-  href: "#contact",
+  href: "#consultation-form",
   variant: "solid",
   bgColor: "#F2F2EF",
   textColor: "#171717",
@@ -150,6 +151,31 @@ const handleLeave = () => {
   hoverTimeline?.reverse();
 };
 
+/**
+ * 錨點連結（#xxx）改用 Lenis 平滑捲動過去，而不是瀏覽器原生的「直接跳過去」。
+ * 有 Lenis 實例時用它（跟全站其他捲動手感一致）；沒有的話（例如
+ * prefers-reduced-motion 開啟，App.vue 根本沒建立 Lenis）就退回原生
+ * scrollIntoView，並尊重使用者的減少動態設定。
+ */
+const handleClick = (event: MouseEvent) => {
+  if (!props.href.startsWith("#")) return;
+
+  const target = document.querySelector<HTMLElement>(props.href);
+  if (!target) return;
+
+  event.preventDefault();
+
+  if (lenisInstance.current) {
+    lenisInstance.current.scrollTo(target, { offset: 0 });
+    return;
+  }
+
+  target.scrollIntoView({
+    behavior: prefersReducedMotion ? "auto" : "smooth",
+    block: "start",
+  });
+};
+
 onBeforeUnmount(() => {
   hoverTimeline?.kill();
   gsapContext?.revert();
@@ -163,6 +189,7 @@ onBeforeUnmount(() => {
     ref="linkRef"
     :href="props.href"
     class="inline-flex origin-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#B55F00] focus-visible:ring-offset-2"
+    @click="handleClick"
     @mouseenter="handleEnter"
     @mouseleave="handleLeave"
     @focus="handleEnter"

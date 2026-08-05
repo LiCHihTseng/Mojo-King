@@ -154,14 +154,14 @@ onBeforeUnmount(() => {
 
           <p
             ref="descriptionRef"
-            class="max-w-[52ch] border-l-2 border-white/30 pl-4 text-sm leading-7 text-white/70 sm:text-lg sm:leading-8"
+            class="max-w-[52ch]  text-sm leading-7 text-white/70 sm:text-lg sm:leading-8"
           >
             {{ description }}
           </p>
         </div>
 
         <div class="mt-6 sm:mt-8">
-          <HeroCTA :text="ctaText" href="#contact"   bg-color="#f8f4eecc"  text-color="#252525" :blur="6" radius="4px"/>
+          <HeroCTA :text="ctaText" href="#consultation-form"   bg-color="#f8f4eecc"  text-color="#252525" :blur="6" radius="4px"/>
         </div>
       </div>
     </div>

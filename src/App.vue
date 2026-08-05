@@ -3,6 +3,7 @@ import { onBeforeUnmount, onMounted, ref } from "vue";
 import Lenis from "lenis";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { lenisInstance } from "./lib/lenis";
 
 import Hero from "./components/Hero/Hero.vue";
 import About from "./components/About.vue";
@@ -10,6 +11,8 @@ import Service from "./components/Service.vue";
 import Testimonials from "./components/Testimonials.vue";
 import Navigation from "./components/Navigation.vue";
 import Contact from "./components/Contact.vue";
+import ConsultationBridge from "./components/ConsultationBridge.vue";
+import ConsultationForm from "./components/ConsultationForm.vue";
 import Footer from "./components/Footer.vue";
 import MojoKingLoader from "./components/MojoKingLoader.vue";
 import Process from "./components/Process.vue";
@@ -35,6 +38,9 @@ function initSmoothScroll() {
     easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
     smoothWheel: true,
   });
+
+  // 讓其他元件（例如 HeroCTA 的錨點捲動）可以共用這個 Lenis 實例
+  lenisInstance.current = lenis;
 
   // 讓 Lenis 每次更新捲動位置時，通知 ScrollTrigger 重新計算
   lenis.on("scroll", ScrollTrigger.update);
@@ -74,6 +80,7 @@ function handleLoaderDone() {
 
 onBeforeUnmount(() => {
   lenis?.destroy();
+  lenisInstance.current = null;
 });
 </script>
 
@@ -99,6 +106,8 @@ onBeforeUnmount(() => {
     <Testimonials />
     <Process />
     <Contact id="contact" />
+    <ConsultationBridge />
+    <ConsultationForm />
     <Footer />
 
     <MojoKingLoader v-if="showLoader" :loading="isLoading" @done="handleLoaderDone" />

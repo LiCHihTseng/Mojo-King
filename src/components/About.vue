@@ -29,19 +29,19 @@ withDefaults(defineProps<Props>(), {
     "https://images.unsplash.com/photo-1521737604893-d14cc237f11d?q=80&w=1200&auto=format&fit=crop",
   statValue1: "100+",
   statLabel1: "企業合作案例",
-  quote1Highlight: "每個企業主，都會走到一個時刻——",
+  quote1Highlight: "我是人資顧問郁婷，慕玖的執行長，外號「HR女神」。",
   quote1Rest:
-    "光靠內部經驗，已經不足以應付人才決策的複雜度。尤其牽涉到組織成長的關鍵決定，你需要一個真正懂你、能陪你一起想清楚的夥伴。",
+    "擁有２０年的上市櫃公司人資經驗，人資長的經驗讓我發現人資專業對於組織長期發展至關重要，而許多企業卻因缺乏經驗豐富的人資長導致企業發展停滯不前，因此創立慕玖股份有限公司。",
   statValue2: "150+",
   statLabel2: "一對一深度諮詢",
-  quote2Highlight: "說實話，人資議題從來不是最有趣的話題。",
-  quote2Rest: "這一點，我們大概也沒辦法改變。",
+  quote2Highlight: "慕玖股份有限公司（MoJo King）是一家專注於人力資源管理與組織發展的顧問公司。",
+  quote2Rest: "我們致力於透過策略型人力資源顧問與管理培訓服務，協助企業建立人才發展、領導力培育與組織文化系統，讓人資從行政功能升級為企業策略的重要力量。。",
   statValue3: "100%",
   statLabel3: "真人陪跑",
   statValue4: "24hr",
   statLabel4: "問題回覆時效",
-  quote3Highlight: "但我們能做到的，是把整個過程都陪你走過。",
-  quote3Rest: "用清楚、可執行的方式，讓你確信人才策略掌握在對的人手上。",
+  quote3Highlight: "我們提供短期的培力課程、工作坊，也提供中長期的教練陪跑。",
+  quote3Rest: "針對公司未來３－５年發展方向，提供客製化建議並導入系統。我們的客戶包括中小型企業以及上市櫃公司，涵蓋製造業、科技業、旅遊業、餐飲業、銀行等多元產業。",
 });
 
 /* ----------------------------------
@@ -574,11 +574,11 @@ onBeforeUnmount(() => {
   <!-- ============ 桌機版 ============ -->
   <section
     ref="wrapperRef"
-    class="relative hidden min-h-[200vh] w-full overflow-hidden bg-[#F9F8F6] text-[#1a1a1a] lg:block"
+    class="relative hidden min-h-[300vh] w-full overflow-hidden text-[#1a1a1a] lg:block bg-[#F9F8F6]"
   >
     <div
       ref="travelRef"
-      class="pointer-events-none absolute z-20 h-[clamp(280px,38vh,480px)] w-[clamp(280px,38vh,480px)]"
+      class="pointer-events-none absolute z-20 h-[clamp(300px,62vh,560px)] w-[clamp(300px,62vh,560px)]"
     >
       <TreeIcon
         size="100%"
@@ -589,26 +589,26 @@ onBeforeUnmount(() => {
 
     <div
       ref="scene1Ref"
-      class="mx-auto grid min-h-[75vh] w-full max-w-[1800px] grid-cols-2 items-center gap-16 px-6"
+      class="grid min-h-screen w-full grid-cols-2 items-center "
     >
-      <div class="flex items-center gap-6">
-        <div ref="scene1StatRef">
-          <p class="text-5xl font-bold tracking-wide sm:text-6xl">
+      <div class="grid h-full grid-cols-[22%_78%] items-center px-[2.75vw]">
+        <div ref="scene1StatRef" class="min-w-0">
+          <p class="text-[clamp(2.5rem,3vw,3.5rem)] font-bold leading-none tracking-wide text-[#FF891D]">
             {{ statValue1 }}
           </p>
-          <p class="mt-2 text-lg text-[#1a1a1a]/50">
+          <p class="mt-2 text-[clamp(.875rem,1vw,1.125rem)] leading-tight text-[#1a1a1a]/50">
             {{ statLabel1 }}
           </p>
         </div>
 
         <div
           ref="imageSlot1Ref"
-          class="h-[420px] w-[420px] shrink-0 xl:h-[480px] xl:w-[480px]"
+          class="h-[clamp(300px,62vh,560px)] w-[clamp(300px,62vh,560px)] justify-self-center"
         ></div>
       </div>
 
-      <div ref="scene1TextRef">
-        <p class="max-w-lg text-xl leading-relaxed text-[#1a1a1a]/60 sm:text-2xl">
+      <div ref="scene1TextRef" class="px-[5.5vw]">
+        <p class="max-w-full text-[clamp(1.05rem,1.25vw,1.45rem)] leading-relaxed text-[#1a1a1a]/60">
           <span class="font-semibold text-[#1a1a1a]">
             {{ quote1Highlight }}
           </span>
@@ -619,10 +619,10 @@ onBeforeUnmount(() => {
 
     <div
       ref="scene2Ref"
-      class="mx-auto grid min-h-[75vh] w-full max-w-[1800px] grid-cols-2 items-center gap-16 px-6"
+      class="grid min-h-screen w-full grid-cols-2 items-center "
     >
-      <div ref="scene2TextRef">
-        <p class="max-w-lg text-xl leading-relaxed text-[#1a1a1a]/60 sm:text-2xl">
+      <div ref="scene2TextRef" class="px-[5.5vw]">
+        <p class="max-w-full text-[clamp(1.05rem,1.25vw,1.45rem)] leading-relaxed text-[#1a1a1a]/60">
           <span class="font-semibold text-[#1a1a1a]">
             {{ quote2Highlight }}
           </span>
@@ -630,17 +630,17 @@ onBeforeUnmount(() => {
         </p>
       </div>
 
-      <div class="flex items-center justify-end gap-6">
+      <div class="grid h-full grid-cols-[78%_22%] items-center px-[2.75vw]">
         <div
           ref="imageSlot2Ref"
-          class="h-[420px] w-[420px] shrink-0 xl:h-[480px] xl:w-[480px]"
+          class="h-[clamp(300px,62vh,560px)] w-[clamp(300px,62vh,560px)] justify-self-center"
         ></div>
 
-        <div ref="scene2StatRef">
-          <p class="text-5xl font-bold tracking-wide sm:text-6xl">
+        <div ref="scene2StatRef" class="min-w-0">
+          <p class="text-[clamp(2.5rem,3vw,3.5rem)] font-bold leading-none tracking-wide text-[#FF891D]">
             {{ statValue2 }}
           </p>
-          <p class="mt-2 text-lg text-[#1a1a1a]/50">
+          <p class="mt-2 text-[clamp(.875rem,1vw,1.125rem)] leading-tight text-[#1a1a1a]/50">
             {{ statLabel2 }}
           </p>
         </div>
@@ -649,26 +649,26 @@ onBeforeUnmount(() => {
 
     <div
       ref="scene3Ref"
-      class="mx-auto grid min-h-[75vh] w-full max-w-[1800px] grid-cols-2 items-center gap-16 px-6"
+      class="grid min-h-screen w-full grid-cols-2 items-center"
     >
-      <div class="flex items-center gap-6">
-        <div ref="scene3StatRef">
-          <p class="text-5xl font-bold tracking-wide sm:text-6xl">
+      <div class="grid h-full grid-cols-[22%_78%] items-center px-[2.75vw]">
+        <div ref="scene3StatRef" class="min-w-0">
+          <p class="text-[clamp(2.5rem,3vw,3.5rem)] font-bold leading-none tracking-wide text-[#FF891D]">
             {{ statValue3 }}
           </p>
-          <p class="mt-2 text-lg text-[#1a1a1a]/50">
+          <p class="mt-2 text-[clamp(.875rem,1vw,1.125rem)] leading-tight text-[#1a1a1a]/50">
             {{ statLabel3 }}
           </p>
         </div>
 
         <div
           ref="imageSlot3Ref"
-          class="h-[420px] w-[420px] shrink-0 xl:h-[480px] xl:w-[480px]"
+          class="h-[clamp(300px,62vh,560px)] w-[clamp(300px,62vh,560px)] justify-self-center"
         ></div>
       </div>
 
-      <div ref="scene3TextRef">
-        <p class="max-w-lg text-xl leading-relaxed text-[#1a1a1a]/60 sm:text-2xl">
+      <div ref="scene3TextRef" class="px-[5.5vw]">
+        <p class="max-w-full text-[clamp(1.05rem,1.25vw,1.45rem)] leading-relaxed text-[#1a1a1a]/60">
           <span class="font-semibold text-[#1a1a1a]">
             {{ quote3Highlight }}
           </span>

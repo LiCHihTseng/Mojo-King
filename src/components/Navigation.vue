@@ -434,7 +434,7 @@ onBeforeUnmount(() => {
             </button>
           </div>
 
-          <HeroCTA :text="ctaText" href="#contact"   bg-color="#f8f4eecc"  text-color="#252525" :blur="6" radius="4px"/>
+          <HeroCTA :text="ctaText" href="#consultation-form"   bg-color="#f8f4eecc"  text-color="#252525" :blur="6" radius="4px"/>
         </div>
       </div>
     </nav>
@@ -472,7 +472,7 @@ onBeforeUnmount(() => {
         </a>
 
 
-        <HeroCTA :text="ctaText" href="#contact" />
+        <HeroCTA :text="ctaText" href="#consultation-form" />
       </div>
     </aside>
   </div>

@@ -245,7 +245,7 @@ onBeforeUnmount(() => {
           </p>
 
           <div ref="ctaRef" class="mt-8 sm:mt-10">
-            <HeroCTA :text="ctaText" href="#contact" />
+            <HeroCTA :text="ctaText" href="#consultation-form" />
           </div>
         </div>
       </div>
