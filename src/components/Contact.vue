@@ -3,6 +3,7 @@ import { nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import HeroCTA from "./Hero/HeroCTA.vue";
+import walk_img from "../assets/walk.png";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -25,7 +26,7 @@ withDefaults(defineProps<Props>(), {
     "我們會先花時間搞懂你的組織現況與真正的痛點，再談合作方式。比起賣你一套方案，我們更在意這件事情最後有沒有真的被解決。",
   ctaText: "預約諮詢",
   image:
-    "https://images.unsplash.com/photo-1600880292203-757bb62b4baf?q=80&w=1600&auto=format&fit=crop",
+  walk_img,
   imageAlt: "兩個人正在進行一對一諮詢對談",
 });
 

@@ -8,7 +8,7 @@
 </script>
 
 <template>
-  <section class="relative flex min-h-[50vh] items-center overflow-hidden bg-[#F8F4EE] px-5 py-16 sm:px-8 sm:py-20 lg:px-12">
+  <section class="relative flex min-h-[50vh] items-center overflow-hidden bg-[#F9F8F6] px-5 py-16 sm:px-8 sm:py-20 lg:px-12">
     <!-- 左側裝飾圖形：貼著最左邊，部分裁切出畫面 -->
     <div
       class="pointer-events-none absolute -left-[28%] top-1/2 z-0 -translate-y-1/2 sm:-left-[20%] lg:-left-[12%]"

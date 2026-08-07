@@ -98,7 +98,7 @@ onMounted(async () => {
 
   tl.to(contentRef.value, { y: -200, opacity: 0, ease: "none" }, 0);
   tl.to(visualGroupRef.value, { scale: 1, opacity: 1, ease: "none" }, 0);
-  tl.to(dimOverlayRef.value, { opacity: 0.75, ease: "none" }, 0);
+  tl.to(dimOverlayRef.value, { opacity: 0.15, ease: "none" }, 0);
 
   parallaxTrigger = tl.scrollTrigger ?? null;
 });
@@ -113,17 +113,16 @@ onBeforeUnmount(() => {
   <section ref="sectionRef" class="relative min-h-[100svh] overflow-hidden">
     <!-- 群組容器：照片 + 所有遮罩，一起被 GSAP 縮放，永遠對齊 -->
     <div ref="visualGroupRef" class="absolute inset-0" style="transform-origin: center center;">
-      <img
-        :src="Portrait"
-        alt="王郁婷，慕玖共享人資長"
-        class="absolute inset-0 h-full w-full object-cover"
-        loading="eager"
-        fetchpriority="high"
-      />
+      <img :src="Portrait" alt="王郁婷，慕玖共享人資長" class="absolute inset-0 h-full w-full object-cover" loading="eager"
+        fetchpriority="high" />
 
       <div ref="dimOverlayRef" class="pointer-events-none absolute inset-0 z-[5] bg-[#1f1f1f] opacity-0"></div>
-      <div class="pointer-events-none absolute inset-0 z-0 bg-gradient-to-r from-black via-black/65 to-transparent"></div>
-      <div class="pointer-events-none absolute inset-x-0 bottom-0 z-0 h-60 bg-gradient-to-t from-black/70 to-transparent"></div>
+      <div class="pointer-events-none absolute inset-0 z-0
+         bg-gradient-to-r from-black/45 via-black/15 to-transparent"></div>
+
+      <!-- 底部淡黑漸層 -->
+      <div class="pointer-events-none absolute inset-x-0 bottom-0 z-0 h-60
+         bg-gradient-to-t from-black/35 to-transparent"></div>
     </div>
 
     <!--
@@ -132,15 +131,14 @@ onBeforeUnmount(() => {
       justify-center 直接負責垂直置中，不再靠內層 flex-1 撐開，
       避免 CTA 的高度把標題往上擠。
     -->
-    <div
-      ref="contentRef"
+    <div ref="contentRef"
       class="relative z-20 mx-auto flex min-h-[100svh] w-full max-w-8xl flex-col justify-center px-6 md:px-10"
-      style="transform-origin: left center;"
-    >
+      style="transform-origin: left center;">
       <div class="flex w-full min-w-0 max-w-xl flex-col">
         <!-- 標題區塊（原本 HeroTitle.vue） -->
         <div ref="headingWrapRef" class="flex flex-col gap-6 md:gap-10 lg:gap-14">
-          <h1 class="max-w-[13ch] text-5xl font-medium leading-[0.98] tracking-[-0.045em] text-white sm:text-6xl md:text-7xl xl:text-8xl">
+          <h1
+            class="max-w-[13ch] text-5xl font-medium leading-[0.98] tracking-[-0.045em] text-white sm:text-6xl md:text-7xl xl:text-8xl">
             <!-- <span :ref="(el) => setHeadingRef(el as Element | null, 0)" class="block whitespace-nowrap">
               {{ headingLine1 }}
             </span> -->
@@ -152,16 +150,14 @@ onBeforeUnmount(() => {
             </span>
           </h1>
 
-          <p
-            ref="descriptionRef"
-            class="max-w-[52ch]  text-sm leading-7 text-white/70 sm:text-lg sm:leading-8"
-          >
+          <p ref="descriptionRef" class="max-w-[52ch]  text-sm leading-7 text-white/70 sm:text-lg sm:leading-8">
             {{ description }}
           </p>
         </div>
 
         <div class="mt-6 sm:mt-8">
-          <HeroCTA :text="ctaText" href="#consultation-form"   bg-color="#f8f4eecc"  text-color="#252525" :blur="6" radius="4px"/>
+          <HeroCTA :text="ctaText" href="#consultation-form" bg-color="#f8f4eecc" text-color="#252525" :blur="6"
+            radius="4px" />
         </div>
       </div>
     </div>

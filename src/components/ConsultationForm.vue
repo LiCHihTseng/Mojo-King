@@ -130,7 +130,7 @@ onBeforeUnmount(() => {
     </div>
 
     <!-- 右側：表單 -->
-    <div class="flex items-center bg-[#F8F4EE] px-8 py-20 sm:px-14 lg:px-20 lg:py-24">
+    <div class="flex items-center bg-[#F9F8F6] px-8 py-20 sm:px-14 lg:px-20 lg:py-24">
       <div class="mx-auto w-full max-w-full">
         <!-- 標題 -->
         <h2 class="text-3xl font-medium leading-tight text-[#252525] sm:text-4xl">

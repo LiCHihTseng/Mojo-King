@@ -88,139 +88,62 @@ const mScene3StatRef = ref<HTMLElement | null>(null);
 const mScene4StatRef = ref<HTMLElement | null>(null);
 const mScene3TextRef = ref<HTMLElement | null>(null);
 
-type SceneGroup = Array<HTMLElement | null>;
-type Direction = "forward" | "backward";
-
 let mediaContext: ReturnType<typeof gsap.matchMedia> | null = null;
 
 /* ----------------------------------
-   每個場景交界一個 ScrollTrigger
+   滾動淡入
 
-   onEnter：往下切換
-   onLeaveBack：往回切換
+   每個 quote / stat 各自綁一個 ScrollTrigger，
+   當它的頂端進到畫面 80% 的位置（也就是還在下方、快要進入視線）時觸發，
+   只播一次。
 
-   同一組元素只會被目前的 crossfade timeline 控制；
-   開始新交接前會先終止尚未完成的舊 tween。
+   效果是遮罩式的 reveal：用 clip-path 把下緣往下拉開，
+   文字由上往下「被揭開」，元素本身完全不做 x / y 位移。
+
+   （原本場景之間互相淡入淡出的 crossfade 已移除，
+   　現在每一塊都是獨立觸發，不再受其他場景影響。）
 ---------------------------------- */
 
-const setupBoundaryCrossfades = (
-  sceneTriggers: Array<HTMLElement | null>,
-  sceneGroups: SceneGroup[],
-) => {
-  const triggers = sceneTriggers.filter(Boolean) as HTMLElement[];
-  const groups = sceneGroups.map(
-    (group) => group.filter(Boolean) as HTMLElement[],
-  );
+const REVEAL_START = "top 80%";
 
-  if (
-    triggers.length !== sceneTriggers.length ||
-    triggers.length < 2 ||
-    groups.length !== triggers.length ||
-    groups.some((group) => group.length === 0)
-  ) {
-    return () => {};
-  }
+/** 收合狀態：下緣裁掉 100%，等於整塊被蓋住 */
+const CLIP_HIDDEN = "inset(0% 0% 100% 0%)";
+/** 展開狀態：完全不裁切 */
+const CLIP_VISIBLE = "inset(0% 0% 0% 0%)";
 
-  const allTargets = groups.flat();
-  const boundaryTriggers: ScrollTrigger[] = [];
-  let activeTimeline: gsap.core.Timeline | null = null;
+const setupReveals = (elements: Array<HTMLElement | null>) => {
+  const targets = elements.filter(Boolean) as HTMLElement[];
 
-  const setActiveScene = (activeIndex: number) => {
-    activeTimeline?.kill();
-    activeTimeline = null;
-    gsap.killTweensOf(allTargets);
+  if (targets.length === 0) return () => {};
 
-    groups.forEach((group, index) => {
-      gsap.set(group, {
-        autoAlpha: index === activeIndex ? 1 : 0,
-        y:
-          index === activeIndex
-            ? 0
-            : index < activeIndex
-              ? -24
-              : 24,
-      });
-    });
-  };
+  const revealTriggers: ScrollTrigger[] = [];
 
-  const crossfade = (
-    outgoing: HTMLElement[],
-    incoming: HTMLElement[],
-    direction: Direction,
-  ) => {
-    activeTimeline?.kill();
-    gsap.killTweensOf([...outgoing, ...incoming]);
+  targets.forEach((element) => {
+    gsap.set(element, { clipPath: CLIP_HIDDEN });
 
-    const outgoingY = direction === "forward" ? -24 : 24;
-
-    activeTimeline = gsap.timeline({
-      defaults: {
-        duration: 0.58,
-        ease: "power2.out",
-        overwrite: "auto",
-      },
-      onComplete: () => {
-        activeTimeline = null;
-      },
-    });
-
-    activeTimeline.to(
-      outgoing,
-      {
-        autoAlpha: 0,
-        y: outgoingY,
-      },
-      0,
+    revealTriggers.push(
+      ScrollTrigger.create({
+        trigger: element,
+        start: REVEAL_START,
+        once: true,
+        invalidateOnRefresh: true,
+        onEnter: () => {
+          gsap.to(element, {
+            clipPath: CLIP_VISIBLE,
+            duration: 0.5,
+            ease: "power3.out",
+            overwrite: "auto",
+          });
+        },
+      }),
     );
-
-    // 使用當下狀態作為起點；快速反向時不會被 fromTo 強制跳回固定值。
-    activeTimeline.to(
-      incoming,
-      {
-        autoAlpha: 1,
-        y: 0,
-      },
-      0,
-    );
-  };
-
-  const syncSceneToScroll = () => {
-    const threshold = window.innerHeight * 0.72;
-    let activeIndex = 0;
-
-    for (let index = 1; index < triggers.length; index += 1) {
-      if (triggers[index].getBoundingClientRect().top <= threshold) {
-        activeIndex = index;
-      }
-    }
-
-    setActiveScene(activeIndex);
-  };
-
-  for (let index = 1; index < triggers.length; index += 1) {
-    const boundary = ScrollTrigger.create({
-      trigger: triggers[index],
-      start: "top 72%",
-      invalidateOnRefresh: true,
-      onEnter: () => {
-        crossfade(groups[index - 1], groups[index], "forward");
-      },
-      onLeaveBack: () => {
-        crossfade(groups[index], groups[index - 1], "backward");
-      },
-    });
-
-    boundaryTriggers.push(boundary);
-  }
-
-  ScrollTrigger.addEventListener("refresh", syncSceneToScroll);
-  syncSceneToScroll();
+  });
 
   return () => {
-    ScrollTrigger.removeEventListener("refresh", syncSceneToScroll);
-    boundaryTriggers.forEach((trigger) => trigger.kill());
-    activeTimeline?.kill();
-    gsap.killTweensOf(allTargets);
+    revealTriggers.forEach((trigger) => trigger.kill());
+    gsap.killTweensOf(targets);
+    // 切換斷點時把元素還原成完整可見，避免停在被裁切的狀態
+    gsap.set(targets, { clipPath: "none" });
   };
 };
 
@@ -347,6 +270,16 @@ onMounted(async () => {
   mediaContext = gsap.matchMedia();
 
   mediaContext.add("(min-width: 1024px)", () => {
+    // quote / stat 各自滾到畫面 80% 時淡入
+    const cleanupReveals = setupReveals([
+      scene1StatRef.value,
+      scene1TextRef.value,
+      scene2StatRef.value,
+      scene2TextRef.value,
+      scene3StatRef.value,
+      scene3TextRef.value,
+    ]);
+
     if (
       !wrapperRef.value ||
       !travelRef.value ||
@@ -357,30 +290,8 @@ onMounted(async () => {
       !imageSlot2Ref.value ||
       !imageSlot3Ref.value
     ) {
-      return;
+      return cleanupReveals;
     }
-
-    const cleanupCrossfades = setupBoundaryCrossfades(
-      [
-        scene1Ref.value,
-        scene2Ref.value,
-        scene3Ref.value,
-      ],
-      [
-        [
-          scene1StatRef.value,
-          scene1TextRef.value,
-        ],
-        [
-          scene2StatRef.value,
-          scene2TextRef.value,
-        ],
-        [
-          scene3StatRef.value,
-          scene3TextRef.value,
-        ],
-      ],
-    );
 
     const initialPosition = getCenterRelativeTo(
       wrapperRef.value,
@@ -461,7 +372,7 @@ onMounted(async () => {
     );
 
     return () => {
-      cleanupCrossfades();
+      cleanupReveals();
       moveToScene2.scrollTrigger?.kill();
       moveToScene2.kill();
       moveToScene3.scrollTrigger?.kill();
@@ -470,7 +381,16 @@ onMounted(async () => {
   });
 
   mediaContext.add("(max-width: 1023px)", () => {
-
+    // quote / stat 各自滾到畫面 80% 時淡入
+    const cleanupReveals = setupReveals([
+      mScene1TextRef.value,
+      mScene1StatRef.value,
+      mScene2StatRef.value,
+      mScene2TextRef.value,
+      mScene3StatRef.value,
+      mScene4StatRef.value,
+      mScene3TextRef.value,
+    ]);
 
     const mobileTweens: gsap.core.Tween[] = [];
 
@@ -553,7 +473,8 @@ onMounted(async () => {
     }
 
     return () => {
-      
+      cleanupReveals();
+
       mobileTweens.forEach((tween) => {
         tween.scrollTrigger?.kill();
         tween.kill();
@@ -593,7 +514,7 @@ onBeforeUnmount(() => {
     >
       <div class="grid h-full grid-cols-[22%_78%] items-center px-[2.75vw]">
         <div ref="scene1StatRef" class="min-w-0">
-          <p class="text-[clamp(2.5rem,3vw,3.5rem)] font-bold leading-none tracking-wide text-[#FF891D]">
+          <p class="text-[clamp(2rem,2.25vw,3rem)] font-bold leading-none tracking-wide">
             {{ statValue1 }}
           </p>
           <p class="mt-2 text-[clamp(.875rem,1vw,1.125rem)] leading-tight text-[#1a1a1a]/50">
@@ -608,7 +529,7 @@ onBeforeUnmount(() => {
       </div>
 
       <div ref="scene1TextRef" class="px-[5.5vw]">
-        <p class="max-w-full text-[clamp(1.05rem,1.25vw,1.45rem)] leading-relaxed text-[#1a1a1a]/60">
+        <p class="max-w-full text-[clamp(1.25rem,1.55vw,1.75rem)] leading-relaxed text-[#1a1a1a]/60">
           <span class="font-semibold text-[#1a1a1a]">
             {{ quote1Highlight }}
           </span>
@@ -622,7 +543,7 @@ onBeforeUnmount(() => {
       class="grid min-h-screen w-full grid-cols-2 items-center "
     >
       <div ref="scene2TextRef" class="px-[5.5vw]">
-        <p class="max-w-full text-[clamp(1.05rem,1.25vw,1.45rem)] leading-relaxed text-[#1a1a1a]/60">
+        <p class="max-w-full text-[clamp(1.25rem,1.55vw,1.75rem)] leading-relaxed text-[#1a1a1a]/60">
           <span class="font-semibold text-[#1a1a1a]">
             {{ quote2Highlight }}
           </span>
@@ -637,7 +558,7 @@ onBeforeUnmount(() => {
         ></div>
 
         <div ref="scene2StatRef" class="min-w-0">
-          <p class="text-[clamp(2.5rem,3vw,3.5rem)] font-bold leading-none tracking-wide text-[#FF891D]">
+          <p class="text-[clamp(2rem,2.25vw,3rem)] font-bold leading-none tracking-wide">
             {{ statValue2 }}
           </p>
           <p class="mt-2 text-[clamp(.875rem,1vw,1.125rem)] leading-tight text-[#1a1a1a]/50">
@@ -668,7 +589,7 @@ onBeforeUnmount(() => {
       </div>
 
       <div ref="scene3TextRef" class="px-[5.5vw]">
-        <p class="max-w-full text-[clamp(1.05rem,1.25vw,1.45rem)] leading-relaxed text-[#1a1a1a]/60">
+        <p class="max-w-full text-[clamp(1.25rem,1.55vw,1.75rem)] leading-relaxed text-[#1a1a1a]/60">
           <span class="font-semibold text-[#1a1a1a]">
             {{ quote3Highlight }}
           </span>
