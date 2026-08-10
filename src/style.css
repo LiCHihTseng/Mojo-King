@@ -1,14 +1,13 @@
 @import "tailwindcss";
 @import "./font.css";
 
-
 html,
 body,
 #app {
-  font-family: "Noto Sans TC", sans-serif;
+  font-family: "Noto Sans TC", "Microsoft JhengHei", "PingFang TC", system-ui, sans-serif;
+  font-synthesis: none;
   margin: 0;
   padding: 0;
   min-height: 100%;
   scrollbar-gutter: stable;
 }
-

@@ -212,10 +212,10 @@ onBeforeUnmount(() => {
     -->
     <div
       ref="contentRef"
-      class="relative z-20 mx-auto flex min-h-[100svh] w-full max-w-8xl flex-col justify-center px-6 md:px-10"
+      class="relative z-20 mx-auto flex min-h-[100svh] w-full max-w-full flex-col justify-center px-6 md:px-10"
       style="transform-origin: left center;"
     >
-      <div class="flex w-full min-w-0 max-w-xl flex-col">
+      <div class="flex w-full min-w-0 max-w-full flex-col">
         <!-- 標題區塊（原本 HeroTitle.vue） -->
         <div ref="headingWrapRef" class="flex flex-col gap-6 md:gap-10 lg:gap-14">
           <h1 class="max-w-[13ch] text-5xl font-medium leading-[0.98] tracking-[-0.045em] text-white sm:text-6xl md:text-7xl xl:text-8xl">

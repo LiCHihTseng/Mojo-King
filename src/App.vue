@@ -91,7 +91,7 @@ onBeforeUnmount(() => {
     <Navigation :entrance-ready="entranceReady" />
 
     <div class="relative">
-  <section class="sticky top-0 z-0 h-screen w-full">
+  <section class="sticky top-0 z-0 h-[100dvh] w-full">
     <Hero :entrance-ready="entranceReady" />
   </section>
 
