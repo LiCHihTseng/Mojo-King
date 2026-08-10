@@ -16,6 +16,7 @@ import ConsultationForm from "./components/ConsultationForm.vue";
 import Footer from "./components/Footer.vue";
 import MojoKingLoader from "./components/MojoKingLoader.vue";
 import Process from "./components/Process.vue";
+// import About1 from "./components/About1.vue";
 
 
 gsap.registerPlugin(ScrollTrigger);
@@ -99,6 +100,7 @@ onBeforeUnmount(() => {
   <section id="about" class="relative z-10 rounded-t-[2.5rem] bg-white shadow-[0_-30px_60px_-15px_rgba(0,0,0,0.25)]">
     <About />
   </section>
+
 </div>
 
 

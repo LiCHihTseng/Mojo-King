@@ -91,14 +91,13 @@ const mScene3TextRef = ref<HTMLElement | null>(null);
 let mediaContext: ReturnType<typeof gsap.matchMedia> | null = null;
 
 /* ----------------------------------
-   滾動淡入
+   滾動 reveal
 
-   每個 quote / stat 各自綁一個 ScrollTrigger，
-   當它的頂端進到畫面 80% 的位置（也就是還在下方、快要進入視線）時觸發，
-   只播一次。
+   每個文案 / 數據各自綁一個 ScrollTrigger，當它的頂端進到畫面 80% 的位置
+   （還在下方、快要進入視線）時觸發，只播一次。
 
-   效果是遮罩式的 reveal：用 clip-path 把下緣往下拉開，
-   文字由上往下「被揭開」，元素本身完全不做 x / y 位移。
+   效果是遮罩式的：用 clip-path 把下緣往下拉開，由上往下「被揭開」，
+   元素本身完全不做 x / y 位移。
 
    （原本場景之間互相淡入淡出的 crossfade 已移除，
    　現在每一塊都是獨立觸發，不再受其他場景影響。）
@@ -270,7 +269,7 @@ onMounted(async () => {
   mediaContext = gsap.matchMedia();
 
   mediaContext.add("(min-width: 1024px)", () => {
-    // quote / stat 各自滾到畫面 80% 時淡入
+    // 文案 / 數據各自滾到畫面 80% 時，由上往下揭開
     const cleanupReveals = setupReveals([
       scene1StatRef.value,
       scene1TextRef.value,
@@ -381,7 +380,7 @@ onMounted(async () => {
   });
 
   mediaContext.add("(max-width: 1023px)", () => {
-    // quote / stat 各自滾到畫面 80% 時淡入
+    // 文案 / 數據各自滾到畫面 80% 時，由上往下揭開
     const cleanupReveals = setupReveals([
       mScene1TextRef.value,
       mScene1StatRef.value,
@@ -514,10 +513,10 @@ onBeforeUnmount(() => {
     >
       <div class="grid h-full grid-cols-[22%_78%] items-center px-[2.75vw]">
         <div ref="scene1StatRef" class="min-w-0">
-          <p class="text-[clamp(2rem,2.25vw,3rem)] font-bold leading-none tracking-wide">
+          <p class="text-[clamp(2.5rem,3vw,3.5rem)] font-bold leading-none tracking-wide text-[#FF891D]">
             {{ statValue1 }}
           </p>
-          <p class="mt-2 text-[clamp(.875rem,1vw,1.125rem)] leading-tight text-[#1a1a1a]/50">
+          <p class="mt-2 text-[clamp(.875rem,1vw,1.125rem)] leading-tight text-[#252525]/50">
             {{ statLabel1 }}
           </p>
         </div>
@@ -529,8 +528,8 @@ onBeforeUnmount(() => {
       </div>
 
       <div ref="scene1TextRef" class="px-[5.5vw]">
-        <p class="max-w-full text-[clamp(1.25rem,1.55vw,1.75rem)] leading-relaxed text-[#1a1a1a]/60">
-          <span class="font-semibold text-[#1a1a1a]">
+        <p class="max-w-full text-[clamp(1.05rem,1.05vw,1.35rem)]  text-[#252525]/60">
+          <span class="font-semibold text-[#252525]">
             {{ quote1Highlight }}
           </span>
           {{ quote1Rest }}
@@ -543,8 +542,8 @@ onBeforeUnmount(() => {
       class="grid min-h-screen w-full grid-cols-2 items-center "
     >
       <div ref="scene2TextRef" class="px-[5.5vw]">
-        <p class="max-w-full text-[clamp(1.25rem,1.55vw,1.75rem)] leading-relaxed text-[#1a1a1a]/60">
-          <span class="font-semibold text-[#1a1a1a]">
+        <p class="max-w-full text-[clamp(1.05rem,1.25vw,1.45rem)] leading-relaxed text-[#252525]/60">
+          <span class="font-semibold text-[#252525]">
             {{ quote2Highlight }}
           </span>
           {{ quote2Rest }}
@@ -558,10 +557,10 @@ onBeforeUnmount(() => {
         ></div>
 
         <div ref="scene2StatRef" class="min-w-0">
-          <p class="text-[clamp(2rem,2.25vw,3rem)] font-bold leading-none tracking-wide">
+          <p class="text-[clamp(2.5rem,3vw,3.5rem)] font-bold leading-none tracking-wide text-[#FF891D]">
             {{ statValue2 }}
           </p>
-          <p class="mt-2 text-[clamp(.875rem,1vw,1.125rem)] leading-tight text-[#1a1a1a]/50">
+          <p class="mt-2 text-[clamp(.875rem,1vw,1.125rem)] leading-tight text-[#252525]/50">
             {{ statLabel2 }}
           </p>
         </div>
@@ -577,7 +576,7 @@ onBeforeUnmount(() => {
           <p class="text-[clamp(2.5rem,3vw,3.5rem)] font-bold leading-none tracking-wide text-[#FF891D]">
             {{ statValue3 }}
           </p>
-          <p class="mt-2 text-[clamp(.875rem,1vw,1.125rem)] leading-tight text-[#1a1a1a]/50">
+          <p class="mt-2 text-[clamp(.875rem,1vw,1.125rem)] leading-tight text-[#252525]/50">
             {{ statLabel3 }}
           </p>
         </div>
@@ -589,8 +588,8 @@ onBeforeUnmount(() => {
       </div>
 
       <div ref="scene3TextRef" class="px-[5.5vw]">
-        <p class="max-w-full text-[clamp(1.25rem,1.55vw,1.75rem)] leading-relaxed text-[#1a1a1a]/60">
-          <span class="font-semibold text-[#1a1a1a]">
+        <p class="max-w-full text-[clamp(1.05rem,1.25vw,1.45rem)] leading-relaxed text-[#252525]/60">
+          <span class="font-semibold text-[#252525]">
             {{ quote3Highlight }}
           </span>
           {{ quote3Rest }}

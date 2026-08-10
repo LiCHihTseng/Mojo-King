@@ -9,6 +9,7 @@ interface Props {
   contactText?: string;
   serviceText?: string;
   ctaText?: string;
+  menuText?: string;
 }
 
 withDefaults(defineProps<Props>(), {
@@ -17,7 +18,18 @@ withDefaults(defineProps<Props>(), {
   contactText: "聯絡我們",
   serviceText: "服務內容",
   ctaText: "預約諮詢",
+  menuText: "Menu",
 });
+
+/** 跟 HeroCTA 同一組陰影：外投影 + 四邊內光，做出微微浮起的實體感 */
+const DEFAULT_SHADOW =
+  "2px 2px 16px 0 #2525251a, .75px 0 1px 0 #f8f4eea6 inset, 0 .75px 1px 0 #f8f4eea6 inset, -.25px 0 1px 0 #f8f4ee80 inset, 0 -.25px 1px 0 #f8f4ee80 inset";
+
+const menuButtonStyle = {
+  backgroundColor: "#F2F2EF",
+  color: "#171717",
+  boxShadow: DEFAULT_SHADOW,
+};
 
 /* ----------------------------------
    Refs
@@ -27,9 +39,7 @@ const rootRef = ref<HTMLElement | null>(null);
 const brandRef = ref<HTMLElement | null>(null);
 const centerLinksRef = ref<HTMLElement | null>(null);
 const hamburgerRef = ref<HTMLElement | null>(null);
-const lineTopRef = ref<HTMLElement | null>(null);
-const lineMidRef = ref<HTMLElement | null>(null);
-const lineBottomRef = ref<HTMLElement | null>(null);
+const ctaRef = ref<HTMLElement | null>(null);
 const backdropRef = ref<HTMLElement | null>(null);
 const drawerRef = ref<HTMLElement | null>(null);
 const closeBtnRef = ref<HTMLElement | null>(null);
@@ -87,7 +97,11 @@ const handleLinkLeave = (event: MouseEvent) => {
 };
 
 /* ----------------------------------
-   桌機連結 ↔ 漢堡 交叉淡入淡出
+   桌機連結 ↔ Menu 按鈕 交叉淡入淡出
+
+   右側是 CTA 與 Menu 按鈕疊在同一個 grid 格子裡：
+   還沒捲到 About 時顯示 CTA，捲到之後 CTA 淡出、Menu 按鈕淡入。
+   （手機版一律顯示 Menu 按鈕。）
 ---------------------------------- */
 
 const updateNavVisibility = (instant = false) => {
@@ -107,40 +121,20 @@ const updateNavVisibility = (instant = false) => {
 
   gsap.to(hamburgerRef.value, {
     opacity: showHamburger ? 1 : 0,
-    scale: showHamburger ? 1 : 0.8,
+    y: showHamburger ? 0 : 8,
     duration,
     ease: "power3.out",
     pointerEvents: showHamburger ? "auto" : "none",
     overwrite: "auto",
   });
-};
 
-/* ----------------------------------
-   漢堡圖示 ↔ X 的線條 morph
----------------------------------- */
-
-const morphHamburgerLines = (toClose: boolean) => {
-  const duration = prefersReducedMotion ? 0 : 0.3;
-
-  gsap.to(lineTopRef.value, {
-    y: toClose ? 0 : -7,
-    rotate: toClose ? 45 : 0,
+  gsap.to(ctaRef.value, {
+    opacity: showHamburger ? 0 : 1,
+    y: showHamburger ? -8 : 0,
     duration,
-    ease: "power3.inOut",
-  });
-
-  gsap.to(lineMidRef.value, {
-    opacity: toClose ? 0 : 1,
-    scaleX: toClose ? 0 : 1,
-    duration: duration * 0.7,
-    ease: "power3.inOut",
-  });
-
-  gsap.to(lineBottomRef.value, {
-    y: toClose ? 0 : 7,
-    rotate: toClose ? -45 : 0,
-    duration,
-    ease: "power3.inOut",
+    ease: "power3.out",
+    pointerEvents: showHamburger ? "none" : "auto",
+    overwrite: "auto",
   });
 };
 
@@ -201,8 +195,6 @@ const closeDrawerAnimation = () => {
 };
 
 watch(isDrawerOpen, (isOpen) => {
-  morphHamburgerLines(isOpen);
-
   if (isOpen) {
     openDrawerAnimation();
   } else {
@@ -295,15 +287,6 @@ onMounted(async () => {
   updateScrollState();
 
   gsapContext = gsap.context(() => {
-    /*
-     * 修正 bug 的關鍵：
-     * 頁面載入時就明確設定三條線的分離位置，
-     * 不再等到使用者第一次點擊才「校正」。
-     */
-    gsap.set(lineTopRef.value, { y: -7, rotate: 0 });
-    gsap.set(lineMidRef.value, { opacity: 1, scaleX: 1 });
-    gsap.set(lineBottomRef.value, { y: 7, rotate: 0 });
-
     updateNavVisibility(true);
     gsap.set(backdropRef.value, { opacity: 0, pointerEvents: "none" });
     gsap.set(drawerRef.value, { xPercent: 100 });
@@ -355,7 +338,7 @@ onBeforeUnmount(() => {
     <nav ref="navRef" class="fixed inset-x-0 top-0 z-[70] px-5 ">
       <div class="relative mx-auto flex max-w-8xl items-center justify-between">
         <!-- 左：Logo -->
-        <div class="group flex items-center gap-3">
+        <div ref="brandRef" class="group flex items-center gap-3">
           <div class="flex h-1/3 w-1/3 shrink-0 items-center justify-center rounded-xl p-2">
             <svg width="327" height="140" viewBox="0 0 327 140" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path
@@ -407,34 +390,42 @@ onBeforeUnmount(() => {
           </div>
         </div>
 
-        <!-- 右：漢堡（手機／滾動後顯示） + CTA（永遠顯示） -->
-        <div class="flex items-center gap-3">
-          <div class="relative h-11 w-11">
-            <button ref="hamburgerRef" type="button"
-              class="absolute inset-0 flex items-center justify-center rounded-full outline-none transition-colors duration-300 focus-visible:ring-2 focus-visible:ring-offset-2"
-              :style="{
-                backgroundColor: hasReachedAbout ? '#F2F2EF' : 'rgba(255,255,255,0.15)',
-                color: hasReachedAbout ? '#171717' : '#ffffff',
-              }" :aria-expanded="isDrawerOpen" aria-controls="navigation-drawer" :aria-label="isDrawerOpen ? '關閉選單' : '開啟選單'"
-              @click="toggleDrawer">
-              <!-- List icon -->
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
-                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                class="feather feather-plus">
-                <line x1="12" y1="5" x2="12" y2="19"></line>
-                <line x1="5" y1="12" x2="19" y2="12"></line>
-              </svg>
-
-              <!-- Drawer 開啟後顯示 X -->
-              <svg viewBox="0 0 24 24" fill="none" class="absolute h-6 w-6 transition-all duration-300"
-                :class="isDrawerOpen ? 'scale-100 rotate-0 opacity-100' : 'scale-75 -rotate-45 opacity-0'"
-                aria-hidden="true">
-                <path d="M6 6L18 18M18 6L6 18" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
-              </svg>
-            </button>
+        <!--
+          右側：CTA 與 Menu 按鈕疊在同一個 grid 格子裡。
+          兩者都靠右對齊、佔用同一格，所以互相淡入淡出時不會造成版面位移。
+        -->
+        <div class="grid place-items-center">
+          <!-- CTA：尚未捲到 About 時顯示 -->
+          <div ref="ctaRef" class="col-start-1 row-start-1 justify-self-end">
+            <HeroCTA :text="ctaText" href="#consultation-form" bg-color="#f8f4eecc" text-color="#252525" :blur="6"
+              radius="4px" />
           </div>
 
-          <HeroCTA :text="ctaText" href="#consultation-form"   bg-color="#f8f4eecc"  text-color="#252525" :blur="6" radius="4px"/>
+          <!-- Menu 按鈕：捲到 About 之後（手機版則一律）顯示 -->
+          <button ref="hamburgerRef" type="button" :style="menuButtonStyle"
+            class="col-start-1 row-start-1 flex h-11 w-[170px] items-center justify-between rounded-lg px-4 outline-none justify-self-end focus-visible:ring-2 focus-visible:ring-[#B55F00] focus-visible:ring-offset-2 sm:w-[200px]"
+            :aria-expanded="isDrawerOpen" aria-controls="navigation-drawer"
+            :aria-label="isDrawerOpen ? '關閉選單' : '開啟選單'" @click="toggleDrawer">
+            <!-- 左：+ ↔ X -->
+            <span class="relative flex h-6 w-6 shrink-0 items-center justify-center" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+                class="absolute h-5 w-5 transition-all duration-300"
+                :class="isDrawerOpen ? 'scale-75 rotate-45 opacity-0' : 'scale-100 rotate-0 opacity-100'">
+                <line x1="12" y1="5" x2="12" y2="19" />
+                <line x1="5" y1="12" x2="19" y2="12" />
+              </svg>
+
+              <svg viewBox="0 0 24 24" fill="none" class="absolute h-5 w-5 transition-all duration-300"
+                :class="isDrawerOpen ? 'scale-100 rotate-0 opacity-100' : 'scale-75 -rotate-45 opacity-0'">
+                <path d="M6 6L18 18M18 6L6 18" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+              </svg>
+            </span>
+
+            <!-- 右：Menu -->
+            <span class="text-sm font-medium tracking-wide">
+              {{ menuText }}
+            </span>
+          </button>
         </div>
       </div>
     </nav>
