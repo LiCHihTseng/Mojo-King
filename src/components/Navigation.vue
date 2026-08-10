@@ -412,7 +412,7 @@ onBeforeUnmount(() => {
             <a href="#about" class="relative inline-flex min-h-12 items-center justify-center px-4 py-2"
               @mouseenter="handleLinkEnter('about', $event)" @mouseleave="handleLinkLeave">
               <span class="nav-group inline-flex flex-col items-center">
-                <span class="nav-label whitespace-nowrap text-[15px] font-medium tracking-[0.08em] text-white">
+                <span class="nav-label whitespace-nowrap text-[24px] font-medium tracking-[0.08em] text-white">
                   {{ aboutText }}
                 </span>
                 <span class="nav-dot mt-2 h-1.5 w-1.5 scale-0 rounded-full bg-[#B55F00] opacity-0"></span>
@@ -422,7 +422,7 @@ onBeforeUnmount(() => {
             <a href="#service" class="relative inline-flex min-h-12 items-center justify-center px-4 py-2"
               @mouseenter="handleLinkEnter('service', $event)" @mouseleave="handleLinkLeave">
               <span class="nav-group inline-flex flex-col items-center">
-                <span class="nav-label whitespace-nowrap text-[15px] font-medium tracking-[0.08em] text-white">
+                <span class="nav-label whitespace-nowrap text-[24px] font-medium tracking-[0.08em] text-white">
                   {{ serviceText }}
                 </span>
                 <span class="nav-dot mt-2 h-1.5 w-1.5 scale-0 rounded-full bg-[#B55F00] opacity-0"></span>
@@ -432,7 +432,7 @@ onBeforeUnmount(() => {
             <a href="#contact" class="relative inline-flex min-h-12 items-center justify-center px-4 py-2"
               @mouseenter="handleLinkEnter('contact', $event)" @mouseleave="handleLinkLeave">
               <span class="nav-group inline-flex flex-col items-center">
-                <span class="nav-label whitespace-nowrap text-[15px] font-medium tracking-[0.08em] text-white">
+                <span class="nav-label whitespace-nowrap text-[24px] font-medium tracking-[0.08em] text-white">
                   {{ contactText }}
                 </span>
                 <span class="nav-dot mt-2 h-1.5 w-1.5 scale-0 rounded-full bg-[#B55F00] opacity-0"></span>
