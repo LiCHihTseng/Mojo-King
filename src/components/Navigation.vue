@@ -4,6 +4,7 @@ import gsap from "gsap";
 import HeroCTA from "../components/Hero/HeroCTA.vue";
 
 interface Props {
+  entranceReady?: boolean;
   brandName?: string;
   aboutText?: string;
   contactText?: string;
@@ -12,7 +13,8 @@ interface Props {
   menuText?: string;
 }
 
-withDefaults(defineProps<Props>(), {
+const props = withDefaults(defineProps<Props>(), {
+  entranceReady: false,
   brandName: "慕玖",
   aboutText: "關於慕玖",
   contactText: "聯絡我們",
@@ -23,11 +25,11 @@ withDefaults(defineProps<Props>(), {
 
 /** 跟 HeroCTA 同一組陰影：外投影 + 四邊內光，做出微微浮起的實體感 */
 const DEFAULT_SHADOW =
-  "2px 2px 16px 0 #2525251a, .75px 0 1px 0 #f8f4eea6 inset, 0 .75px 1px 0 #f8f4eea6 inset, -.25px 0 1px 0 #f8f4ee80 inset, 0 -.25px 1px 0 #f8f4ee80 inset";
+  "2px 2px 16px 0 #25252533, .75px 0 1px 0 #f8f4ee2e inset, 0 .75px 1px 0 #f8f4ee2e inset, -.25px 0 1px 0 #f8f4ee14 inset, 0 -.25px 1px 0 #f8f4ee14 inset";
 
 const menuButtonStyle = {
-  backgroundColor: "#F2F2EF",
-  color: "#171717",
+  backgroundColor: "#252525",
+  color: "#FFFFFF",
   boxShadow: DEFAULT_SHADOW,
 };
 
@@ -55,9 +57,11 @@ type NavLink = "about" | "service" | "contact";
 const hoveredLink = ref<NavLink | null>(null);
 
 let gsapContext: gsap.Context | null = null;
+let navIntroTimeline: gsap.core.Timeline | null = null;
 let animationFrameId: number | null = null;
 let desktopMediaQuery: MediaQueryList | null = null;
 let prefersReducedMotion = false;
+let introHasPlayed = false;
 
 
 const navRef = ref<HTMLElement | null>(null);
@@ -68,6 +72,22 @@ const shouldShowHamburger = computed(() => {
   // 桌面版：到達 About 才顯示
   return isCompactScreen.value || hasReachedAbout.value;
 });
+
+const playNavIntro = () => {
+  if (introHasPlayed || !props.entranceReady) return;
+  if (!prefersReducedMotion && !navIntroTimeline) return;
+
+  introHasPlayed = true;
+
+  if (prefersReducedMotion) {
+    gsap.set(navRef.value, { clearProps: "all" });
+    return;
+  }
+
+  navIntroTimeline?.play(0);
+};
+
+watch(() => props.entranceReady, playNavIntro);
 /* ----------------------------------
    Nav 連結 hover：文字下移 + 底下的點
 ---------------------------------- */
@@ -102,6 +122,9 @@ const handleLinkLeave = (event: MouseEvent) => {
    右側是 CTA 與 Menu 按鈕疊在同一個 grid 格子裡：
    還沒捲到 About 時顯示 CTA，捲到之後 CTA 淡出、Menu 按鈕淡入。
    （手機版一律顯示 Menu 按鈕。）
+
+   這兩個只動 opacity，不動 y／scale——因為 hamburgerRef 也是進場
+   timeline（navIntroTimeline）的目標之一，兩邊同時控制 transform 會打架。
 ---------------------------------- */
 
 const updateNavVisibility = (instant = false) => {
@@ -121,7 +144,6 @@ const updateNavVisibility = (instant = false) => {
 
   gsap.to(hamburgerRef.value, {
     opacity: showHamburger ? 1 : 0,
-    y: showHamburger ? 0 : 8,
     duration,
     ease: "power3.out",
     pointerEvents: showHamburger ? "auto" : "none",
@@ -130,7 +152,6 @@ const updateNavVisibility = (instant = false) => {
 
   gsap.to(ctaRef.value, {
     opacity: showHamburger ? 0 : 1,
-    y: showHamburger ? -8 : 0,
     duration,
     ease: "power3.out",
     pointerEvents: showHamburger ? "none" : "auto",
@@ -292,17 +313,44 @@ onMounted(async () => {
     gsap.set(drawerRef.value, { xPercent: 100 });
 
     if (!prefersReducedMotion) {
-      const tl = gsap.timeline({ defaults: { ease: "power3.out" } });
+      const entranceTargets = [
+        brandRef.value,
+        ...(shouldShowHamburger.value
+          ? [hamburgerRef.value]
+          : Array.from(centerLinksRef.value?.children ?? [])),
+      ].filter(Boolean);
 
-      tl.from(brandRef.value, { opacity: 0, y: -20, duration: 0.8 }).from(
-        shouldShowHamburger.value
-          ? hamburgerRef.value
-          : centerLinksRef.value?.children ?? [],
-        { opacity: 0, y: -20, duration: 0.7, stagger: 0.1 },
-        "-=0.5",
-      );
+      gsap.set(navRef.value, {
+        autoAlpha: 0,
+        y: -22,
+        willChange: "transform,opacity",
+      });
+      gsap.set(entranceTargets, { y: -8 });
+
+      navIntroTimeline = gsap.timeline({
+        paused: true,
+        onComplete: () => {
+          gsap.set(navRef.value, { clearProps: "willChange" });
+        },
+      });
+
+      navIntroTimeline
+        .to(navRef.value, {
+          autoAlpha: 1,
+          y: 0,
+          duration: 0.78,
+          ease: "power3.out",
+        }, 0.28)
+        .to(entranceTargets, {
+          y: 0,
+          duration: 0.62,
+          stagger: 0.055,
+          ease: "power3.out",
+        }, 0.38);
     }
   }, rootRef.value);
+
+  playNavIntro();
 
   desktopMediaQuery.addEventListener("change", updateScreenMode);
   window.addEventListener("keydown", handleKeydown);
@@ -328,6 +376,7 @@ onBeforeUnmount(() => {
 
   document.body.style.overflow = "";
   gsapContext?.revert();
+  navIntroTimeline = null;
 
 });
 </script>
@@ -362,7 +411,7 @@ onBeforeUnmount(() => {
               @mouseenter="handleLinkEnter('about', $event)" @mouseleave="handleLinkLeave">
               <span class="nav-group inline-flex flex-col items-center">
                 <span class="nav-label whitespace-nowrap text-xl font-medium tracking-wider text-white">
-                  {{ aboutText }}
+                  {{ props.aboutText }}
                 </span>
                 <span class="nav-dot mt-2 h-1.5 w-1.5 scale-0 rounded-full bg-[#B55F00] opacity-0"></span>
               </span>
@@ -372,7 +421,7 @@ onBeforeUnmount(() => {
               @mouseenter="handleLinkEnter('service', $event)" @mouseleave="handleLinkLeave">
               <span class="nav-group inline-flex flex-col items-center">
                 <span class="nav-label whitespace-nowrap text-xl font-medium tracking-wider text-white">
-                  {{ serviceText }}
+                  {{ props.serviceText }}
                 </span>
                 <span class="nav-dot mt-2 h-1.5 w-1.5 scale-0 rounded-full bg-[#B55F00] opacity-0"></span>
               </span>
@@ -382,7 +431,7 @@ onBeforeUnmount(() => {
               @mouseenter="handleLinkEnter('contact', $event)" @mouseleave="handleLinkLeave">
               <span class="nav-group inline-flex flex-col items-center">
                 <span class="nav-label whitespace-nowrap text-xl font-medium tracking-wider text-white">
-                  {{ contactText }}
+                  {{ props.contactText }}
                 </span>
                 <span class="nav-dot mt-2 h-1.5 w-1.5 scale-0 rounded-full bg-[#B55F00] opacity-0"></span>
               </span>
@@ -397,8 +446,8 @@ onBeforeUnmount(() => {
         <div class="grid place-items-center">
           <!-- CTA：尚未捲到 About 時顯示 -->
           <div ref="ctaRef" class="col-start-1 row-start-1 justify-self-end">
-            <HeroCTA :text="ctaText" href="#consultation-form" bg-color="#f8f4eecc" text-color="#252525" :blur="6"
-              radius="4px" />
+            <HeroCTA :text="props.ctaText" href="#consultation-form" bg-color="#f8f4eecc" text-color="#252525"
+              :blur="6" radius="4px" />
           </div>
 
           <!-- Menu 按鈕：捲到 About 之後（手機版則一律）顯示 -->
@@ -423,7 +472,7 @@ onBeforeUnmount(() => {
 
             <!-- 右：Menu -->
             <span class="text-sm font-medium tracking-wide">
-              {{ menuText }}
+              {{ props.menuText }}
             </span>
           </button>
         </div>
@@ -453,17 +502,17 @@ onBeforeUnmount(() => {
         <a href="#about"
           class="drawer-link text-2xl font-semibold tracking-wide text-white transition-colors hover:text-[#B55F00] sm:text-3xl"
           @click="handleDrawerLinkClick">
-          {{ aboutText }}
+          {{ props.aboutText }}
         </a>
 
         <a href="#contact"
           class="drawer-link text-2xl font-semibold tracking-wide text-white transition-colors hover:text-[#B55F00] sm:text-3xl"
           @click="handleDrawerLinkClick">
-          {{ contactText }}
+          {{ props.contactText }}
         </a>
 
 
-        <HeroCTA :text="ctaText" href="#consultation-form" />
+        <HeroCTA :text="props.ctaText" href="#consultation-form" />
       </div>
     </aside>
   </div>

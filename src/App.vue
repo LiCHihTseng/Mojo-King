@@ -1,9 +1,8 @@
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted, ref } from "vue";
+import { nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 import Lenis from "lenis";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { lenisInstance } from "./lib/lenis";
 
 import Hero from "./components/Hero/Hero.vue";
 import About from "./components/About.vue";
@@ -11,12 +10,9 @@ import Service from "./components/Service.vue";
 import Testimonials from "./components/Testimonials.vue";
 import Navigation from "./components/Navigation.vue";
 import Contact from "./components/Contact.vue";
-import ConsultationBridge from "./components/ConsultationBridge.vue";
-import ConsultationForm from "./components/ConsultationForm.vue";
 import Footer from "./components/Footer.vue";
 import MojoKingLoader from "./components/MojoKingLoader.vue";
 import Process from "./components/Process.vue";
-// import About1 from "./components/About1.vue";
 
 
 gsap.registerPlugin(ScrollTrigger);
@@ -26,6 +22,11 @@ let lenis: Lenis | null = null;
 // loader 顯示狀態 & 你實際的資料/資源是否還在載入
 const showLoader = ref(true);
 const isLoading = ref(true);
+const entranceReady = ref(false);
+
+const updateLenis = (time: number) => {
+  lenis?.raf(time * 1000);
+};
 
 function initSmoothScroll() {
   const prefersReducedMotion = window.matchMedia(
@@ -40,16 +41,11 @@ function initSmoothScroll() {
     smoothWheel: true,
   });
 
-  // 讓其他元件（例如 HeroCTA 的錨點捲動）可以共用這個 Lenis 實例
-  lenisInstance.current = lenis;
-
   // 讓 Lenis 每次更新捲動位置時，通知 ScrollTrigger 重新計算
   lenis.on("scroll", ScrollTrigger.update);
 
   // 用 GSAP 的 ticker 驅動 Lenis，比 requestAnimationFrame 更穩定
-  gsap.ticker.add((time) => {
-    lenis?.raf(time * 1000);
-  });
+  gsap.ticker.add(updateLenis);
 
   gsap.ticker.lagSmoothing(0);
 }
@@ -68,8 +64,12 @@ onMounted(async () => {
 });
 
 // MojoKingLoader 的 curve swipe 動畫「完全結束」後才會 emit 這個事件
-function handleLoaderDone() {
+async function handleLoaderDone() {
   showLoader.value = false;
+  await nextTick();
+
+  // Loader 已經完全離場後，才允許 Hero 與 Navigation 播放進場。
+  entranceReady.value = true;
   document.documentElement.style.overflow = "";
 
   initSmoothScroll();
@@ -80,19 +80,19 @@ function handleLoaderDone() {
 }
 
 onBeforeUnmount(() => {
+  gsap.ticker.remove(updateLenis);
   lenis?.destroy();
-  lenisInstance.current = null;
 });
 </script>
 
 <!-- App.vue -->
 <template>
   <main class="relative">
-    <Navigation />
+    <Navigation :entrance-ready="entranceReady" />
 
     <div class="relative">
   <section class="sticky top-0 z-0 h-screen w-full">
-    <Hero />
+    <Hero :entrance-ready="entranceReady" />
   </section>
 
 
@@ -100,7 +100,6 @@ onBeforeUnmount(() => {
   <section id="about" class="relative z-10 rounded-t-[2.5rem] bg-white shadow-[0_-30px_60px_-15px_rgba(0,0,0,0.25)]">
     <About />
   </section>
-
 </div>
 
 
@@ -108,8 +107,6 @@ onBeforeUnmount(() => {
     <Testimonials />
     <Process />
     <Contact id="contact" />
-    <ConsultationBridge />
-    <ConsultationForm />
     <Footer />
 
     <MojoKingLoader v-if="showLoader" :loading="isLoading" @done="handleLoaderDone" />

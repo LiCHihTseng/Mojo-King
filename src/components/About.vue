@@ -298,36 +298,48 @@ onMounted(async () => {
     );
 
     gsap.set(travelRef.value, {
-      top: initialPosition.top,
-      left: initialPosition.left,
+      top: 0,
+      left: 0,
+      x: initialPosition.left,
+      y: initialPosition.top,
       xPercent: -50,
       yPercent: -50,
+      force3D: true,
     });
 
     const moveToScene2 = gsap.fromTo(
       travelRef.value,
       {
-        top: initialPosition.top,
-        left: initialPosition.left,
-      },
-      {
-        top: () =>
+        x: () =>
           getCenterRelativeTo(
             wrapperRef.value!,
-            imageSlot2Ref.value!,
+            imageSlot1Ref.value!,
+          ).left,
+        y: () =>
+          getCenterRelativeTo(
+            wrapperRef.value!,
+            imageSlot1Ref.value!,
           ).top,
-        left: () =>
+      },
+      {
+        x: () =>
           getCenterRelativeTo(
             wrapperRef.value!,
             imageSlot2Ref.value!,
           ).left,
-        ease: "sine.inOut",
+        y: () =>
+          getCenterRelativeTo(
+            wrapperRef.value!,
+            imageSlot2Ref.value!,
+          ).top,
+        ease: "none",
+        force3D: true,
         immediateRender: false,
         scrollTrigger: {
           trigger: scene2Ref.value,
           start: "top 95%",
           end: "top 20%",
-          scrub: 1.2,
+          scrub: 0.8,
           invalidateOnRefresh: true,
         },
       },
@@ -336,35 +348,36 @@ onMounted(async () => {
     const moveToScene3 = gsap.fromTo(
       travelRef.value,
       {
-        top: () =>
-          getCenterRelativeTo(
-            wrapperRef.value!,
-            imageSlot2Ref.value!,
-          ).top,
-        left: () =>
+        x: () =>
           getCenterRelativeTo(
             wrapperRef.value!,
             imageSlot2Ref.value!,
           ).left,
+        y: () =>
+          getCenterRelativeTo(
+            wrapperRef.value!,
+            imageSlot2Ref.value!,
+          ).top,
       },
       {
-        top: () =>
-          getCenterRelativeTo(
-            wrapperRef.value!,
-            imageSlot3Ref.value!,
-          ).top,
-        left: () =>
+        x: () =>
           getCenterRelativeTo(
             wrapperRef.value!,
             imageSlot3Ref.value!,
           ).left,
-        ease: "sine.inOut",
+        y: () =>
+          getCenterRelativeTo(
+            wrapperRef.value!,
+            imageSlot3Ref.value!,
+          ).top,
+        ease: "none",
+        force3D: true,
         immediateRender: false,
         scrollTrigger: {
           trigger: scene3Ref.value,
           start: "top 95%",
           end: "top 20%",
-          scrub: 1.2,
+          scrub: 0.8,
           invalidateOnRefresh: true,
         },
       },
@@ -407,23 +420,33 @@ onMounted(async () => {
       const slot2 = mSlot2Ref.value;
 
       const resetTreePosition = () => {
-        placeTravelerAtSlot(wrapper, traveler, slot1);
+        const start = getCenterRelativeTo(wrapper, slot1);
+
+        gsap.set(traveler, {
+          top: 0,
+          left: 0,
+          x: start.left,
+          y: start.top,
+          xPercent: -50,
+          yPercent: -50,
+          autoAlpha: 1,
+          force3D: true,
+        });
       };
 
       resetTreePosition();
 
-      // 手機版 Tree 僅改變 Y，X 永遠維持 0。
+      // 手機版 Tree 僅透過 transform x/y 移動，避免觸發版面重排。
       const treeTween = gsap.to(traveler, {
-        x: 0,
-        y: () =>
-          getVerticalSlotDelta(wrapper, slot1, slot2),
+        x: () => getCenterRelativeTo(wrapper, slot2).left,
+        y: () => getCenterRelativeTo(wrapper, slot2).top,
         ease: "none",
         force3D: true,
         scrollTrigger: {
           trigger: scene2,
           start: "top 88%",
           end: "top 32%",
-          scrub: 1.4,
+          scrub: 0.7,
           invalidateOnRefresh: true,
           onRefreshInit: resetTreePosition,
         },
@@ -498,7 +521,7 @@ onBeforeUnmount(() => {
   >
     <div
       ref="travelRef"
-      class="pointer-events-none absolute z-20 h-[clamp(300px,62vh,560px)] w-[clamp(300px,62vh,560px)]"
+      class="pointer-events-none absolute left-0 top-0 z-20 h-[clamp(300px,62vh,560px)] w-[clamp(300px,62vh,560px)] will-change-transform [contain:layout_paint]"
     >
       <TreeIcon
         size="100%"
@@ -509,7 +532,7 @@ onBeforeUnmount(() => {
 
     <div
       ref="scene1Ref"
-      class="grid min-h-screen w-full grid-cols-2 items-center "
+      class="grid min-h-screen w-full grid-cols-2 items-center"
     >
       <div class="grid h-full grid-cols-[22%_78%] items-center px-[2.75vw]">
         <div ref="scene1StatRef" class="min-w-0">
@@ -539,7 +562,7 @@ onBeforeUnmount(() => {
 
     <div
       ref="scene2Ref"
-      class="grid min-h-screen w-full grid-cols-2 items-center "
+      class="grid min-h-screen w-full grid-cols-2 items-center"
     >
       <div ref="scene2TextRef" class="px-[5.5vw]">
         <p class="max-w-full text-[clamp(1.05rem,1.25vw,1.45rem)] leading-relaxed text-[#252525]/60">
@@ -605,7 +628,7 @@ onBeforeUnmount(() => {
   >
     <div
       ref="mTravel12Ref"
-      class="pointer-events-none absolute z-20 h-[clamp(132px,36vw,260px)] w-[clamp(132px,36vw,260px)] will-change-transform"
+      class="pointer-events-none absolute left-0 top-0 z-20 h-[clamp(112px,30vw,180px)] w-[clamp(112px,30vw,180px)] will-change-transform [contain:layout_paint]"
     >
       <TreeIcon
         size="100%"
@@ -640,7 +663,7 @@ onBeforeUnmount(() => {
 
         <div
           ref="mSlot1Ref"
-          class="h-[clamp(132px,36vw,260px)] w-[clamp(132px,36vw,260px)] justify-self-end"
+          class="h-[clamp(112px,30vw,180px)] w-[clamp(112px,30vw,180px)] justify-self-end"
           aria-hidden="true"
         ></div>
       </div>
@@ -663,7 +686,7 @@ onBeforeUnmount(() => {
 
         <div
           ref="mSlot2Ref"
-          class="h-[clamp(132px,36vw,260px)] w-[clamp(132px,36vw,260px)] justify-self-end"
+          class="h-[clamp(112px,30vw,180px)] w-[clamp(112px,30vw,180px)] justify-self-end"
           aria-hidden="true"
         ></div>
       </div>

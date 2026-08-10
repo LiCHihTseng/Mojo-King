@@ -3,6 +3,7 @@ import { nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import HeroCTA from "../components/Hero/HeroCTA.vue";
+import About_img from "../assets/About_img1.png"
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -29,7 +30,7 @@ withDefaults(defineProps<Props>(), {
       titleLine2: "員工才願意留下來。",
       body: "從薪酬結構到工作規則，協助你把人事制度從零到一建立起來，不再依賴個人經驗運作。",
       visualBg: "#F9F8F6",
-      image: "https://picsum.photos/seed/svc-1/720/560",
+      image: About_img,
     },
     {
       tag: "招募策略",
@@ -209,7 +210,7 @@ onBeforeUnmount(() => {
           backgroundColor: card.visualBg,
           padding: 'clamp(1.5rem, 3vw, 3.5rem)'
         }">
-          <div class="aspect-[4/3] w-full max-h-full overflow-hidden rounded-lg shadow-xl">
+          <div class="aspect-[4/3] w-full max-h-full overflow-hidden rounded-lg ">
             <img :src="card.image" :alt="card.tag" class="h-full w-full object-cover" loading="lazy" />
           </div>
         </div>

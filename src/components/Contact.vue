@@ -193,7 +193,7 @@ onBeforeUnmount(() => {
     </div>
 
     <!-- 內容 -->
-    <div class="relative z-10 mx-auto w-full max-w-[1800px] px-5 sm:px-8 lg:px-12">
+    <div class="relative z-10 mx-auto w-full max-w-[2000px] px-5 sm:px-8 lg:px-12">
       <div class="lg:grid lg:grid-cols-12 lg:gap-x-10">
         <!-- 左側：小標（桌機才獨立成一欄）-->
         <div class="lg:col-span-2">
