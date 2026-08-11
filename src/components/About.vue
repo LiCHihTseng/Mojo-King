@@ -7,6 +7,7 @@ import TreeIcon from "./Tree.vue";
 gsap.registerPlugin(ScrollTrigger);
 
 interface Props {
+  introText?: string;
   travelImage2?: string;
   statValue1?: string;
   statLabel1?: string;
@@ -25,6 +26,7 @@ interface Props {
 }
 
 withDefaults(defineProps<Props>(), {
+  introText: "關於慕玖",
   travelImage2:
     "https://images.unsplash.com/photo-1521737604893-d14cc237f11d?q=80&w=1200&auto=format&fit=crop",
   statValue1: "100+",
@@ -49,6 +51,10 @@ withDefaults(defineProps<Props>(), {
 ---------------------------------- */
 
 const wrapperRef = ref<HTMLElement | null>(null);
+const desktopIntroLayerRef = ref<HTMLElement | null>(null);
+const desktopIntroTextRef = ref<HTMLElement | null>(null);
+const scene1ContentRef = ref<HTMLElement | null>(null);
+const scene1StaticTreeRef = ref<HTMLElement | null>(null);
 const travelRef = ref<HTMLElement | null>(null);
 const scene1Ref = ref<HTMLElement | null>(null);
 const scene2Ref = ref<HTMLElement | null>(null);
@@ -68,6 +74,11 @@ const scene3StatRef = ref<HTMLElement | null>(null);
 ---------------------------------- */
 
 const mWrapperRef = ref<HTMLElement | null>(null);
+const mScene1Ref = ref<HTMLElement | null>(null);
+const mobileIntroLayerRef = ref<HTMLElement | null>(null);
+const mobileIntroTextRef = ref<HTMLElement | null>(null);
+const mScene1ContentRef = ref<HTMLElement | null>(null);
+const mScene1StaticTreeRef = ref<HTMLElement | null>(null);
 
 const mScene2Ref = ref<HTMLElement | null>(null);
 const mTravel12Ref = ref<HTMLElement | null>(null);
@@ -79,6 +90,7 @@ const mScene2TextRef = ref<HTMLElement | null>(null);
 const mScene2StatRef = ref<HTMLElement | null>(null);
 
 const mScene3WrapRef = ref<HTMLElement | null>(null);
+const mScene3Ref = ref<HTMLElement | null>(null);
 
 const mScene3SecondRowRef = ref<HTMLElement | null>(null);
 const mTravel3Ref = ref<HTMLElement | null>(null);
@@ -91,58 +103,197 @@ const mScene3TextRef = ref<HTMLElement | null>(null);
 let mediaContext: ReturnType<typeof gsap.matchMedia> | null = null;
 
 /* ----------------------------------
-   滾動 reveal
+   場景內容 reveal
 
-   每個文案 / 數據各自綁一個 ScrollTrigger，當它的頂端進到畫面 80% 的位置
-   （還在下方、快要進入視線）時觸發，只播一次。
-
-   效果是遮罩式的：用 clip-path 把下緣往下拉開，由上往下「被揭開」，
-   元素本身完全不做 x / y 位移。
-
-   （原本場景之間互相淡入淡出的 crossfade 已移除，
-   　現在每一塊都是獨立觸發，不再受其他場景影響。）
+   每個場景共用一條 scrub timeline，文字與數據在場景進入 viewport 時
+   稍微由下往上移動並淡入。進度直接跟隨捲動，因此往回滾也能自然反向。
 ---------------------------------- */
 
-const REVEAL_START = "top 80%";
+interface SceneRevealGroup {
+  trigger: HTMLElement | null;
+  elements: Array<HTMLElement | null>;
+  start?: string;
+  end?: string;
+  y?: number;
+  stagger?: number;
+  ease?: string;
+  duration?: number;
+  scrub?: boolean | number;
+  toggleActions?: string;
+}
 
-/** 收合狀態：下緣裁掉 100%，等於整塊被蓋住 */
-const CLIP_HIDDEN = "inset(0% 0% 100% 0%)";
-/** 展開狀態：完全不裁切 */
-const CLIP_VISIBLE = "inset(0% 0% 0% 0%)";
+const CONTENT_REVEAL_Y = 80;
+const STAT_REVEAL_START = "center 68%";
+const STAT_REVEAL_DURATION = 0.9;
+// 場景一內容本身佔滿一個 viewport：中心 50% + 30% = 畫面約 80% 高度。
+const SCENE_ONE_START_Y_PERCENT = 30;
 
-const setupReveals = (elements: Array<HTMLElement | null>) => {
-  const targets = elements.filter(Boolean) as HTMLElement[];
+const setupSceneReveals = (groups: SceneRevealGroup[]) => {
+  const timelines: gsap.core.Timeline[] = [];
 
-  if (targets.length === 0) return () => {};
+  groups.forEach(({
+    trigger,
+    elements,
+    start = "top 64%",
+    end = "top 8%",
+    y = CONTENT_REVEAL_Y,
+    stagger = 0.12,
+    ease = "power1.out",
+    duration = 1,
+    scrub = true,
+    toggleActions,
+  }) => {
+    const targets = elements.filter(Boolean) as HTMLElement[];
+    if (!trigger || targets.length === 0) return;
 
-  const revealTriggers: ScrollTrigger[] = [];
+    gsap.set(targets, { autoAlpha: 0, y });
 
-  targets.forEach((element) => {
-    gsap.set(element, { clipPath: CLIP_HIDDEN });
-
-    revealTriggers.push(
-      ScrollTrigger.create({
-        trigger: element,
-        start: REVEAL_START,
-        once: true,
+    const timeline = gsap.timeline({
+      scrollTrigger: {
+        trigger,
+        start,
+        end,
+        scrub,
+        toggleActions,
         invalidateOnRefresh: true,
-        onEnter: () => {
-          gsap.to(element, {
-            clipPath: CLIP_VISIBLE,
-            duration: 0.5,
-            ease: "power3.out",
-            overwrite: "auto",
-          });
-        },
-      }),
-    );
+      },
+    });
+
+    timeline.to(targets, {
+      autoAlpha: 1,
+      y: 0,
+      duration,
+      stagger,
+      ease,
+    });
+
+    timelines.push(timeline);
   });
 
   return () => {
-    revealTriggers.forEach((trigger) => trigger.kill());
-    gsap.killTweensOf(targets);
-    // 切換斷點時把元素還原成完整可見，避免停在被裁切的狀態
-    gsap.set(targets, { clipPath: "none" });
+    timelines.forEach((timeline) => {
+      timeline.scrollTrigger?.kill();
+      timeline.kill();
+    });
+
+    const targets = groups.flatMap(({ elements }) =>
+      elements.filter(Boolean),
+    ) as HTMLElement[];
+    gsap.set(targets, {
+      clearProps: "opacity,visibility,transform",
+    });
+  };
+};
+
+/* ----------------------------------
+   About intro：與第一幕共用同一個 viewport
+
+   pin 的只有第一幕，動畫也只作用在它的子元素。
+   第一幕用靜態圖形淡入，pin 結束後再交棒給原本的跨場景移動圖形，
+   因此額外的捲動距離始終有內容，不會出現空白 spacer。
+---------------------------------- */
+
+const setupIntroTransition = (
+  stage: HTMLElement,
+  introLayer: HTMLElement,
+  introText: HTMLElement,
+  contentTarget: HTMLElement,
+  staticVisual: HTMLElement,
+  travelVisual: HTMLElement,
+  scrollDistance: number,
+) => {
+  gsap.set(introLayer, { autoAlpha: 1 });
+  gsap.set(introText, {
+    autoAlpha: 1,
+    y: 0,
+    scale: 1,
+    transformOrigin: "50% 50%",
+  });
+  gsap.set(contentTarget, {
+    autoAlpha: 0,
+    y: 0,
+    yPercent: SCENE_ONE_START_Y_PERCENT,
+  });
+  gsap.set(staticVisual, { autoAlpha: 1 });
+  gsap.set(travelVisual, { autoAlpha: 0 });
+
+  const timeline = gsap.timeline({
+    defaults: { ease: "none" },
+    scrollTrigger: {
+      trigger: stage,
+      start: "top top",
+      end: () => `+=${Math.round(window.innerHeight * scrollDistance)}`,
+      scrub: true,
+      pin: stage,
+      pinSpacing: true,
+      invalidateOnRefresh: true,
+    },
+  });
+
+  timeline
+    .to(introText, {
+      autoAlpha: 0,
+      y: 0,
+      scale: 0.68,
+      duration: 0.28,
+    })
+    // 文字完全透明後才切掉遮罩層，避免父子 opacity 相乘造成變速感。
+    .set(introLayer, { autoAlpha: 0 })
+    .to(
+      contentTarget,
+      {
+        autoAlpha: 1,
+        y: 0,
+        yPercent: 0,
+        duration: 0.4,
+      },
+    );
+
+  return () => {
+    timeline.scrollTrigger?.kill();
+    timeline.kill();
+    gsap.set(
+      [introLayer, introText, contentTarget, staticVisual, travelVisual],
+      {
+        clearProps: "opacity,visibility,transform",
+      },
+    );
+  };
+};
+
+/*
+ * Intro pin 結束後，先讓靜態樹與移動樹在相同位置交叉淡化，
+ * 完成交棒後才開始往場景二移動。這段同樣採 1:1 scrub，
+ * 避免 numeric scrub 在往回滾時追趕進度而產生吸附感。
+ */
+const setupTreeHandoff = (
+  trigger: HTMLElement,
+  staticVisual: HTMLElement,
+  travelVisual: HTMLElement,
+  end: string,
+  syncTravelPosition: () => void,
+) => {
+  const timeline = gsap.timeline({
+    scrollTrigger: {
+      trigger,
+      start: "top 100%",
+      end,
+      scrub: true,
+      invalidateOnRefresh: true,
+      onEnter: syncTravelPosition,
+    },
+  });
+
+  timeline
+    .to(staticVisual, { autoAlpha: 0, duration: 1, ease: "none" }, 0)
+    .to(travelVisual, { autoAlpha: 1, duration: 1, ease: "none" }, 0);
+
+  return () => {
+    timeline.scrollTrigger?.kill();
+    timeline.kill();
+    gsap.set([staticVisual, travelVisual], {
+      clearProps: "opacity,visibility",
+    });
   };
 };
 
@@ -167,6 +318,38 @@ const getCenterRelativeTo = (
       wrapperRect.left +
       slotRect.width / 2,
   };
+};
+
+/*
+ * 平板的場景一會被 ScrollTrigger pin 住。此時 getBoundingClientRect()
+ * 會包含 pin 產生的 transform，若在捲動途中 refresh，Tree 的起點就可能
+ * 被算到畫面外。offset 座標只反映 DOM 的固定版面位置，因此適合用來建立
+ * 「數據一右側 → 數據二右側」這條垂直移動軌道。
+ */
+const getLayoutCenterRelativeTo = (
+  wrapper: HTMLElement,
+  slot: HTMLElement,
+) => {
+  let top = slot.offsetHeight / 2;
+  let left = slot.offsetWidth / 2;
+  let current: HTMLElement | null = slot;
+
+  while (current && current !== wrapper) {
+    top += current.offsetTop;
+    left += current.offsetLeft;
+    current = current.offsetParent as HTMLElement | null;
+  }
+
+  return current === wrapper
+    ? { top, left }
+    : getCenterRelativeTo(wrapper, slot);
+};
+
+const getPinSpacingOffset = (stage: HTMLElement) => {
+  const spacer = stage.parentElement;
+  if (!spacer?.classList.contains("pin-spacer")) return 0;
+
+  return Number.parseFloat(getComputedStyle(spacer).paddingBottom) || 0;
 };
 
 const placeTravelerAtSlot = (
@@ -207,13 +390,27 @@ onMounted(async () => {
   ).matches;
 
   if (prefersReducedMotion) {
+    [desktopIntroLayerRef.value, mobileIntroLayerRef.value].forEach(
+      (element) => {
+        if (element) gsap.set(element, { autoAlpha: 0 });
+      },
+    );
+    if (scene1StaticTreeRef.value) {
+      gsap.set(scene1StaticTreeRef.value, { autoAlpha: 1 });
+    }
+    if (mScene1StaticTreeRef.value) {
+      gsap.set(mScene1StaticTreeRef.value, { autoAlpha: 0 });
+    }
+
     [
+      scene1ContentRef.value,
       scene1StatRef.value,
       scene1TextRef.value,
       scene2StatRef.value,
       scene2TextRef.value,
       scene3StatRef.value,
       scene3TextRef.value,
+      mScene1ContentRef.value,
       mScene1StatRef.value,
       mScene1TextRef.value,
       mScene2StatRef.value,
@@ -269,18 +466,12 @@ onMounted(async () => {
   mediaContext = gsap.matchMedia();
 
   mediaContext.add("(min-width: 1024px)", () => {
-    // 文案 / 數據各自滾到畫面 80% 時，由上往下揭開
-    const cleanupReveals = setupReveals([
-      scene1StatRef.value,
-      scene1TextRef.value,
-      scene2StatRef.value,
-      scene2TextRef.value,
-      scene3StatRef.value,
-      scene3TextRef.value,
-    ]);
-
     if (
       !wrapperRef.value ||
+      !desktopIntroLayerRef.value ||
+      !desktopIntroTextRef.value ||
+      !scene1ContentRef.value ||
+      !scene1StaticTreeRef.value ||
       !travelRef.value ||
       !scene1Ref.value ||
       !scene2Ref.value ||
@@ -289,7 +480,7 @@ onMounted(async () => {
       !imageSlot2Ref.value ||
       !imageSlot3Ref.value
     ) {
-      return cleanupReveals;
+      return;
     }
 
     const initialPosition = getCenterRelativeTo(
@@ -306,6 +497,39 @@ onMounted(async () => {
       yPercent: -50,
       force3D: true,
     });
+
+    const cleanupIntro = setupIntroTransition(
+      scene1Ref.value,
+      desktopIntroLayerRef.value,
+      desktopIntroTextRef.value,
+      scene1ContentRef.value,
+      scene1StaticTreeRef.value,
+      travelRef.value,
+      0.9,
+    );
+
+    const cleanupHandoff = setupTreeHandoff(
+      scene2Ref.value,
+      scene1StaticTreeRef.value,
+      travelRef.value,
+      "top 80%",
+      () => {
+        const position = getCenterRelativeTo(
+          wrapperRef.value!,
+          imageSlot1Ref.value!,
+        );
+
+        gsap.set(travelRef.value!, {
+          top: 0,
+          left: 0,
+          x: position.left,
+          y: position.top,
+          xPercent: -50,
+          yPercent: -50,
+          force3D: true,
+        });
+      },
+    );
 
     const moveToScene2 = gsap.fromTo(
       travelRef.value,
@@ -337,9 +561,9 @@ onMounted(async () => {
         immediateRender: false,
         scrollTrigger: {
           trigger: scene2Ref.value,
-          start: "top 95%",
+          start: "top 80%",
           end: "top 20%",
-          scrub: 0.8,
+          scrub: true,
           invalidateOnRefresh: true,
         },
       },
@@ -377,50 +601,123 @@ onMounted(async () => {
           trigger: scene3Ref.value,
           start: "top 95%",
           end: "top 20%",
-          scrub: 0.8,
+          scrub: true,
           invalidateOnRefresh: true,
         },
       },
     );
 
+    const cleanupReveals = setupSceneReveals([
+      {
+        trigger: scene2Ref.value,
+        elements: [scene2TextRef.value],
+      },
+      {
+        trigger: scene2StatRef.value,
+        elements: [scene2StatRef.value],
+        start: STAT_REVEAL_START,
+        y: 30,
+        stagger: 0,
+        ease: "power2.out",
+        duration: STAT_REVEAL_DURATION,
+        scrub: false,
+        toggleActions: "play none none reverse",
+      },
+      {
+        trigger: scene3Ref.value,
+        elements: [scene3TextRef.value],
+      },
+      {
+        trigger: scene3StatRef.value,
+        elements: [scene3StatRef.value],
+        start: STAT_REVEAL_START,
+        y: 30,
+        stagger: 0,
+        ease: "power2.out",
+        duration: STAT_REVEAL_DURATION,
+        scrub: false,
+        toggleActions: "play none none reverse",
+      },
+    ]);
+
     return () => {
       cleanupReveals();
+      cleanupHandoff();
       moveToScene2.scrollTrigger?.kill();
       moveToScene2.kill();
       moveToScene3.scrollTrigger?.kill();
       moveToScene3.kill();
+      cleanupIntro();
     };
   });
 
-  mediaContext.add("(max-width: 1023px)", () => {
-    // 文案 / 數據各自滾到畫面 80% 時，由上往下揭開
-    const cleanupReveals = setupReveals([
-      mScene1TextRef.value,
-      mScene1StatRef.value,
-      mScene2StatRef.value,
-      mScene2TextRef.value,
-      mScene3StatRef.value,
-      mScene4StatRef.value,
-      mScene3TextRef.value,
-    ]);
-
+  mediaContext.add({
+    isTablet: "(min-width: 768px) and (max-width: 1023px)",
+    isMobile: "(max-width: 767px)",
+  }, (context) => {
+    const isTablet = Boolean(context.conditions?.isTablet);
     const mobileTweens: gsap.core.Tween[] = [];
+    let cleanupIntro = () => {};
+    let cleanupHandoff = () => {};
 
     if (
       mWrapperRef.value &&
+      mScene1Ref.value &&
+      mobileIntroLayerRef.value &&
+      mobileIntroTextRef.value &&
+      mScene1ContentRef.value &&
+      mScene1StaticTreeRef.value &&
+      mTravel12Ref.value &&
+      mSlot1Ref.value
+    ) {
+      placeTravelerAtSlot(
+        mWrapperRef.value,
+        mTravel12Ref.value,
+        mSlot1Ref.value,
+      );
+
+      cleanupIntro = setupIntroTransition(
+        mScene1Ref.value,
+        mobileIntroLayerRef.value,
+        mobileIntroTextRef.value,
+        mScene1ContentRef.value,
+        mScene1StaticTreeRef.value,
+        mTravel12Ref.value,
+        0.75,
+      );
+    }
+
+    if (
+      mWrapperRef.value &&
+      mScene1Ref.value &&
       mScene2Ref.value &&
       mTravel12Ref.value &&
       mSlot1Ref.value &&
       mSlot2Ref.value
     ) {
       const wrapper = mWrapperRef.value;
+      const scene1 = mScene1Ref.value;
       const scene2 = mScene2Ref.value;
       const traveler = mTravel12Ref.value;
       const slot1 = mSlot1Ref.value;
       const slot2 = mSlot2Ref.value;
 
+      const getTreeAnchor = (slot: HTMLElement) => {
+        if (!isTablet) return getCenterRelativeTo(wrapper, slot);
+
+        const anchor = getLayoutCenterRelativeTo(wrapper, slot);
+
+        // 場景一離開 pin 後會保留 spacer 的位移，補回後才是數據一
+        // 真正在頁面上的右側中心；場景二不在 pin 內，不需要補償。
+        if (slot === slot1) {
+          anchor.top += getPinSpacingOffset(scene1);
+        }
+
+        return anchor;
+      };
+
       const resetTreePosition = () => {
-        const start = getCenterRelativeTo(wrapper, slot1);
+        const start = getTreeAnchor(slot1);
 
         gsap.set(traveler, {
           top: 0,
@@ -429,28 +726,48 @@ onMounted(async () => {
           y: start.top,
           xPercent: -50,
           yPercent: -50,
-          autoAlpha: 1,
           force3D: true,
         });
       };
 
       resetTreePosition();
 
-      // 手機版 Tree 僅透過 transform x/y 移動，避免觸發版面重排。
-      const treeTween = gsap.to(traveler, {
-        x: () => getCenterRelativeTo(wrapper, slot2).left,
-        y: () => getCenterRelativeTo(wrapper, slot2).top,
-        ease: "none",
-        force3D: true,
-        scrollTrigger: {
-          trigger: scene2,
-          start: "top 88%",
-          end: "top 32%",
-          scrub: 0.7,
-          invalidateOnRefresh: true,
-          onRefreshInit: resetTreePosition,
+      if (mScene1StaticTreeRef.value) {
+        cleanupHandoff = setupTreeHandoff(
+          scene2,
+          mScene1StaticTreeRef.value,
+          traveler,
+          "top 90%",
+          resetTreePosition,
+        );
+      }
+
+      // 平板固定在兩筆數據右側的同一條軌道，只沿 Y 軸垂直往下。
+      const treeTween = gsap.fromTo(
+        traveler,
+        {
+          x: () => getTreeAnchor(slot1).left,
+          y: () => getTreeAnchor(slot1).top,
         },
-      });
+        {
+          x: () =>
+            isTablet
+              ? getTreeAnchor(slot1).left
+              : getTreeAnchor(slot2).left,
+          y: () => getTreeAnchor(slot2).top,
+          ease: "none",
+          force3D: true,
+          immediateRender: false,
+          scrollTrigger: {
+            trigger: scene2,
+            start: "top 90%",
+            end: "top 32%",
+            scrub: true,
+            invalidateOnRefresh: true,
+            onRefreshInit: resetTreePosition,
+          },
+        },
+      );
 
       mobileTweens.push(treeTween);
     }
@@ -494,13 +811,52 @@ onMounted(async () => {
       mobileTweens.push(photoTween);
     }
 
+    const cleanupReveals = setupSceneReveals([
+      {
+        trigger: mScene2Ref.value,
+        elements: [mScene2TextRef.value],
+      },
+      {
+        trigger: mScene2StatRef.value,
+        elements: [mScene2StatRef.value],
+        start: STAT_REVEAL_START,
+        y: 30,
+        stagger: 0,
+        ease: "power2.out",
+        duration: STAT_REVEAL_DURATION,
+        scrub: false,
+        toggleActions: "play none none reverse",
+      },
+      {
+        trigger: mScene3Ref.value,
+        elements: [mScene3TextRef.value],
+      },
+      {
+        trigger: mScene3StatRef.value,
+        elements: [
+          mScene3StatRef.value,
+          mScene4StatRef.value,
+        ],
+        start: STAT_REVEAL_START,
+        y: 30,
+        stagger: 0.08,
+        ease: "power2.out",
+        duration: STAT_REVEAL_DURATION,
+        scrub: false,
+        toggleActions: "play none none reverse",
+      },
+    ]);
+
     return () => {
       cleanupReveals();
+      cleanupHandoff();
 
       mobileTweens.forEach((tween) => {
         tween.scrollTrigger?.kill();
         tween.kill();
       });
+
+      cleanupIntro();
     };
   });
 
@@ -521,7 +877,7 @@ onBeforeUnmount(() => {
   >
     <div
       ref="travelRef"
-      class="pointer-events-none absolute left-0 top-0 z-20 h-[clamp(300px,62vh,560px)] w-[clamp(300px,62vh,560px)] will-change-transform [contain:layout_paint]"
+      class="pointer-events-none absolute left-0 top-0 z-20 h-[clamp(300px,38vw,560px)] max-h-[60vh] w-[clamp(300px,38vw,560px)] max-w-[60vh] will-change-transform [contain:layout_paint]"
     >
       <TreeIcon
         size="100%"
@@ -532,31 +888,57 @@ onBeforeUnmount(() => {
 
     <div
       ref="scene1Ref"
-      class="grid min-h-screen w-full grid-cols-2 items-center"
+      class="relative min-h-screen w-full"
     >
-      <div class="grid h-full grid-cols-[22%_78%] items-center px-[2.75vw]">
-        <div ref="scene1StatRef" class="min-w-0">
-          <p class="text-[clamp(2.5rem,3vw,3.5rem)] font-bold leading-none tracking-wide text-[#FF891D]">
-            {{ statValue1 }}
-          </p>
-          <p class="mt-2 text-[clamp(.875rem,1vw,1.125rem)] leading-tight text-[#252525]/50">
-            {{ statLabel1 }}
-          </p>
-        </div>
-
-        <div
-          ref="imageSlot1Ref"
-          class="h-[clamp(300px,62vh,560px)] w-[clamp(300px,62vh,560px)] justify-self-center"
-        ></div>
+      <div
+        ref="desktopIntroLayerRef"
+        class="pointer-events-none absolute inset-0 z-30 flex min-h-screen items-center justify-center bg-[#F9F8F6] px-6 text-center"
+        aria-hidden="true"
+      >
+        <h2
+          ref="desktopIntroTextRef"
+          class="will-change-transform text-[clamp(2.75rem,6vw,6.5rem)] font-semibold tracking-[-0.04em] text-[#1a1a1a]"
+        >
+          {{ introText }}
+        </h2>
       </div>
 
-      <div ref="scene1TextRef" class="px-[5.5vw]">
-        <p class="max-w-full text-[clamp(1.05rem,1.05vw,1.35rem)]  text-[#252525]/60">
-          <span class="font-semibold text-[#252525]">
-            {{ quote1Highlight }}
-          </span>
-          {{ quote1Rest }}
-        </p>
+      <div
+        ref="scene1ContentRef"
+        class="relative z-10 grid min-h-screen w-full grid-cols-2 items-center will-change-[opacity]"
+      >
+        <div class="grid h-full grid-cols-[22%_78%] items-center px-[2.75vw]">
+          <div ref="scene1StatRef" class="min-w-0">
+            <p class="text-[clamp(2.5rem,3vw,3.5rem)] font-bold leading-none tracking-wide text-[#FF891D]">
+              {{ statValue1 }}
+            </p>
+            <p class="mt-2 text-[clamp(.875rem,1vw,1.125rem)] leading-tight text-[#252525]/50">
+              {{ statLabel1 }}
+            </p>
+          </div>
+
+          <div
+            ref="imageSlot1Ref"
+            class="h-[clamp(300px,38vw,560px)] max-h-[60vh] w-[clamp(300px,38vw,560px)] max-w-[60vh] justify-self-center"
+          >
+            <div ref="scene1StaticTreeRef" class="h-full w-full">
+              <TreeIcon
+                size="100%"
+                color="#5D5D5D"
+                class="block h-full w-full"
+              />
+            </div>
+          </div>
+        </div>
+
+        <div ref="scene1TextRef" class="px-[5.5vw]">
+          <p class="max-w-full text-[clamp(1.05rem,1.05vw,1.35rem)] text-[#252525]/60">
+            <span class="font-semibold text-[#252525]">
+              {{ quote1Highlight }}
+            </span>
+            {{ quote1Rest }}
+          </p>
+        </div>
       </div>
     </div>
 
@@ -576,7 +958,7 @@ onBeforeUnmount(() => {
       <div class="grid h-full grid-cols-[78%_22%] items-center px-[2.75vw]">
         <div
           ref="imageSlot2Ref"
-          class="h-[clamp(300px,62vh,560px)] w-[clamp(300px,62vh,560px)] justify-self-center"
+          class="h-[clamp(300px,38vw,560px)] max-h-[60vh] w-[clamp(300px,38vw,560px)] max-w-[60vh] justify-self-center"
         ></div>
 
         <div ref="scene2StatRef" class="min-w-0">
@@ -606,7 +988,7 @@ onBeforeUnmount(() => {
 
         <div
           ref="imageSlot3Ref"
-          class="h-[clamp(300px,62vh,560px)] w-[clamp(300px,62vh,560px)] justify-self-center"
+          class="h-[clamp(300px,38vw,560px)] max-h-[60vh] w-[clamp(300px,38vw,560px)] max-w-[60vh] justify-self-center"
         ></div>
       </div>
 
@@ -628,7 +1010,7 @@ onBeforeUnmount(() => {
   >
     <div
       ref="mTravel12Ref"
-      class="pointer-events-none absolute left-0 top-0 z-20 h-[clamp(112px,30vw,180px)] w-[clamp(112px,30vw,180px)] will-change-transform [contain:layout_paint]"
+      class="pointer-events-none absolute left-0 top-0 z-20 h-[clamp(112px,30vw,180px)] w-[clamp(112px,30vw,180px)] will-change-transform [contain:layout_paint] md:h-[clamp(180px,24vw,240px)] md:w-[clamp(180px,24vw,240px)]"
     >
       <TreeIcon
         size="100%"
@@ -640,32 +1022,58 @@ onBeforeUnmount(() => {
     <!-- 場景一：文案在上，數據與 Tree 在下 -->
     <article
       ref="mScene1Ref"
-      class="flex min-h-[50svh] flex-col justify-center gap-12 px-5 pb-16 pt-24 sm:px-8"
+      class="relative min-h-[100svh]"
     >
-      <div ref="mScene1TextRef">
-        <p class="max-w-3xl text-lg leading-[1.8] text-[#1a1a1a]/60 sm:text-xl">
-          <span class="font-semibold text-[#1a1a1a]">
-            {{ quote1Highlight }}
-          </span>
-          {{ quote1Rest }}
-        </p>
+      <div
+        ref="mobileIntroLayerRef"
+        class="pointer-events-none absolute inset-0 z-30 flex min-h-[100svh] items-center justify-center bg-white px-5 text-center"
+        aria-hidden="true"
+      >
+        <h2
+          ref="mobileIntroTextRef"
+          class="will-change-transform text-[clamp(2.5rem,13vw,5rem)] font-semibold tracking-[-0.04em] text-[#1a1a1a]"
+        >
+          {{ introText }}
+        </h2>
       </div>
 
-      <div class="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4">
-        <div ref="mScene1StatRef" class="min-w-0">
-          <p class="text-[clamp(2.25rem,10vw,3.5rem)] font-bold leading-none tracking-wide">
-            {{ statValue1 }}
-          </p>
-          <p class="mt-3 max-w-[12rem] text-sm leading-relaxed text-[#1a1a1a]/50 sm:text-base">
-            {{ statLabel1 }}
+      <div
+        ref="mScene1ContentRef"
+        class="relative z-10 flex min-h-[100svh] flex-col justify-center gap-12 px-5 pb-16 pt-24 will-change-[opacity] sm:px-8"
+      >
+        <div ref="mScene1TextRef">
+          <p class="max-w-3xl text-lg leading-[1.8] text-[#1a1a1a]/60 sm:text-xl">
+            <span class="font-semibold text-[#1a1a1a]">
+              {{ quote1Highlight }}
+            </span>
+            {{ quote1Rest }}
           </p>
         </div>
 
-        <div
-          ref="mSlot1Ref"
-          class="h-[clamp(112px,30vw,180px)] w-[clamp(112px,30vw,180px)] justify-self-end"
-          aria-hidden="true"
-        ></div>
+        <div class="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4">
+          <div ref="mScene1StatRef" class="min-w-0">
+            <p class="text-[clamp(2.25rem,10vw,3.5rem)] font-bold leading-none tracking-wide">
+              {{ statValue1 }}
+            </p>
+            <p class="mt-3 max-w-[12rem] text-sm leading-relaxed text-[#1a1a1a]/50 sm:text-base">
+              {{ statLabel1 }}
+            </p>
+          </div>
+
+          <div
+            ref="mSlot1Ref"
+            class="h-[clamp(112px,30vw,180px)] w-[clamp(112px,30vw,180px)] justify-self-end md:h-[clamp(180px,24vw,240px)] md:w-[clamp(180px,24vw,240px)]"
+            aria-hidden="true"
+          >
+            <div ref="mScene1StaticTreeRef" class="h-full w-full">
+              <TreeIcon
+                size="100%"
+                color="#5D5D5D"
+                class="block h-full w-full"
+              />
+            </div>
+          </div>
+        </div>
       </div>
     </article>
 
@@ -686,7 +1094,7 @@ onBeforeUnmount(() => {
 
         <div
           ref="mSlot2Ref"
-          class="h-[clamp(112px,30vw,180px)] w-[clamp(112px,30vw,180px)] justify-self-end"
+          class="h-[clamp(112px,30vw,180px)] w-[clamp(112px,30vw,180px)] justify-self-end md:h-[clamp(180px,24vw,240px)] md:w-[clamp(180px,24vw,240px)]"
           aria-hidden="true"
         ></div>
       </div>

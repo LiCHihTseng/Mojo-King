@@ -68,8 +68,12 @@ const setCardRef = (el: Element | null, index: number) => {
   }
 };
 
-let pinTrigger: ScrollTrigger | null = null;
+let serviceTimeline: gsap.core.Timeline | null = null;
 let prefersReducedMotion = false;
+
+const HOLD_DURATION = 0.5;
+const MOVE_DURATION = 1;
+const SCROLL_DISTANCE_FACTOR = 0.9;
 
 onMounted(async () => {
   await nextTick();
@@ -93,38 +97,53 @@ onMounted(async () => {
   });
 
   if (prefersReducedMotion) {
+    sectionRef.value.style.height = "100svh";
     gsap.set(cards[0], { y: "0vh" });
     return;
   }
 
-  const holdDur = 0.5;
-  const moveDur = 1;
   const TILT_ANGLE = 3;
+
+  /*
+   * 外層只負責提供捲動距離，真正的視覺舞台改用 CSS sticky。
+   * 這樣 Service 完整抵達 viewport 後才固定，也不會再產生另一層
+   * GSAP pin-spacer 去干擾前一個 About section 的座標。
+   */
+  const syncTrackHeight = () => {
+    if (!sectionRef.value) return;
+
+    const totalUnits =
+      total * HOLD_DURATION + total * MOVE_DURATION;
+    const scrollDistance =
+      window.innerHeight * totalUnits * SCROLL_DISTANCE_FACTOR;
+
+    sectionRef.value.style.height =
+      `${Math.round(window.innerHeight + scrollDistance)}px`;
+  };
+
+  syncTrackHeight();
 
   const tl = gsap.timeline({
     scrollTrigger: {
       trigger: sectionRef.value,
       start: "top top",
-      end: () => {
-        const totalUnits = total * holdDur + total * moveDur;
-        return `+=${window.innerHeight * totalUnits * 0.9}`;
-      },
-      pin: true,
+      end: "bottom bottom",
       scrub: 1.2,
-      anticipatePin: 1,
+      invalidateOnRefresh: true,
+      onRefreshInit: syncTrackHeight,
     },
   });
 
-  tl.to({}, { duration: holdDur });
+  tl.to({}, { duration: HOLD_DURATION });
 
   tl.to(cards[0], {
     y: "0vh",
-    duration: moveDur,
+    duration: MOVE_DURATION,
     ease: "none",
   });
 
   for (let i = 0; i < total; i++) {
-    tl.to({}, { duration: holdDur });
+    tl.to({}, { duration: HOLD_DURATION });
 
     if (i < total - 1) {
       const current = cards[i];
@@ -135,7 +154,7 @@ onMounted(async () => {
         {
           scale: 0.94,
           rotate: TILT_ANGLE,
-          duration: moveDur,
+          duration: MOVE_DURATION,
           ease: "none",
         },
         ">",
@@ -144,7 +163,7 @@ onMounted(async () => {
         {
           y: "0vh",
           scale: 1,
-          duration: moveDur,
+          duration: MOVE_DURATION,
           ease: "none",
         },
         "<",
@@ -152,35 +171,40 @@ onMounted(async () => {
     }
   }
 
-  pinTrigger = tl.scrollTrigger ?? null;
+  serviceTimeline = tl;
 
   requestAnimationFrame(() => ScrollTrigger.refresh());
 });
 
 onBeforeUnmount(() => {
-  pinTrigger?.kill();
+  serviceTimeline?.scrollTrigger?.kill();
+  serviceTimeline?.kill();
+  serviceTimeline = null;
+  sectionRef.value?.style.removeProperty("height");
 });
 </script>
 
 <template>
-  <section ref="sectionRef"
-    class="relative flex h-screen w-full items-center justify-center overflow-hidden bg-cover bg-center">
+  <section ref="sectionRef" class="relative isolate w-full bg-black">
+    <div
+      class="sticky top-0 flex h-[100svh] w-full items-center justify-center overflow-hidden bg-cover bg-center"
+    >
 
-    <div class="absolute inset-0 scale-[1.02] bg-cover bg-center" :style="{
-      backgroundImage: `url(${backgroundImage})`,
-      filter: 'saturate(0.8) contrast(0.9) brightness(0.85)'
-    }"></div>
+      <div class="absolute inset-0 scale-[1.02] bg-cover bg-center" :style="{
+        backgroundImage: `url(${backgroundImage})`,
+        filter: 'saturate(0.8) contrast(0.9) brightness(0.85)'
+      }"></div>
 
-    <!-- Dark overlay -->
-    <div class="pointer-events-none absolute inset-0 bg-black/10"></div>
+      <!-- Dark overlay -->
+      <div class="pointer-events-none absolute inset-0 bg-black/10"></div>
 
-    <!-- Film Grain -->
-    <div class="noise-overlay pointer-events-none absolute inset-0"></div>
+      <!-- Film Grain -->
+      <div class="noise-overlay pointer-events-none absolute inset-0"></div>
 
-    <div class="relative w-[94%]" style="height: clamp(480px, 62vw, 720px); max-width: clamp(900px, 78vw, 1600px);">
-      <div v-for="(card, index) in cards" :key="index" :ref="(el) => setCardRef(el as Element | null, index)"
-        class="absolute inset-0 grid grid-cols-1 overflow-hidden rounded-2xl bg-[#F9F8F6] shadow-2xl sm:grid-cols-2"
-        style="will-change: transform; backface-visibility: hidden;">
+      <div class="relative w-[94%]" style="height: clamp(480px, 62vw, 720px); max-width: clamp(900px, 78vw, 1600px);">
+        <div v-for="(card, index) in cards" :key="index" :ref="(el) => setCardRef(el as Element | null, index)"
+          class="absolute inset-0 grid grid-cols-1 overflow-hidden rounded-2xl bg-[#F9F8F6] shadow-2xl sm:grid-cols-2"
+          style="will-change: transform; backface-visibility: hidden;">
         <!-- 左欄：深色底，文字資訊 -->
         <div class="flex flex-col justify-center bg-[#F9F8F6]" style="padding: clamp(2.5rem, 4vw, 4.5rem);">
           <span class="mb-5 inline-flex w-fit items-center rounded-sm  font-medium rounded-md bg-[#FF891D2E] px-3 py-1.5 text-xs font-medium text-[#FF891D] sm:text-sm"
@@ -213,6 +237,7 @@ onBeforeUnmount(() => {
           <div class="aspect-[4/3] w-full max-h-full overflow-hidden rounded-lg ">
             <img :src="card.image" :alt="card.tag" class="h-full w-full object-cover" loading="lazy" />
           </div>
+        </div>
         </div>
       </div>
     </div>
