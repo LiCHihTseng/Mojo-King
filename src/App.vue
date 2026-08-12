@@ -13,7 +13,8 @@ import Contact from "./components/Contact.vue";
 import Footer from "./components/Footer.vue";
 import MojoKingLoader from "./components/MojoKingLoader.vue";
 import Process from "./components/Process.vue";
-
+import ConsultationBridge from "./components/ConsultationBridge.vue";
+import ConsultationForm from "./components/ConsultationForm.vue";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -26,6 +27,10 @@ const entranceReady = ref(false);
 
 const updateLenis = (time: number) => {
   lenis?.raf(time * 1000);
+};
+
+const refreshAfterLayout = () => {
+  requestAnimationFrame(() => ScrollTrigger.refresh());
 };
 
 function initSmoothScroll() {
@@ -51,6 +56,14 @@ function initSmoothScroll() {
 }
 
 onMounted(async () => {
+  if (document.readyState === "complete") {
+    refreshAfterLayout();
+  } else {
+    window.addEventListener("load", refreshAfterLayout, { once: true });
+  }
+
+  document.fonts?.ready.then(refreshAfterLayout);
+
   // loader 蓋著的期間，先把捲動位置歸零，避免瀏覽器記憶上次的 scroll position
   window.scrollTo(0, 0);
   // loading 期間鎖住背景捲動，避免使用者在 loader 蓋著時偷滑到底層內容
@@ -80,6 +93,7 @@ async function handleLoaderDone() {
 }
 
 onBeforeUnmount(() => {
+  window.removeEventListener("load", refreshAfterLayout);
   gsap.ticker.remove(updateLenis);
   lenis?.destroy();
 });
@@ -97,9 +111,18 @@ onBeforeUnmount(() => {
 
 
 
-  <section id="about" class="relative z-10 rounded-t-[2.5rem] bg-white shadow-[0_-30px_60px_-15px_rgba(0,0,0,0.25)]">
-    <About />
-  </section>
+  <section
+  id="about"
+  class="relative z-10 rounded-t-[2.5rem] bg-white"
+>
+  <!-- 陰影只放在 About 頂端 -->
+  <div
+    class="pointer-events-none absolute inset-x-0 top-0 h-px
+           shadow-[0_-30px_60px_15px_rgba(0,0,0,0.25)]"
+  ></div>
+
+  <About />
+</section>
 </div>
 
 
@@ -107,6 +130,8 @@ onBeforeUnmount(() => {
     <Testimonials />
     <Process />
     <Contact id="contact" />
+    <ConsultationBridge/>
+    <ConsultationForm/>
     <Footer />
 
     <MojoKingLoader v-if="showLoader" :loading="isLoading" @done="handleLoaderDone" />
