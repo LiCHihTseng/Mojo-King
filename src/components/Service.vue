@@ -492,7 +492,7 @@ onBeforeUnmount(() => {
 
               <div class="mt-7 md:mt-9">
                 <HeroCTA
-                  text="了解服務"
+                  text="深入了解"
                   :href="getServiceHref(firstCard.slug)"
                   variant="ghost"
                   text-color="#ffffff"
@@ -547,7 +547,7 @@ onBeforeUnmount(() => {
 
                 <div class="mt-7 md:mt-9">
                   <HeroCTA
-                    text="了解服務"
+                    text="深入了解"
                     :href="getServiceHref(card.slug)"
                     variant="ghost"
                     text-color="#ffffff"
