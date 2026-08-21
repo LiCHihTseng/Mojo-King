@@ -49,7 +49,7 @@ test("the server-rendered hero is edge-safe before client parallax initializes",
 
   assert.match(
     html,
-    /data-parallax-image[^>]+class="[^"]*scale-\[1\.08\][^"]*"/,
+    /data-parallax-image[^>]+class="[^"]*scale-\[1\.18\][^"]*"/,
   );
 });
 

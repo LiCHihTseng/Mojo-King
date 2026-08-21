@@ -86,12 +86,12 @@ const createParallax = async (generation: number) => {
         image,
         {
           yPercent: desktop ? -4 : -2,
-          scale: 1.12,
+          scale: desktop ? 1.18 : 1.12,
           willChange: "transform",
         },
         {
           yPercent: desktop ? 8 : 4,
-          scale: 1.12,
+          scale: desktop ? 1.18 : 1.12,
           ease: "none",
           scrollTrigger: {
             trigger: hero,
@@ -168,7 +168,7 @@ onBeforeUnmount(() => {
       alt=""
       loading="eager"
       fetchpriority="high"
-      class="absolute inset-0 -z-20 h-full w-full scale-[1.08] object-cover"
+      class="absolute inset-0 -z-20 h-full w-full scale-[1.18] object-cover"
     />
     <div
       aria-hidden="true"
