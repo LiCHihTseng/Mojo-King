@@ -1,20 +1,11 @@
 <script setup lang="ts">
-import { nextTick, onBeforeUnmount, onMounted, ref } from "vue";
+import { nextTick, onBeforeUnmount, onMounted, provide, readonly, ref } from "vue";
 import Lenis from "lenis";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 
-import Hero from "./components/Hero/Hero.vue";
-import About from "./components/About.vue";
-import Service from "./components/Service.vue";
-import Testimonials from "./components/Testimonials.vue";
-import Navigation from "./components/Navigation.vue";
-import Contact from "./components/Contact.vue";
-import Footer from "./components/Footer.vue";
 import MojoKingLoader from "./components/MojoKingLoader.vue";
-import Process from "./components/Process.vue";
-import ConsultationBridge from "./components/ConsultationBridge.vue";
-import ConsultationForm from "./components/ConsultationForm.vue";
+import { entranceReadyKey } from "./lib/appShell";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -24,6 +15,8 @@ let lenis: Lenis | null = null;
 const showLoader = ref(true);
 const isLoading = ref(true);
 const entranceReady = ref(false);
+
+provide(entranceReadyKey, readonly(entranceReady));
 
 const updateLenis = (time: number) => {
   lenis?.raf(time * 1000);
@@ -103,38 +96,7 @@ onBeforeUnmount(() => {
 <!-- App.vue -->
 <template>
   <main class="relative">
-    <Navigation :entrance-ready="entranceReady" />
-
-    <div class="relative">
-  <section class="sticky top-0 z-0 h-[100dvh] w-full">
-    <Hero :entrance-ready="entranceReady" />
-  </section>
-
-
-
-  <section
-  id="about"
-  class="relative z-10 rounded-t-[2.5rem] bg-white"
->
-  <!-- 陰影只放在 About 頂端 -->
-  <div
-    class="pointer-events-none absolute inset-x-0 top-0 h-px
-           shadow-[0_-30px_60px_15px_rgba(0,0,0,0.25)]"
-  ></div>
-
-  <About />
-</section>
-</div>
-
-
-    <Service id="service" />
-    <Testimonials />
-    <Process />
-    <Contact id="contact" />
-    <ConsultationBridge/>
-    <ConsultationForm/>
-    <Footer />
-
+    <RouterView />
     <MojoKingLoader v-if="showLoader" :loading="isLoading" @done="handleLoaderDone" />
   </main>
 </template>
