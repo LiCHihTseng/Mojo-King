@@ -44,6 +44,28 @@ test("valid detail output exposes the hero, editorial sections, and one shared 5
   assert.match(html, /href="\/#consultation-form"/);
 });
 
+test("detail layout defers wide title and numbered-row grids until large screens", async () => {
+  const html = await renderDetail("hr-consulting");
+
+  assert.match(
+    html,
+    /data-detail-title-layout[^>]+class="[^"]*lg:grid-cols-12/,
+  );
+  assert.match(
+    html,
+    /data-detail-title-line[^>]+class="[^"]*lg:whitespace-nowrap/,
+  );
+  assert.match(
+    html,
+    /data-detail-hero-cta[^>]+class="[^"]*lg:col-span-2/,
+  );
+  assert.match(
+    html,
+    /data-detail-numbered-row[^>]+class="[^"]*lg:grid-cols-/,
+  );
+  assert.match(html, /data-detail-nav-contrast/);
+});
+
 test("each approved slug renders its own service-specific editorial content", async () => {
   const fractional = await renderDetail("fractional-chro");
   const training = await renderDetail("custom-training");

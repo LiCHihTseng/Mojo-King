@@ -45,7 +45,8 @@ const zeroPad = (index: number) => String(index + 1).padStart(2, "0");
         <li
           v-for="(item, index) in section.items"
           :key="item.title"
-          class="grid gap-4 border-t border-[#1c1b17]/25 py-7 sm:grid-cols-[4rem_minmax(0,1fr)] md:grid-cols-[5rem_minmax(14rem,0.8fr)_minmax(18rem,1.2fr)] md:items-baseline md:gap-8 md:py-9"
+          data-detail-numbered-row
+          class="grid gap-4 border-t border-[#1c1b17]/25 py-7 sm:grid-cols-[4rem_minmax(0,1fr)] md:py-9 lg:grid-cols-[4rem_minmax(0,0.9fr)_minmax(0,1.1fr)] lg:items-baseline lg:gap-8"
         >
           <span class="font-mono text-xs tracking-[0.12em] text-[#b35f15]">
             {{ zeroPad(index) }}
@@ -55,7 +56,7 @@ const zeroPad = (index: number) => String(index + 1).padStart(2, "0");
           </h3>
           <p
             v-if="item.description"
-            class="max-w-[38rem] text-sm leading-7 text-[#56534b] sm:col-start-2 md:col-start-auto md:text-base md:leading-8"
+            class="max-w-[38rem] text-sm leading-7 text-[#56534b] sm:col-start-2 md:text-base md:leading-8 lg:col-start-auto"
           >
             {{ item.description }}
           </p>

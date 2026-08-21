@@ -36,6 +36,11 @@ const returnToServices = () => {
       aria-hidden="true"
       class="absolute inset-0 -z-10 bg-[linear-gradient(180deg,rgba(15,13,10,0.3)_0%,rgba(15,13,10,0.02)_38%,rgba(15,13,10,0.76)_100%)]"
     />
+    <div
+      data-detail-nav-contrast
+      aria-hidden="true"
+      class="absolute inset-x-0 top-0 -z-10 h-28 bg-[linear-gradient(180deg,rgba(0,0,0,0.62)_0%,rgba(0,0,0,0.62)_72%,rgba(0,0,0,0)_100%)]"
+    />
 
     <div
       class="mx-auto flex min-h-[92svh] w-full max-w-[1600px] flex-col px-5 pb-7 pt-5 sm:px-8 md:min-h-[96svh] md:px-12 md:pb-10 md:pt-7 lg:px-16"
@@ -57,8 +62,11 @@ const returnToServices = () => {
         </button>
       </nav>
 
-      <div class="mt-auto grid items-end gap-10 pt-20 md:grid-cols-12 md:gap-8">
-        <div class="md:col-span-10">
+      <div
+        data-detail-title-layout
+        class="mt-auto grid items-end gap-10 pt-20 lg:grid-cols-12 lg:gap-8"
+      >
+        <div class="lg:col-span-10">
           <div
             class="mb-5 flex items-center gap-4 text-[11px] font-medium tracking-[0.18em] text-white/85 md:text-xs"
           >
@@ -72,8 +80,8 @@ const returnToServices = () => {
             tabindex="-1"
             class="text-[clamp(2.65rem,4.25vw,5.25rem)] font-medium leading-[1.02] tracking-[-0.055em] text-balance focus:outline-none"
           >
-            <span class="block md:whitespace-nowrap">{{ service.titleLine1 }}</span>
-            <span class="block md:whitespace-nowrap">{{ service.titleLine2 }}</span>
+            <span data-detail-title-line class="block lg:whitespace-nowrap">{{ service.titleLine1 }}</span>
+            <span data-detail-title-line class="block lg:whitespace-nowrap">{{ service.titleLine2 }}</span>
           </h1>
           <p
             class="mt-6 max-w-[42rem] text-sm leading-7 text-white/90 sm:text-base md:mt-8 md:text-lg md:leading-8"
@@ -84,7 +92,8 @@ const returnToServices = () => {
 
         <a
           href="/#consultation-form"
-          class="group inline-flex w-fit items-center justify-between gap-8 border-b border-white pb-3 text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d87820] focus-visible:ring-offset-4 focus-visible:ring-offset-transparent md:col-span-2 md:justify-self-end md:text-base"
+          data-detail-hero-cta
+          class="group inline-flex w-fit items-center justify-between gap-8 border-b border-white pb-3 text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d87820] focus-visible:ring-offset-4 focus-visible:ring-offset-transparent md:text-base lg:col-span-2 lg:justify-self-end"
         >
           預約諮詢
           <span aria-hidden="true" class="transition-transform duration-300 group-hover:translate-x-1">
