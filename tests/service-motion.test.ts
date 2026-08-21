@@ -140,3 +140,42 @@ test("desktop transition gaps make every service CTA unavailable", async () => {
     sceneInteractive: [false, false, false],
   });
 });
+
+test("desktop intro keeps the first copy inactive before its fade completes", async () => {
+  const { createIntroCopyAccessibilityPlan } = await import(
+    "../src/components/serviceMotion.ts"
+  ).catch(() => ({ createIntroCopyAccessibilityPlan: undefined }));
+
+  const plan = createIntroCopyAccessibilityPlan?.(3, "initial");
+
+  assert.deepEqual(plan, {
+    introCopyInteractive: false,
+    sceneInteractive: [false, false, false],
+  });
+});
+
+test("desktop intro activates the first copy after its fade completes", async () => {
+  const { createIntroCopyAccessibilityPlan } = await import(
+    "../src/components/serviceMotion.ts"
+  ).catch(() => ({ createIntroCopyAccessibilityPlan: undefined }));
+
+  const plan = createIntroCopyAccessibilityPlan?.(3, "forward-complete");
+
+  assert.deepEqual(plan, {
+    introCopyInteractive: true,
+    sceneInteractive: [false, false, false],
+  });
+});
+
+test("desktop intro disables the first copy when reverse shrink begins", async () => {
+  const { createIntroCopyAccessibilityPlan } = await import(
+    "../src/components/serviceMotion.ts"
+  ).catch(() => ({ createIntroCopyAccessibilityPlan: undefined }));
+
+  const plan = createIntroCopyAccessibilityPlan?.(3, "reverse-start");
+
+  assert.deepEqual(plan, {
+    introCopyInteractive: false,
+    sceneInteractive: [false, false, false],
+  });
+});

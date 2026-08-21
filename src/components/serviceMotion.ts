@@ -13,6 +13,11 @@ export interface ServiceAccessibilityPlan {
   sceneInteractive: boolean[];
 }
 
+export type IntroCopyTransitionState =
+  | "initial"
+  | "forward-complete"
+  | "reverse-start";
+
 interface ServiceDeviceCapabilities {
   isWideViewport: boolean;
   canHover: boolean;
@@ -86,4 +91,16 @@ export function createServiceAccessibilityPlan(
       (_, index) => !introCopyInteractive && index === safeActiveIndex,
     ),
   };
+}
+
+export function createIntroCopyAccessibilityPlan(
+  sceneCount: number,
+  state: IntroCopyTransitionState,
+): ServiceAccessibilityPlan {
+  return createServiceAccessibilityPlan(
+    sceneCount,
+    "desktop",
+    true,
+    state === "forward-complete" ? 0 : null,
+  );
 }

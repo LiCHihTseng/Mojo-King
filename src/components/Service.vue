@@ -14,6 +14,7 @@ import HeroCTA from "../components/Hero/HeroCTA.vue";
 import { getServiceHref, services, type ServiceSlug } from "../data/services";
 import { routeTransitionKey } from "../lib/appShell";
 import {
+  createIntroCopyAccessibilityPlan,
   createServiceAccessibilityPlan,
   createServiceMotionPlan,
   resolveServiceMotionMode,
@@ -140,6 +141,16 @@ onMounted(async () => {
     }
   };
 
+  const applyAccessibilityPlan = (plan: {
+    introCopyInteractive: boolean;
+    sceneInteractive: boolean[];
+  }) => {
+    setInteractive(firstIntroCopy, plan.introCopyInteractive);
+    scenes.forEach((scene, index) => {
+      setInteractive(scene, plan.sceneInteractive[index] ?? false);
+    });
+  };
+
   const applyAccessibility = (
     mode: "desktop" | "mobile",
     activeSceneIndex: number | null = 0,
@@ -152,10 +163,15 @@ onMounted(async () => {
       activeSceneIndex,
     );
 
-    setInteractive(firstIntroCopy, plan.introCopyInteractive);
-    scenes.forEach((scene, index) => {
-      setInteractive(scene, plan.sceneInteractive[index] ?? false);
-    });
+    applyAccessibilityPlan(plan);
+  };
+
+  const applyIntroCopyAccessibility = (
+    state: "initial" | "forward-complete" | "reverse-start",
+  ) => {
+    applyAccessibilityPlan(
+      createIntroCopyAccessibilityPlan(scenes.length, state),
+    );
   };
 
   serviceMedia = gsap.matchMedia();
@@ -229,7 +245,11 @@ onMounted(async () => {
         };
       }
 
-      applyAccessibility("desktop", 0, introEnabled);
+      if (introEnabled) {
+        applyIntroCopyAccessibility("initial");
+      } else {
+        applyAccessibility("desktop", 0, false);
+      }
 
       const introUnits = introEnabled
         ? INTRO_HOLD_DURATION +
@@ -273,6 +293,9 @@ onMounted(async () => {
             duration: INTRO_COPY_FADE_DURATION,
             ease: "power2.out",
             paused: true,
+            onComplete: () => {
+              applyIntroCopyAccessibility("forward-complete");
+            },
           })
         : null;
 
@@ -329,6 +352,7 @@ onMounted(async () => {
             if (direction >= 0) {
               introCopyFade?.play();
             } else {
+              applyIntroCopyAccessibility("reverse-start");
               introCopyFade?.reverse();
             }
           }, undefined, "imageFull")
