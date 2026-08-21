@@ -2,9 +2,11 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   classifyHistoryDirection,
+  createBackNavigationWatchState,
   createRouteTransitionState,
   didBackNavigationReachHome,
   shouldAppOwnRouteScroll,
+  shouldRememberHomeScrollOnPopstate,
 } from "../src/lib/routeTransitionState.ts";
 
 test("transition lock rejects duplicate navigation", () => {
@@ -53,4 +55,21 @@ test("back navigation reaches home only without failure on the home route", () =
   assert.equal(didBackNavigationReachHome("home", false), true);
   assert.equal(didBackNavigationReachHome("service-detail", false), false);
   assert.equal(didBackNavigationReachHome("home", true), false);
+});
+
+test("browser Forward remembers home scroll only while leaving home", () => {
+  assert.equal(shouldRememberHomeScrollOnPopstate("forward", "home"), true);
+  assert.equal(
+    shouldRememberHomeScrollOnPopstate("forward", "service-detail"),
+    false,
+  );
+  assert.equal(shouldRememberHomeScrollOnPopstate("back", "home"), false);
+});
+
+test("a popstate acknowledgement disables only the no-popstate fallback", () => {
+  const watch = createBackNavigationWatchState();
+
+  assert.equal(watch.shouldFallbackForNoPopstate(), true);
+  watch.acknowledgePopstate();
+  assert.equal(watch.shouldFallbackForNoPopstate(), false);
 });

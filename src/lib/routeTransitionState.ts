@@ -21,6 +21,26 @@ export function didBackNavigationReachHome(
   return !failed && destinationName === "home";
 }
 
+export function shouldRememberHomeScrollOnPopstate(
+  direction: RouteTransitionDirection,
+  currentRouteName: unknown,
+) {
+  return direction === "forward" && currentRouteName === "home";
+}
+
+export function createBackNavigationWatchState() {
+  let popstateAcknowledged = false;
+
+  return {
+    acknowledgePopstate() {
+      popstateAcknowledged = true;
+    },
+    shouldFallbackForNoPopstate() {
+      return !popstateAcknowledged;
+    },
+  };
+}
+
 export function createRouteTransitionState() {
   let active = false;
   let direction: RouteTransitionDirection = "direct";

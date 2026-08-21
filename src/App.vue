@@ -9,8 +9,10 @@ import MojoKingLoader from "./components/MojoKingLoader.vue";
 import { entranceReadyKey, routeTransitionKey } from "./lib/appShell";
 import {
   classifyHistoryDirection,
+  createBackNavigationWatchState,
   createRouteTransitionState,
   didBackNavigationReachHome,
+  shouldRememberHomeScrollOnPopstate,
 } from "./lib/routeTransitionState";
 
 gsap.registerPlugin(ScrollTrigger);
@@ -23,6 +25,10 @@ let focusFrame = 0;
 let mounted = false;
 let backNavigationTimer: number | null = null;
 let removeBackNavigationGuard: (() => void) | null = null;
+let backPopstateAcknowledgement: (() => void) | null = null;
+let backNavigationWatchState: ReturnType<
+  typeof createBackNavigationWatchState
+> | null = null;
 
 const router = useRouter();
 const routeState = createRouteTransitionState();
@@ -80,13 +86,26 @@ const setOverlayHidden = () => {
   }
 };
 
-const clearBackNavigationWatch = () => {
+const clearBackNoPopstateWatchdog = () => {
   if (backNavigationTimer !== null) {
     window.clearTimeout(backNavigationTimer);
     backNavigationTimer = null;
   }
+};
+
+const clearBackPopstateAcknowledgement = () => {
+  if (backPopstateAcknowledgement) {
+    window.removeEventListener("popstate", backPopstateAcknowledgement);
+    backPopstateAcknowledgement = null;
+  }
+};
+
+const clearBackNavigationWatch = () => {
+  clearBackNoPopstateWatchdog();
+  clearBackPopstateAcknowledgement();
   removeBackNavigationGuard?.();
   removeBackNavigationGuard = null;
+  backNavigationWatchState = null;
 };
 
 const finishTransition = () => {
@@ -177,6 +196,7 @@ const pushHomeFallback = async () => {
 
 const navigateBackWithFallback = () => {
   clearBackNavigationWatch();
+  backNavigationWatchState = createBackNavigationWatchState();
 
   removeBackNavigationGuard = router.afterEach((to, _from, failure) => {
     const reachedHome = didBackNavigationReachHome(to.name, Boolean(failure));
@@ -184,10 +204,19 @@ const navigateBackWithFallback = () => {
     if (!reachedHome) void pushHomeFallback();
   });
 
+  backPopstateAcknowledgement = () => {
+    backNavigationWatchState?.acknowledgePopstate();
+    clearBackNoPopstateWatchdog();
+    clearBackPopstateAcknowledgement();
+  };
+  window.addEventListener("popstate", backPopstateAcknowledgement, { once: true });
+
   // Accepted Router navigations resolve their afterEach hook before the GSAP
   // leave finishes. This short watchdog only covers a history back no-op.
   backNavigationTimer = window.setTimeout(() => {
-    void pushHomeFallback();
+    if (backNavigationWatchState?.shouldFallbackForNoPopstate()) {
+      void pushHomeFallback();
+    }
   }, 400);
 
   router.back();
@@ -377,7 +406,6 @@ const handleEnter = (element: Element, done: () => void) => {
     if (returningHome) {
       ScrollTrigger.refresh();
       restoreHomeScroll();
-      routeState.clearHomeScroll();
     }
     if (page.dataset.routeKind === "detail") focusDetailHeading();
     scheduleRefresh();
@@ -420,6 +448,14 @@ const handlePopState = (event: PopStateEvent) => {
     currentHistoryPosition,
     destinationPosition,
   );
+  if (
+    shouldRememberHomeScrollOnPopstate(
+      direction,
+      router.currentRoute.value.name,
+    )
+  ) {
+    routeState.rememberHomeScroll(window.scrollY);
+  }
   if (destinationPosition !== null) currentHistoryPosition = destinationPosition;
   if (direction === "direct" || !routeState.begin(direction)) return;
   isTransitioning.value = true;
