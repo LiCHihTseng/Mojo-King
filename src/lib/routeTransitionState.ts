@@ -1,5 +1,26 @@
 export type RouteTransitionDirection = "direct" | "forward" | "back";
 
+export function shouldAppOwnRouteScroll(toName: unknown, fromName: unknown) {
+  return toName === "service-detail" || fromName === "service-detail";
+}
+
+export function classifyHistoryDirection(
+  previousPosition: number | null,
+  destinationPosition: number | null,
+): RouteTransitionDirection {
+  if (previousPosition === null || destinationPosition === null) return "direct";
+  if (destinationPosition > previousPosition) return "forward";
+  if (destinationPosition < previousPosition) return "back";
+  return "direct";
+}
+
+export function didBackNavigationReachHome(
+  destinationName: unknown,
+  failed: boolean,
+) {
+  return !failed && destinationName === "home";
+}
+
 export function createRouteTransitionState() {
   let active = false;
   let direction: RouteTransitionDirection = "direct";

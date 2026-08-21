@@ -1,6 +1,11 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { createRouteTransitionState } from "../src/lib/routeTransitionState.ts";
+import {
+  classifyHistoryDirection,
+  createRouteTransitionState,
+  didBackNavigationReachHome,
+  shouldAppOwnRouteScroll,
+} from "../src/lib/routeTransitionState.ts";
 
 test("transition lock rejects duplicate navigation", () => {
   const state = createRouteTransitionState();
@@ -29,4 +34,23 @@ test("home scroll is clamped to the top of the document", () => {
   state.rememberHomeScroll(-120);
 
   assert.equal(state.homeScrollY, 0);
+});
+
+test("service detail transitions delegate scroll ownership to the app shell", () => {
+  assert.equal(shouldAppOwnRouteScroll("service-detail", "home"), true);
+  assert.equal(shouldAppOwnRouteScroll("home", "service-detail"), true);
+  assert.equal(shouldAppOwnRouteScroll("home", "home"), false);
+});
+
+test("history position classifies browser Back and Forward independently", () => {
+  assert.equal(classifyHistoryDirection(5, 4), "back");
+  assert.equal(classifyHistoryDirection(4, 5), "forward");
+  assert.equal(classifyHistoryDirection(4, 4), "direct");
+  assert.equal(classifyHistoryDirection(null, 5), "direct");
+});
+
+test("back navigation reaches home only without failure on the home route", () => {
+  assert.equal(didBackNavigationReachHome("home", false), true);
+  assert.equal(didBackNavigationReachHome("service-detail", false), false);
+  assert.equal(didBackNavigationReachHome("home", true), false);
 });

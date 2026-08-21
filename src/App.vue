@@ -7,7 +7,11 @@ import { isNavigationFailure, useRouter } from "vue-router";
 
 import MojoKingLoader from "./components/MojoKingLoader.vue";
 import { entranceReadyKey, routeTransitionKey } from "./lib/appShell";
-import { createRouteTransitionState } from "./lib/routeTransitionState";
+import {
+  classifyHistoryDirection,
+  createRouteTransitionState,
+  didBackNavigationReachHome,
+} from "./lib/routeTransitionState";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -17,6 +21,8 @@ let routeTimeline: gsap.core.Timeline | null = null;
 let refreshFrame = 0;
 let focusFrame = 0;
 let mounted = false;
+let backNavigationTimer: number | null = null;
+let removeBackNavigationGuard: (() => void) | null = null;
 
 const router = useRouter();
 const routeState = createRouteTransitionState();
@@ -24,6 +30,14 @@ const appRoot = ref<HTMLElement | null>(null);
 const transitionOverlay = ref<HTMLElement | null>(null);
 const isTransitioning = ref(false);
 const preloadedImages = new Map<string, HTMLImageElement>();
+
+const readHistoryPosition = (state: unknown) => {
+  if (!state || typeof state !== "object" || !("position" in state)) return null;
+  const position = state.position;
+  return typeof position === "number" ? position : null;
+};
+
+let currentHistoryPosition = readHistoryPosition(window.history.state);
 
 // loader 顯示狀態 & 你實際的資料/資源是否還在載入
 const showLoader = ref(true);
@@ -66,7 +80,17 @@ const setOverlayHidden = () => {
   }
 };
 
+const clearBackNavigationWatch = () => {
+  if (backNavigationTimer !== null) {
+    window.clearTimeout(backNavigationTimer);
+    backNavigationTimer = null;
+  }
+  removeBackNavigationGuard?.();
+  removeBackNavigationGuard = null;
+};
+
 const finishTransition = () => {
+  clearBackNavigationWatch();
   setOverlayHidden();
   unlockDocument();
   routeState.finish();
@@ -97,6 +121,11 @@ const restoreHomeScroll = () => {
 
   window.scrollTo(0, targetY);
   lenis?.scrollTo(targetY, { immediate: true, force: true });
+};
+
+const setDetailScrollTop = () => {
+  window.scrollTo(0, 0);
+  lenis?.scrollTo(0, { immediate: true, force: true });
 };
 
 const beginImplicitTransition = () => {
@@ -135,6 +164,35 @@ const navigateToService = async (href: string) => {
   }
 };
 
+const pushHomeFallback = async () => {
+  clearBackNavigationWatch();
+
+  try {
+    const failure = await router.push("/#service");
+    if (isNavigationFailure(failure)) cancelTransition();
+  } catch {
+    cancelTransition();
+  }
+};
+
+const navigateBackWithFallback = () => {
+  clearBackNavigationWatch();
+
+  removeBackNavigationGuard = router.afterEach((to, _from, failure) => {
+    const reachedHome = didBackNavigationReachHome(to.name, Boolean(failure));
+    clearBackNavigationWatch();
+    if (!reachedHome) void pushHomeFallback();
+  });
+
+  // Accepted Router navigations resolve their afterEach hook before the GSAP
+  // leave finishes. This short watchdog only covers a history back no-op.
+  backNavigationTimer = window.setTimeout(() => {
+    void pushHomeFallback();
+  }, 400);
+
+  router.back();
+};
+
 const returnToServices = async () => {
   if (!routeState.begin("back")) return;
 
@@ -142,7 +200,7 @@ const returnToServices = async () => {
 
   try {
     if (routeState.homeScrollY !== null) {
-      router.back();
+      navigateBackWithFallback();
       return;
     }
 
@@ -298,6 +356,7 @@ const handleBeforeEnter = (element: Element) => {
     return;
   }
 
+  setDetailScrollTop();
   gsap.set(overlay, { autoAlpha: 1 });
   gsap.set(page, {
     position: "relative",
@@ -355,18 +414,37 @@ const handleEnter = (element: Element, done: () => void) => {
   });
 };
 
-const handlePopState = () => {
-  if (!routeState.begin("back")) return;
+const handlePopState = (event: PopStateEvent) => {
+  const destinationPosition = readHistoryPosition(event.state);
+  const direction = classifyHistoryDirection(
+    currentHistoryPosition,
+    destinationPosition,
+  );
+  if (destinationPosition !== null) currentHistoryPosition = destinationPosition;
+  if (direction === "direct" || !routeState.begin(direction)) return;
   isTransitioning.value = true;
 };
 
-const removeRouterErrorHandler = router.onError(() => cancelTransition());
+const removeHistoryPositionSync = router.afterEach(() => {
+  const position = readHistoryPosition(window.history.state);
+  if (position !== null) currentHistoryPosition = position;
+});
+
+const removeRouterErrorHandler = router.onError(() => {
+  if (backNavigationTimer !== null || removeBackNavigationGuard) {
+    void pushHomeFallback();
+    return;
+  }
+  cancelTransition();
+});
 
 onBeforeUnmount(() => {
   mounted = false;
   window.removeEventListener("load", refreshAfterLayout);
   window.removeEventListener("popstate", handlePopState);
+  removeHistoryPositionSync();
   removeRouterErrorHandler();
+  clearBackNavigationWatch();
   cancelAnimationFrame(refreshFrame);
   cancelAnimationFrame(focusFrame);
   routeTimeline?.kill();
