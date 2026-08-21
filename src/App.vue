@@ -3,13 +3,27 @@ import { nextTick, onBeforeUnmount, onMounted, provide, readonly, ref } from "vu
 import Lenis from "lenis";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { isNavigationFailure, useRouter } from "vue-router";
 
 import MojoKingLoader from "./components/MojoKingLoader.vue";
-import { entranceReadyKey } from "./lib/appShell";
+import { entranceReadyKey, routeTransitionKey } from "./lib/appShell";
+import { createRouteTransitionState } from "./lib/routeTransitionState";
 
 gsap.registerPlugin(ScrollTrigger);
 
 let lenis: Lenis | null = null;
+let routeContext: gsap.Context | null = null;
+let routeTimeline: gsap.core.Timeline | null = null;
+let refreshFrame = 0;
+let focusFrame = 0;
+let mounted = false;
+
+const router = useRouter();
+const routeState = createRouteTransitionState();
+const appRoot = ref<HTMLElement | null>(null);
+const transitionOverlay = ref<HTMLElement | null>(null);
+const isTransitioning = ref(false);
+const preloadedImages = new Map<string, HTMLImageElement>();
 
 // loader 顯示狀態 & 你實際的資料/資源是否還在載入
 const showLoader = ref(true);
@@ -18,13 +32,139 @@ const entranceReady = ref(false);
 
 provide(entranceReadyKey, readonly(entranceReady));
 
+const isReducedMotion = () =>
+  window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+const scheduleRefresh = () => {
+  cancelAnimationFrame(refreshFrame);
+  refreshFrame = requestAnimationFrame(() => {
+    if (mounted) ScrollTrigger.refresh();
+  });
+};
+
+const focusDetailHeading = () => {
+  cancelAnimationFrame(focusFrame);
+  focusFrame = requestAnimationFrame(() => {
+    const heading = document.querySelector<HTMLElement>("[data-detail-heading]");
+    heading?.focus({ preventScroll: true });
+  });
+};
+
+const lockDocument = () => {
+  document.documentElement.classList.add("route-transition-locked");
+  lenis?.stop();
+};
+
+const unlockDocument = () => {
+  document.documentElement.classList.remove("route-transition-locked");
+  lenis?.start();
+};
+
+const setOverlayHidden = () => {
+  if (transitionOverlay.value) {
+    gsap.set(transitionOverlay.value, { autoAlpha: 0 });
+  }
+};
+
+const finishTransition = () => {
+  setOverlayHidden();
+  unlockDocument();
+  routeState.finish();
+  isTransitioning.value = false;
+};
+
+const cancelTransition = () => {
+  routeTimeline?.kill();
+  routeTimeline = null;
+  finishTransition();
+};
+
+const createRouteTimeline = (vars?: gsap.TimelineVars) => {
+  routeTimeline?.kill();
+
+  routeTimeline = routeContext
+    ? routeContext.add(() => gsap.timeline(vars))
+    : gsap.timeline(vars);
+  return routeTimeline;
+};
+
+const restoreHomeScroll = () => {
+  const service = document.querySelector<HTMLElement>("#service");
+  const serviceY = service
+    ? window.scrollY + service.getBoundingClientRect().top
+    : 0;
+  const targetY = routeState.homeScrollY ?? serviceY;
+
+  window.scrollTo(0, targetY);
+  lenis?.scrollTo(targetY, { immediate: true, force: true });
+};
+
+const beginImplicitTransition = () => {
+  if (routeState.active) return;
+
+  const direction = router.currentRoute.value.name === "service-detail"
+    ? "forward"
+    : "back";
+  routeState.begin(direction);
+  isTransitioning.value = true;
+};
+
+const preloadImage = (src: string) => {
+  if (!src || preloadedImages.has(src)) return;
+
+  const image = new Image();
+  image.decoding = "async";
+  image.src = src;
+  preloadedImages.set(src, image);
+};
+
+const navigateToService = async (href: string) => {
+  if (!routeState.begin("forward")) return;
+
+  if (router.currentRoute.value.name === "home") {
+    routeState.rememberHomeScroll(window.scrollY);
+  }
+
+  isTransitioning.value = true;
+
+  try {
+    const failure = await router.push(href);
+    if (isNavigationFailure(failure)) cancelTransition();
+  } catch {
+    cancelTransition();
+  }
+};
+
+const returnToServices = async () => {
+  if (!routeState.begin("back")) return;
+
+  isTransitioning.value = true;
+
+  try {
+    if (routeState.homeScrollY !== null) {
+      router.back();
+      return;
+    }
+
+    const failure = await router.push("/#service");
+    if (isNavigationFailure(failure)) cancelTransition();
+  } catch {
+    cancelTransition();
+  }
+};
+
+provide(routeTransitionKey, {
+  isTransitioning: readonly(isTransitioning),
+  navigateToService,
+  returnToServices,
+  preloadImage,
+});
+
 const updateLenis = (time: number) => {
   lenis?.raf(time * 1000);
 };
 
-const refreshAfterLayout = () => {
-  requestAnimationFrame(() => ScrollTrigger.refresh());
-};
+const refreshAfterLayout = () => scheduleRefresh();
 
 function initSmoothScroll() {
   const prefersReducedMotion = window.matchMedia(
@@ -50,6 +190,9 @@ function initSmoothScroll() {
 }
 
 onMounted(async () => {
+  mounted = true;
+  if (appRoot.value) routeContext = gsap.context(() => {}, appRoot.value);
+
   if (document.readyState === "complete") {
     refreshAfterLayout();
   } else {
@@ -83,20 +226,188 @@ async function handleLoaderDone() {
 
   // 這時候版面（字型、圖片、loader 移除後的 layout）才是最終穩定狀態
   // 重新量測一次 ScrollTrigger，避免 pin/trigger 位置跟實際版面對不上
-  requestAnimationFrame(() => ScrollTrigger.refresh());
+  scheduleRefresh();
+
+  if (router.currentRoute.value.name === "service-detail") {
+    focusDetailHeading();
+  }
 }
 
+const handleBeforeLeave = (element: Element) => {
+  beginImplicitTransition();
+  lockDocument();
+
+  const page = element as HTMLElement;
+  const overlay = transitionOverlay.value;
+  if (!overlay) return;
+
+  if (routeState.direction === "back") {
+    gsap.set(overlay, { autoAlpha: 1 });
+    gsap.set(page, {
+      position: "relative",
+      zIndex: 100,
+      willChange: isReducedMotion() ? "auto" : "transform",
+    });
+    return;
+  }
+
+  gsap.set(overlay, { autoAlpha: 0 });
+};
+
+const handleLeave = (element: Element, done: () => void) => {
+  const page = element as HTMLElement;
+  const overlay = transitionOverlay.value;
+
+  if (!overlay) {
+    done();
+    return;
+  }
+
+  if (routeState.direction === "back") {
+    if (isReducedMotion()) {
+      done();
+      return;
+    }
+
+    createRouteTimeline({ onComplete: done }).to(page, {
+      yPercent: 100,
+      duration: 0.72,
+      ease: "power3.inOut",
+    });
+    return;
+  }
+
+  createRouteTimeline({ onComplete: done }).to(overlay, {
+    autoAlpha: 1,
+    duration: isReducedMotion() ? 0.12 : 0.28,
+    ease: "power2.out",
+  });
+};
+
+const handleBeforeEnter = (element: Element) => {
+  lockDocument();
+
+  const page = element as HTMLElement;
+  const overlay = transitionOverlay.value;
+  if (!overlay) return;
+
+  if (routeState.direction === "back") {
+    restoreHomeScroll();
+    gsap.set(page, { position: "relative", zIndex: 0 });
+    gsap.set(overlay, { autoAlpha: 1 });
+    return;
+  }
+
+  gsap.set(overlay, { autoAlpha: 1 });
+  gsap.set(page, {
+    position: "relative",
+    zIndex: 100,
+    yPercent: isReducedMotion() ? 0 : 100,
+    willChange: isReducedMotion() ? "auto" : "transform",
+  });
+};
+
+const handleEnter = (element: Element, done: () => void) => {
+  const page = element as HTMLElement;
+  const overlay = transitionOverlay.value;
+
+  const complete = () => {
+    const returningHome = routeState.direction === "back";
+    gsap.set(page, { clearProps: "transform,willChange,zIndex,position" });
+    finishTransition();
+    if (returningHome) {
+      ScrollTrigger.refresh();
+      restoreHomeScroll();
+      routeState.clearHomeScroll();
+    }
+    if (page.dataset.routeKind === "detail") focusDetailHeading();
+    scheduleRefresh();
+    done();
+  };
+
+  if (!overlay) {
+    complete();
+    return;
+  }
+
+  if (routeState.direction === "back") {
+    createRouteTimeline({ onComplete: complete }).to(overlay, {
+      autoAlpha: 0,
+      duration: isReducedMotion() ? 0.12 : 0.28,
+      ease: "power2.out",
+    });
+    return;
+  }
+
+  if (isReducedMotion()) {
+    createRouteTimeline({ onComplete: complete }).to(overlay, {
+      autoAlpha: 0,
+      duration: 0.12,
+      ease: "power2.out",
+    });
+    return;
+  }
+
+  createRouteTimeline({ onComplete: complete }).to(page, {
+    yPercent: 0,
+    duration: 0.85,
+    ease: "power3.inOut",
+  });
+};
+
+const handlePopState = () => {
+  if (!routeState.begin("back")) return;
+  isTransitioning.value = true;
+};
+
+const removeRouterErrorHandler = router.onError(() => cancelTransition());
+
 onBeforeUnmount(() => {
+  mounted = false;
   window.removeEventListener("load", refreshAfterLayout);
+  window.removeEventListener("popstate", handlePopState);
+  removeRouterErrorHandler();
+  cancelAnimationFrame(refreshFrame);
+  cancelAnimationFrame(focusFrame);
+  routeTimeline?.kill();
+  routeContext?.revert();
+  routeTimeline = null;
+  routeContext = null;
+  finishTransition();
+  preloadedImages.clear();
   gsap.ticker.remove(updateLenis);
   lenis?.destroy();
+  lenis = null;
+});
+
+onMounted(() => {
+  window.addEventListener("popstate", handlePopState);
 });
 </script>
 
 <!-- App.vue -->
 <template>
-  <main class="relative">
-    <RouterView />
+  <div ref="appRoot" class="relative">
+    <RouterView v-slot="{ Component, route }">
+      <Transition
+        :css="false"
+        mode="out-in"
+        @before-leave="handleBeforeLeave"
+        @leave="handleLeave"
+        @before-enter="handleBeforeEnter"
+        @enter="handleEnter"
+      >
+        <component :is="Component" :key="route.fullPath" />
+      </Transition>
+    </RouterView>
+
+    <div
+      ref="transitionOverlay"
+      aria-hidden="true"
+      class="fixed inset-0 z-[90] bg-black opacity-0 invisible"
+      :class="isTransitioning ? 'pointer-events-auto' : 'pointer-events-none'"
+    ></div>
+
     <MojoKingLoader v-if="showLoader" :loading="isLoading" @done="handleLoaderDone" />
-  </main>
+  </div>
 </template>

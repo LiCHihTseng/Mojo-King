@@ -11,3 +11,9 @@ body,
   min-height: 100%;
   scrollbar-gutter: stable;
 }
+
+html.route-transition-locked,
+html.route-transition-locked body {
+  overflow: hidden;
+  overscroll-behavior: none;
+}
