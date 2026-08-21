@@ -1,9 +1,18 @@
 <script setup lang="ts">
-import { computed, nextTick, onBeforeUnmount, onMounted, ref } from "vue";
+import {
+  computed,
+  inject,
+  nextTick,
+  onBeforeUnmount,
+  onMounted,
+  ref,
+} from "vue";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { useRouter } from "vue-router";
 import HeroCTA from "../components/Hero/HeroCTA.vue";
-import About_img from "../assets/About_img1.png";
+import { getServiceHref, services, type ServiceSlug } from "../data/services";
+import { routeTransitionKey } from "../lib/appShell";
 import {
   createServiceAccessibilityPlan,
   createServiceMotionPlan,
@@ -13,11 +22,11 @@ import {
 gsap.registerPlugin(ScrollTrigger);
 
 interface CardData {
+  slug: ServiceSlug;
   tag: string;
   titleLine1: string;
   titleLine2: string;
-  body: string;
-  visualBg: string;
+  summary: string;
   image: string;
 }
 
@@ -35,46 +44,16 @@ const props = withDefaults(defineProps<Props>(), {
   introLead: "人才",
   introMiddle: "有策略。",
   introEnd: "組織有未來。",
-  cards: () => [
-    {
-      tag: "組織設計",
-      titleLine1: "制度清楚透明，",
-      titleLine2: "員工才願意留下來。",
-      body: "從薪酬結構到工作規則，協助你把人事制度從零到一建立起來，不再依賴個人經驗運作。",
-      visualBg: "#F9F8F6",
-      image: About_img,
-    },
-    {
-      tag: "招募策略",
-      titleLine1: "解決的不是沒人投履歷，",
-      titleLine2: "而是找不到對的人。",
-      body: "重新定位職缺、設計面試流程，讓面試官不再各自為政，錄取的人也真的留得下來。",
-      visualBg: "#F9F8F6",
-      image: "https://picsum.photos/seed/svc-2/1920/1280",
-    },
-    {
-      tag: "主管培力",
-      titleLine1: "讓主管不只會做事，",
-      titleLine2: "更懂得帶人。",
-      body: "透過一對一教練與績效面談訓練，讓主管真的敢開口談期望、給回饋。",
-      visualBg: "#F9F8F6",
-      image: "https://picsum.photos/seed/svc-3/1920/1280",
-    },
-    {
-      tag: "法遵風險",
-      titleLine1: "在問題發生前，",
-      titleLine2: "先把地雷排掉。",
-      body: "勞動法規健檢、資遣與爭議處理陪跑，讓你做每個決定時，心裡都有底。",
-      visualBg: "#F9F8F6",
-      image: "https://picsum.photos/seed/svc-4/1920/1280",
-    },
-  ],
+  cards: () => services,
 });
 
 const firstCard = computed(() => props.cards[0] ?? null);
+const router = useRouter();
+const routeTransition = inject(routeTransitionKey, null);
 
 const sectionRef = ref<HTMLElement | null>(null);
 const sceneRefs = ref<HTMLElement[]>([]);
+const sceneCopyRefs = ref<HTMLElement[]>([]);
 const introLayerRef = ref<HTMLElement | null>(null);
 const introImageRef = ref<HTMLElement | null>(null);
 const introLeftRef = ref<HTMLElement | null>(null);
@@ -87,6 +66,30 @@ const setSceneRef = (el: Element | null, index: number) => {
   }
 };
 
+const setSceneCopyRef = (el: Element | null, index: number) => {
+  if (el instanceof HTMLElement) {
+    sceneCopyRefs.value[index] = el;
+  }
+};
+
+const isPrimaryNavigationClick = (event: MouseEvent) =>
+  event.button === 0 &&
+  !event.metaKey &&
+  !event.ctrlKey &&
+  !event.shiftKey &&
+  !event.altKey;
+
+const handleServiceCtaClick = (event: MouseEvent, href: string) => {
+  if (!isPrimaryNavigationClick(event)) return;
+
+  event.preventDefault();
+  void (routeTransition?.navigateToService(href) ?? router.push(href));
+};
+
+const preloadServiceHero = (source: string) => {
+  routeTransition?.preloadImage(source);
+};
+
 let serviceMedia: gsap.MatchMedia | null = null;
 let refreshFrameId: number | null = null;
 
@@ -97,6 +100,7 @@ const INTRO_FULL_HOLD_DURATION = 0.4;
 const FIRST_SCENE_HOLD_DURATION = 0.55;
 const SCENE_HOLD_DURATION = 0.48;
 const SCENE_MOVE_DURATION = 1;
+const SCENE_COPY_DURATION = 0.36;
 const INTRO_SCROLL_DISTANCE_FACTOR = 0.62;
 const BASE_SCROLL_DISTANCE_FACTOR = 0.84;
 
@@ -110,6 +114,7 @@ onMounted(async () => {
   const introRight = introRightRef.value;
   const firstIntroCopy = firstIntroCopyRef.value;
   const scenes = sceneRefs.value;
+  const sceneCopies = sceneCopyRefs.value;
 
   if (
     !section ||
@@ -118,7 +123,8 @@ onMounted(async () => {
     !introLeft ||
     !introRight ||
     !firstIntroCopy ||
-    scenes.length === 0
+    scenes.length === 0 ||
+    sceneCopies.length !== scenes.length
   ) {
     return;
   }
@@ -136,7 +142,7 @@ onMounted(async () => {
 
   const applyAccessibility = (
     mode: "desktop" | "mobile",
-    activeSceneIndex = 0,
+    activeSceneIndex: number | null = 0,
     hasIntro = false,
   ) => {
     const plan = createServiceAccessibilityPlan(
@@ -202,8 +208,14 @@ onMounted(async () => {
           zIndex: index === 0 ? 30 : 40 + index,
         });
       });
+      gsap.set(sceneCopies, { autoAlpha: 1, y: 0 });
+      motionPlan.incomingSceneIndexes.forEach((sceneIndex) => {
+        const copy = sceneCopies[sceneIndex];
+        if (copy) gsap.set(copy, { autoAlpha: 0, y: 20 });
+      });
       gsap.set(firstIntroCopy, {
         autoAlpha: motionPlan.firstSceneCopyStartsVisible ? 1 : 0,
+        y: motionPlan.firstSceneCopyStartsVisible ? 0 : 20,
       });
 
       if (!motionPlan.pin) {
@@ -228,7 +240,7 @@ onMounted(async () => {
         introUnits +
         FIRST_SCENE_HOLD_DURATION +
         motionPlan.incomingSceneIndexes.length *
-          (SCENE_MOVE_DURATION + SCENE_HOLD_DURATION);
+          (SCENE_MOVE_DURATION + SCENE_COPY_DURATION + SCENE_HOLD_DURATION);
       const scrollDistanceFactor = introEnabled
         ? INTRO_SCROLL_DISTANCE_FACTOR
         : BASE_SCROLL_DISTANCE_FACTOR;
@@ -257,6 +269,7 @@ onMounted(async () => {
       const introCopyFade = introEnabled
         ? gsap.to(firstIntroCopy, {
             autoAlpha: 1,
+            y: 0,
             duration: INTRO_COPY_FADE_DURATION,
             ease: "power2.out",
             paused: true,
@@ -328,15 +341,31 @@ onMounted(async () => {
       timeline.to({}, { duration: FIRST_SCENE_HOLD_DURATION });
 
       motionPlan.incomingSceneIndexes.forEach((sceneIndex) => {
+        const scene = scenes[sceneIndex];
+        const copy = sceneCopies[sceneIndex];
+        if (!scene || !copy) return;
+
         timeline
-          .to(scenes[sceneIndex], {
+          .to(scene, {
             yPercent: 0,
             duration: SCENE_MOVE_DURATION,
+            onComplete: () => {
+              applyAccessibility("desktop", null, introEnabled);
+            },
+            onReverseComplete: () => {
+              applyAccessibility("desktop", sceneIndex - 1, introEnabled);
+            },
+          })
+          .to(copy, {
+            autoAlpha: 1,
+            y: 0,
+            duration: SCENE_COPY_DURATION,
+            ease: "power2.out",
             onComplete: () => {
               applyAccessibility("desktop", sceneIndex, introEnabled);
             },
             onReverseComplete: () => {
-              applyAccessibility("desktop", sceneIndex - 1, introEnabled);
+              applyAccessibility("desktop", null, introEnabled);
             },
           })
           .to({}, { duration: SCENE_HOLD_DURATION });
@@ -434,11 +463,19 @@ onBeforeUnmount(() => {
 
             <div class="md:pt-14">
               <p class="max-w-[34rem] text-pretty text-[clamp(1rem,2.4vw,1.25rem)] leading-[1.75] text-white md:text-[clamp(1rem,1.3vw,1.3rem)]">
-                {{ firstCard.body }}
+                {{ firstCard.summary }}
               </p>
 
               <div class="mt-7 md:mt-9">
-                <HeroCTA text="了解服務" variant="ghost" text-color="#ffffff" />
+                <HeroCTA
+                  text="了解服務"
+                  :href="getServiceHref(firstCard.slug)"
+                  variant="ghost"
+                  text-color="#ffffff"
+                  @click="handleServiceCtaClick($event, getServiceHref(firstCard.slug))"
+                  @focus="preloadServiceHero(props.backgroundImage)"
+                  @pointerenter="preloadServiceHero(props.backgroundImage)"
+                />
               </div>
             </div>
           </div>
@@ -460,7 +497,10 @@ onBeforeUnmount(() => {
             :loading="index === 0 ? 'eager' : 'lazy'"
           />
 
-          <div class="service-scene__content relative z-10 w-full px-6 py-16 sm:px-10 md:px-[clamp(3rem,7vw,8.5rem)]">
+          <div
+            :ref="(el) => setSceneCopyRef(el as Element | null, index)"
+            class="service-scene__content relative z-10 w-full px-6 py-16 sm:px-10 md:px-[clamp(3rem,7vw,8.5rem)]"
+          >
             <div class="service-copy-grid mx-auto grid w-full max-w-[90rem] items-center gap-8 md:grid-cols-[minmax(0,1.15fr)_minmax(18rem,0.7fr)] md:gap-[clamp(4rem,10vw,12rem)]">
               <div>
                 <div class="mb-5 flex items-center gap-3 text-sm font-medium tracking-[0.16em] text-[#ff9a3d] md:mb-7 md:text-base">
@@ -478,11 +518,19 @@ onBeforeUnmount(() => {
 
               <div class="md:pt-14">
                 <p class="max-w-[34rem] text-pretty text-[clamp(1rem,2.4vw,1.25rem)] leading-[1.75] text-white md:text-[clamp(1rem,1.3vw,1.3rem)]">
-                  {{ card.body }}
+                  {{ card.summary }}
                 </p>
 
                 <div class="mt-7 md:mt-9">
-                  <HeroCTA text="了解服務" variant="ghost" text-color="#ffffff" />
+                  <HeroCTA
+                    text="了解服務"
+                    :href="getServiceHref(card.slug)"
+                    variant="ghost"
+                    text-color="#ffffff"
+                    @click="handleServiceCtaClick($event, getServiceHref(card.slug))"
+                    @focus="preloadServiceHero(index === 0 ? props.backgroundImage : card.image)"
+                    @pointerenter="preloadServiceHero(index === 0 ? props.backgroundImage : card.image)"
+                  />
                 </div>
               </div>
             </div>

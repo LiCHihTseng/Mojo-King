@@ -55,7 +55,7 @@ export function createServiceAccessibilityPlan(
   sceneCount: number,
   mode: ServiceMotionMode,
   introEnabled: boolean,
-  activeSceneIndex: number,
+  activeSceneIndex: number | null,
 ): ServiceAccessibilityPlan {
   const count = Math.max(0, sceneCount);
 
@@ -63,6 +63,13 @@ export function createServiceAccessibilityPlan(
     return {
       introCopyInteractive: false,
       sceneInteractive: Array.from({ length: count }, () => true),
+    };
+  }
+
+  if (activeSceneIndex === null) {
+    return {
+      introCopyInteractive: false,
+      sceneInteractive: Array.from({ length: count }, () => false),
     };
   }
 
