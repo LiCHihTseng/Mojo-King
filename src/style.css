@@ -1,6 +1,10 @@
 @import "tailwindcss";
 @import "./font.css";
 
+@theme {
+  --container-8xl: 96rem;
+}
+
 html,
 body,
 #app {
@@ -16,4 +20,9 @@ html.route-transition-locked,
 html.route-transition-locked body {
   overflow: hidden;
   overscroll-behavior: none;
+}
+
+html.route-transition-input-locked {
+  overscroll-behavior: none;
+  touch-action: none;
 }

@@ -21,6 +21,42 @@ let refreshFrame = 0;
 let initializationGeneration = 0;
 let parallaxMedia: ReturnType<typeof gsap.matchMedia> | null = null;
 
+const isRouteTransitioning = () => transition?.isTransitioning.value ?? false;
+
+const setStableParallaxStart = () => {
+  const image = parallaxImage.value;
+  if (!image) return;
+
+  const reduceMotion = window.matchMedia(
+    "(prefers-reduced-motion: reduce)",
+  ).matches;
+  const desktop = window.matchMedia("(min-width: 768px)").matches;
+
+  gsap.set(image, {
+    yPercent: reduceMotion ? 0 : desktop ? -4 : -2,
+    scale: reduceMotion ? 1.08 : desktop ? 1.18 : 1.12,
+    willChange: reduceMotion ? "auto" : "transform",
+  });
+};
+
+const freezeParallax = () => {
+  const image = parallaxImage.value;
+  if (!image || !parallaxMedia) return;
+
+  const transform = getComputedStyle(image).transform;
+
+  initializationGeneration += 1;
+  cancelAnimationFrame(initializationFrame);
+  cancelAnimationFrame(refreshFrame);
+  initializationFrame = 0;
+  refreshFrame = 0;
+  parallaxMedia.revert();
+  parallaxMedia = null;
+
+  image.style.transform = transform === "none" ? "" : transform;
+  image.style.willChange = "transform";
+};
+
 const revertParallax = () => {
   initializationGeneration += 1;
   cancelAnimationFrame(initializationFrame);
@@ -40,7 +76,13 @@ const revertParallax = () => {
 const createParallax = async (generation: number) => {
   const hero = heroRoot.value;
   const image = parallaxImage.value;
-  if (!mounted || generation !== initializationGeneration || !hero || !image) {
+  if (
+    !mounted ||
+    isRouteTransitioning() ||
+    generation !== initializationGeneration ||
+    !hero ||
+    !image
+  ) {
     return;
   }
 
@@ -52,6 +94,7 @@ const createParallax = async (generation: number) => {
 
   if (
     !mounted ||
+    isRouteTransitioning() ||
     generation !== initializationGeneration ||
     hero !== heroRoot.value ||
     image !== parallaxImage.value
@@ -116,6 +159,7 @@ const createParallax = async (generation: number) => {
 
 const rebuildParallax = async () => {
   revertParallax();
+  setStableParallaxStart();
   const generation = initializationGeneration;
   await nextTick();
 
@@ -138,19 +182,39 @@ const returnToServices = () => {
 
 onMounted(() => {
   mounted = true;
-  void rebuildParallax();
+  setStableParallaxStart();
+  if (!isRouteTransitioning()) void rebuildParallax();
 });
+
+watch(
+  () => transition?.isTransitioning.value ?? false,
+  (isTransitioning) => {
+    if (!mounted) return;
+    if (isTransitioning) freezeParallax();
+    else void rebuildParallax();
+  },
+  { flush: "sync" },
+);
 
 watch(
   () => props.service.slug,
   () => {
-    if (mounted) void rebuildParallax();
+    if (!mounted) return;
+    if (!isRouteTransitioning()) void rebuildParallax();
   },
   { flush: "post" },
 );
 
 onBeforeUnmount(() => {
+  const preserveTransitionFrame = isRouteTransitioning();
+  if (preserveTransitionFrame) freezeParallax();
   mounted = false;
+  if (preserveTransitionFrame) {
+    initializationGeneration += 1;
+    cancelAnimationFrame(initializationFrame);
+    cancelAnimationFrame(refreshFrame);
+    return;
+  }
   revertParallax();
 });
 </script>
@@ -159,7 +223,7 @@ onBeforeUnmount(() => {
   <header
     ref="heroRoot"
     data-detail-hero
-    class="relative isolate min-h-[92svh] overflow-hidden bg-[#493c31] text-white md:min-h-[96svh]"
+    class="relative isolate h-[clamp(360px,44svh,440px)] overflow-hidden bg-[#F9F8F6] text-white sm:h-[clamp(380px,32svh,420px)] lg:h-[42svh] lg:max-h-[520px]"
   >
     <img
       ref="parallaxImage"
@@ -174,14 +238,11 @@ onBeforeUnmount(() => {
       aria-hidden="true"
       class="absolute inset-0 -z-10 bg-[linear-gradient(180deg,rgba(15,13,10,0.3)_0%,rgba(15,13,10,0.02)_38%,rgba(15,13,10,0.76)_100%)]"
     />
-    <div
-      data-detail-nav-contrast
-      aria-hidden="true"
-      class="absolute inset-x-0 top-0 -z-10 h-28 bg-[linear-gradient(180deg,rgba(0,0,0,0.62)_0%,rgba(0,0,0,0.62)_72%,rgba(0,0,0,0)_100%)]"
-    />
+
 
     <div
-      class="mx-auto flex min-h-[92svh] w-full max-w-[1600px] flex-col px-5 pb-7 pt-5 sm:px-8 md:min-h-[96svh] md:px-12 md:pb-10 md:pt-7 lg:px-16"
+      data-detail-hero-content
+      class="mx-auto flex h-full w-full max-w-8xl flex-col px-5 pb-6 pt-5 sm:px-8 md:px-12 md:pb-7 md:pt-6 lg:px-16"
     >
       <nav
         aria-label="服務詳情導覽"
@@ -202,11 +263,11 @@ onBeforeUnmount(() => {
 
       <div
         data-detail-title-layout
-        class="mt-auto grid items-end gap-10 pt-20 lg:grid-cols-12 lg:gap-8"
+        class="mt-auto grid items-end gap-5 pt-6 lg:grid-cols-12 lg:gap-8"
       >
         <div class="lg:col-span-10">
           <div
-            class="mb-5 flex items-center gap-4 text-[11px] font-medium tracking-[0.18em] text-white/85 md:text-xs"
+            class="mb-3 flex items-center gap-4 text-[11px] font-medium tracking-[0.18em] text-white/85 md:text-xs"
           >
             <span>{{ service.index }}</span>
             <span class="h-px w-10 bg-[#d87820]" aria-hidden="true" />
@@ -216,13 +277,13 @@ onBeforeUnmount(() => {
             :id="`service-${service.slug}-title`"
             data-detail-heading
             tabindex="-1"
-            class="text-[clamp(2.65rem,4.25vw,5.25rem)] font-medium leading-[1.02] tracking-[-0.055em] text-balance focus:outline-none"
+            class="text-[clamp(2.1rem,3.35vw,3.75rem)] font-medium leading-[1.02] tracking-[-0.05em] text-balance focus:outline-none"
           >
             <span data-detail-title-line class="block lg:whitespace-nowrap">{{ service.titleLine1 }}</span>
             <span data-detail-title-line class="block lg:whitespace-nowrap">{{ service.titleLine2 }}</span>
           </h1>
           <p
-            class="mt-6 max-w-[42rem] text-sm leading-7 text-white/90 sm:text-base md:mt-8 md:text-lg md:leading-8"
+            class="mt-3 w-full text-sm leading-6 text-white/90 sm:mt-4 sm:text-base md:leading-7 lg:max-w-5xl"
           >
             {{ service.summary }}
           </p>

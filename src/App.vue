@@ -9,9 +9,14 @@ import MojoKingLoader from "./components/MojoKingLoader.vue";
 import { entranceReadyKey, routeTransitionKey } from "./lib/appShell";
 import {
   classifyHistoryDirection,
+  classifyRouteTransition,
   createBackNavigationWatchState,
+  createRouteTransitionVisualPlan,
   createRouteTransitionState,
   didBackNavigationReachHome,
+  getPinnedPageTop,
+  ROUTE_TRANSITION_MODE,
+  shouldAnimateRouteTransition,
   shouldRememberHomeScrollOnPopstate,
 } from "./lib/routeTransitionState";
 
@@ -29,6 +34,14 @@ let backPopstateAcknowledgement: (() => void) | null = null;
 let backNavigationWatchState: ReturnType<
   typeof createBackNavigationWatchState
 > | null = null;
+let activeEnteringPage: HTMLElement | null = null;
+let activeOutgoingPage: HTMLElement | null = null;
+let activeOutgoingSnapshot: HTMLElement | null = null;
+let transitionGeneration = 0;
+let activeEnterDone: (() => void) | null = null;
+let activeEnterGeneration = 0;
+let completingEnterGeneration: number | null = null;
+const pageTransitionGenerations = new WeakMap<HTMLElement, number>();
 
 const router = useRouter();
 const routeState = createRouteTransitionState();
@@ -70,20 +83,47 @@ const focusDetailHeading = () => {
   });
 };
 
-const lockDocument = () => {
-  document.documentElement.classList.add("route-transition-locked");
+const lockDocument = (preserveLayout = false) => {
+  document.documentElement.classList.add(
+    preserveLayout
+      ? "route-transition-input-locked"
+      : "route-transition-locked",
+  );
   lenis?.stop();
 };
 
 const unlockDocument = () => {
   document.documentElement.classList.remove("route-transition-locked");
+  document.documentElement.classList.remove("route-transition-input-locked");
   lenis?.start();
+};
+
+const blockTransitionScroll = (event: Event) => {
+  if (routeState.active) event.preventDefault();
 };
 
 const setOverlayHidden = () => {
   if (transitionOverlay.value) {
     gsap.set(transitionOverlay.value, { autoAlpha: 0 });
   }
+};
+
+const clearTransitionPageStyles = (page: HTMLElement | null) => {
+  if (!page) return;
+
+  gsap.set(page, {
+    clearProps:
+      "position,top,right,bottom,left,width,height,overflowY,zIndex,transform,willChange,opacity,visibility,pointerEvents",
+  });
+};
+
+const resetTransitionPages = () => {
+  const pages = new Set([activeEnteringPage, activeOutgoingPage]);
+  pages.forEach(clearTransitionPageStyles);
+  activeOutgoingSnapshot?.remove();
+  activeEnteringPage = null;
+  activeOutgoingPage = null;
+  activeOutgoingSnapshot = null;
 };
 
 const clearBackNoPopstateWatchdog = () => {
@@ -110,16 +150,38 @@ const clearBackNavigationWatch = () => {
 
 const finishTransition = () => {
   clearBackNavigationWatch();
+  resetTransitionPages();
   setOverlayHidden();
   unlockDocument();
   routeState.finish();
   isTransitioning.value = false;
 };
 
+const resolveActiveEnter = () => {
+  const done = activeEnterDone;
+  const generation = activeEnterGeneration;
+  activeEnterDone = null;
+  activeEnterGeneration = 0;
+  if (!done) return;
+
+  completingEnterGeneration = generation;
+  done();
+  completingEnterGeneration = null;
+};
+
 const cancelTransition = () => {
   routeTimeline?.kill();
   routeTimeline = null;
   finishTransition();
+  resolveActiveEnter();
+};
+
+const beginRouteTransition = (
+  direction: "direct" | "forward" | "back",
+) => {
+  if (!routeState.begin(direction)) return false;
+  transitionGeneration += 1;
+  return true;
 };
 
 const createRouteTimeline = (vars?: gsap.TimelineVars) => {
@@ -131,20 +193,82 @@ const createRouteTimeline = (vars?: gsap.TimelineVars) => {
   return routeTimeline;
 };
 
-const restoreHomeScroll = () => {
-  const service = document.querySelector<HTMLElement>("#service");
-  const serviceY = service
-    ? window.scrollY + service.getBoundingClientRect().top
-    : 0;
-  const targetY = routeState.homeScrollY ?? serviceY;
-
-  window.scrollTo(0, targetY);
-  lenis?.scrollTo(targetY, { immediate: true, force: true });
+const setWindowScrollTop = () => {
+  const { homeScrollY } = createRouteTransitionVisualPlan("back", true);
+  window.scrollTo(0, homeScrollY);
+  lenis?.scrollTo(homeScrollY, { immediate: true, force: true });
 };
 
-const setDetailScrollTop = () => {
-  window.scrollTo(0, 0);
-  lenis?.scrollTo(0, { immediate: true, force: true });
+const findOtherRoutePage = (page: HTMLElement) =>
+  Array.from(
+    appRoot.value?.querySelectorAll<HTMLElement>("[data-route-page]") ?? [],
+  ).find((candidate) => candidate !== page) ?? null;
+
+const closeOutgoingNavigationLayers = (page: HTMLElement) => {
+  const backdrop = page.querySelector<HTMLElement>(
+    'button[aria-label="關閉選單"].fixed.inset-0',
+  );
+  const drawer = page.querySelector<HTMLElement>("#navigation-drawer");
+  const targets = [backdrop, drawer].filter(
+    (target): target is HTMLElement => Boolean(target),
+  );
+
+  if (targets.length) gsap.killTweensOf(targets);
+  if (backdrop) {
+    gsap.set(backdrop, { opacity: 0, pointerEvents: "none" });
+  }
+  if (drawer) gsap.set(drawer, { xPercent: 100 });
+};
+
+const freezeOutgoingDetailParallax = (page: HTMLElement) => {
+  const image = page.querySelector<HTMLElement>("[data-parallax-image]");
+  if (!image) return;
+
+  const transform = getComputedStyle(image).transform;
+  ScrollTrigger.getAll().forEach((trigger) => {
+    const triggerElement = trigger.trigger;
+    if (triggerElement instanceof Element && page.contains(triggerElement)) {
+      trigger.disable(false, false);
+    }
+  });
+  image.style.transform = transform === "none" ? "" : transform;
+  image.style.willChange = "transform";
+};
+
+const captureOutgoingServiceStage = () => {
+  activeOutgoingSnapshot?.remove();
+  activeOutgoingSnapshot = null;
+
+  const source = appRoot.value?.querySelector<HTMLElement>(
+    '[data-route-kind="home"] .service-stage',
+  );
+  if (!source) return;
+
+  const rect = source.getBoundingClientRect();
+  if (rect.bottom <= 0 || rect.top >= window.innerHeight) return;
+
+  const snapshot = source.cloneNode(true) as HTMLElement;
+  snapshot.dataset.routeTransitionSnapshot = "service-stage";
+  snapshot.setAttribute("aria-hidden", "true");
+  snapshot.setAttribute("inert", "");
+  snapshot.querySelectorAll("[id]").forEach((element) => {
+    element.removeAttribute("id");
+  });
+
+  appRoot.value?.append(snapshot);
+  gsap.set(snapshot, {
+    position: "fixed",
+    top: rect.top,
+    left: rect.left,
+    width: rect.width,
+    height: rect.height,
+    margin: 0,
+    zIndex: 1,
+    pointerEvents: "none",
+    overflow: "hidden",
+    willChange: "opacity",
+  });
+  activeOutgoingSnapshot = snapshot;
 };
 
 const beginImplicitTransition = () => {
@@ -153,7 +277,7 @@ const beginImplicitTransition = () => {
   const direction = router.currentRoute.value.name === "service-detail"
     ? "forward"
     : "back";
-  routeState.begin(direction);
+  beginRouteTransition(direction);
   isTransitioning.value = true;
 };
 
@@ -167,11 +291,14 @@ const preloadImage = (src: string) => {
 };
 
 const navigateToService = async (href: string) => {
-  if (!routeState.begin("forward")) return;
+  if (!beginRouteTransition("forward")) return;
 
   if (router.currentRoute.value.name === "home") {
     routeState.rememberHomeScroll(window.scrollY);
   }
+
+  const plan = createRouteTransitionVisualPlan("forward", isReducedMotion());
+  if (plan.captureOutgoingServiceStage) captureOutgoingServiceStage();
 
   isTransitioning.value = true;
 
@@ -187,7 +314,7 @@ const pushHomeFallback = async () => {
   clearBackNavigationWatch();
 
   try {
-    const failure = await router.push("/#service");
+    const failure = await router.push("/");
     if (isNavigationFailure(failure)) cancelTransition();
   } catch {
     cancelTransition();
@@ -223,7 +350,7 @@ const navigateBackWithFallback = () => {
 };
 
 const returnToServices = async () => {
-  if (!routeState.begin("back")) return;
+  if (!beginRouteTransition("back")) return;
 
   isTransitioning.value = true;
 
@@ -233,7 +360,7 @@ const returnToServices = async () => {
       return;
     }
 
-    const failure = await router.push("/#service");
+    const failure = await router.push("/");
     if (isNavigationFailure(failure)) cancelTransition();
   } catch {
     cancelTransition();
@@ -320,126 +447,183 @@ async function handleLoaderDone() {
   }
 }
 
-const handleBeforeLeave = (element: Element) => {
-  beginImplicitTransition();
-  lockDocument();
-
-  const page = element as HTMLElement;
-  const overlay = transitionOverlay.value;
-  if (!overlay) return;
-
-  if (routeState.direction === "back") {
-    gsap.set(overlay, { autoAlpha: 1 });
-    gsap.set(page, {
-      position: "relative",
-      zIndex: 100,
-      willChange: isReducedMotion() ? "auto" : "transform",
-    });
-    return;
-  }
-
-  gsap.set(overlay, { autoAlpha: 0 });
-};
-
-const handleLeave = (element: Element, done: () => void) => {
-  const page = element as HTMLElement;
-  const overlay = transitionOverlay.value;
-
-  if (!overlay) {
-    done();
-    return;
-  }
-
-  if (routeState.direction === "back") {
-    if (isReducedMotion()) {
-      done();
-      return;
-    }
-
-    createRouteTimeline({ onComplete: done }).to(page, {
-      yPercent: 100,
-      duration: 0.72,
-      ease: "power3.inOut",
-    });
-    return;
-  }
-
-  createRouteTimeline({ onComplete: done }).to(overlay, {
-    autoAlpha: 1,
-    duration: isReducedMotion() ? 0.12 : 0.28,
-    ease: "power2.out",
-  });
-};
-
 const handleBeforeEnter = (element: Element) => {
-  lockDocument();
-
   const page = element as HTMLElement;
-  const overlay = transitionOverlay.value;
-  if (!overlay) return;
-
-  if (routeState.direction === "back") {
-    restoreHomeScroll();
-    gsap.set(page, { position: "relative", zIndex: 0 });
-    gsap.set(overlay, { autoAlpha: 1 });
+  const outgoingPage = findOtherRoutePage(page);
+  if (!shouldAnimateRouteTransition(routeState.active, Boolean(outgoingPage))) {
+    activeEnteringPage = null;
+    activeOutgoingPage = null;
     return;
   }
 
-  setDetailScrollTop();
-  gsap.set(overlay, { autoAlpha: 1 });
+  beginImplicitTransition();
+  const reducedMotion = isReducedMotion();
+  const plan = createRouteTransitionVisualPlan(
+    routeState.direction,
+    reducedMotion,
+  );
+  const outgoingScrollY = window.scrollY;
+  lockDocument(plan.preserveOutgoingLayout);
+
+  const overlay = transitionOverlay.value;
+
+  activeEnteringPage = page;
+  activeOutgoingPage = outgoingPage;
+  pageTransitionGenerations.set(page, transitionGeneration);
+
+  if (overlay) gsap.set(overlay, { autoAlpha: 0 });
+  if (plan.captureOutgoingServiceStage && !activeOutgoingSnapshot) {
+    captureOutgoingServiceStage();
+  }
+  if (plan.closeOutgoingNavigation && activeOutgoingPage) {
+    closeOutgoingNavigationLayers(activeOutgoingPage);
+  }
+  if (
+    plan.hideOutgoingPageBehindSnapshot &&
+    activeOutgoingSnapshot &&
+    activeOutgoingPage
+  ) {
+    gsap.set(activeOutgoingPage, {
+      autoAlpha: 0,
+      pointerEvents: "none",
+    });
+  }
+
+  if (routeState.direction === "back") {
+    if (activeOutgoingPage) {
+      freezeOutgoingDetailParallax(activeOutgoingPage);
+      gsap.set(activeOutgoingPage, {
+        position: "fixed",
+        top: getPinnedPageTop(outgoingScrollY),
+        right: 0,
+        left: 0,
+        width: "100%",
+        zIndex: 0,
+        willChange: reducedMotion ? "auto" : "opacity",
+      });
+    }
+    setWindowScrollTop();
+    gsap.set(page, {
+      position: "fixed",
+      top: 0,
+      right: 0,
+      bottom: 0,
+      left: 0,
+      width: "100%",
+      overflowY: "hidden",
+      zIndex: 100,
+      yPercent: plan.incomingYPercent,
+      willChange: reducedMotion ? "auto" : "transform",
+    });
+    return;
+  }
+
   gsap.set(page, {
-    position: "relative",
+    position: "fixed",
+    top: 0,
+    right: 0,
+    bottom: 0,
+    left: 0,
+    width: "100%",
+    overflowY: "hidden",
     zIndex: 100,
-    yPercent: isReducedMotion() ? 0 : 100,
-    willChange: isReducedMotion() ? "auto" : "transform",
+    yPercent: plan.incomingYPercent,
+    willChange: reducedMotion ? "auto" : "transform",
   });
 };
 
 const handleEnter = (element: Element, done: () => void) => {
   const page = element as HTMLElement;
-  const overlay = transitionOverlay.value;
-
-  const complete = () => {
-    const returningHome = routeState.direction === "back";
-    gsap.set(page, { clearProps: "transform,willChange,zIndex,position" });
-    finishTransition();
-    if (returningHome) {
-      ScrollTrigger.refresh();
-      restoreHomeScroll();
-    }
-    if (page.dataset.routeKind === "detail") focusDetailHeading();
-    scheduleRefresh();
+  if (!shouldAnimateRouteTransition(routeState.active, Boolean(activeOutgoingPage))) {
     done();
+    return;
+  }
+
+  const overlay = transitionOverlay.value;
+  const reducedMotion = isReducedMotion();
+  const plan = createRouteTransitionVisualPlan(
+    routeState.direction,
+    reducedMotion,
+  );
+
+  if (reducedMotion) {
+    gsap.set(page, { yPercent: 0 });
+    done();
+    return;
+  }
+
+  activeEnterDone = done;
+  activeEnterGeneration = transitionGeneration;
+  const completeEnter = () => {
+    if (activeEnterDone !== done) return;
+    resolveActiveEnter();
   };
 
-  if (!overlay) {
-    complete();
-    return;
-  }
-
-  if (routeState.direction === "back") {
-    createRouteTimeline({ onComplete: complete }).to(overlay, {
-      autoAlpha: 0,
-      duration: isReducedMotion() ? 0.12 : 0.28,
-      ease: "power2.out",
-    });
-    return;
-  }
-
-  if (isReducedMotion()) {
-    createRouteTimeline({ onComplete: complete }).to(overlay, {
-      autoAlpha: 0,
-      duration: 0.12,
-      ease: "power2.out",
-    });
-    return;
-  }
-
-  createRouteTimeline({ onComplete: complete }).to(page, {
+  const timeline = createRouteTimeline({ onComplete: completeEnter }).to(page, {
     yPercent: 0,
-    duration: 0.85,
+    duration: 0.9,
     ease: "power3.inOut",
-  });
+  }, 0);
+
+  const outgoingVisual = activeOutgoingSnapshot ?? activeOutgoingPage;
+  if (outgoingVisual) {
+    timeline.to(outgoingVisual, {
+      autoAlpha: plan.outgoingAutoAlpha,
+      duration: 0.9,
+      ease: "power2.inOut",
+    }, 0);
+  }
+
+  if (overlay) {
+    timeline.to(overlay, {
+      autoAlpha: plan.overlayAutoAlpha,
+      duration: 0.9,
+      ease: "power2.inOut",
+    }, 0);
+  }
+};
+
+const handleBeforeLeave = (element: Element) => {
+  const page = element as HTMLElement;
+  activeOutgoingPage = page;
+  pageTransitionGenerations.set(
+    page,
+    completingEnterGeneration ?? transitionGeneration,
+  );
+};
+
+const handleLeave = (_element: Element, done: () => void) => done();
+
+const handleAfterLeave = (element: Element) => {
+  const page = element as HTMLElement;
+  const generation = pageTransitionGenerations.get(page);
+  if (generation !== undefined && generation !== transitionGeneration) {
+    clearTransitionPageStyles(page);
+    return;
+  }
+
+  const enteringPage = activeEnteringPage;
+  const returningHome = routeState.direction === "back";
+
+  setWindowScrollTop();
+  finishTransition();
+
+  if (returningHome) ScrollTrigger.refresh();
+  if (enteringPage?.dataset.routeKind === "detail") focusDetailHeading();
+  scheduleRefresh();
+};
+
+const handleEnterCancelled = (element: Element) => {
+  const page = element as HTMLElement;
+  const generation = pageTransitionGenerations.get(page);
+  clearTransitionPageStyles(page);
+  if (generation === transitionGeneration && routeState.active) {
+    cancelTransition();
+  }
+};
+
+const handleLeaveCancelled = (element: Element) => {
+  clearTransitionPageStyles(element as HTMLElement);
 };
 
 const handlePopState = (event: PopStateEvent) => {
@@ -457,13 +641,35 @@ const handlePopState = (event: PopStateEvent) => {
     routeState.rememberHomeScroll(window.scrollY);
   }
   if (destinationPosition !== null) currentHistoryPosition = destinationPosition;
-  if (direction === "direct" || !routeState.begin(direction)) return;
+  if (direction === "direct") return;
+  if (routeState.active) {
+    cancelTransition();
+    routeState.replace(direction);
+    transitionGeneration += 1;
+  } else if (!beginRouteTransition(direction)) {
+    return;
+  }
   isTransitioning.value = true;
 };
 
 const removeHistoryPositionSync = router.afterEach(() => {
   const position = readHistoryPosition(window.history.state);
   if (position !== null) currentHistoryPosition = position;
+});
+
+const removeTransitionGuard = router.beforeEach((to, from) => {
+  const direction = classifyRouteTransition(to.name, from.name);
+  if (direction === "direct") return true;
+
+  if (routeState.active && routeState.direction !== direction) {
+    cancelTransition();
+    routeState.replace(direction);
+    transitionGeneration += 1;
+  } else if (!routeState.active) {
+    beginRouteTransition(direction);
+  }
+  isTransitioning.value = true;
+  return true;
 });
 
 const removeRouterErrorHandler = router.onError(() => {
@@ -477,8 +683,9 @@ const removeRouterErrorHandler = router.onError(() => {
 onBeforeUnmount(() => {
   mounted = false;
   window.removeEventListener("load", refreshAfterLayout);
-  window.removeEventListener("popstate", handlePopState);
+  window.removeEventListener("popstate", handlePopState, true);
   removeHistoryPositionSync();
+  removeTransitionGuard();
   removeRouterErrorHandler();
   clearBackNavigationWatch();
   cancelAnimationFrame(refreshFrame);
@@ -495,21 +702,31 @@ onBeforeUnmount(() => {
 });
 
 onMounted(() => {
-  window.addEventListener("popstate", handlePopState);
+  // Capture history intent before Vue Router tears down the outgoing detail,
+  // so its current parallax frame can be frozen without a visual reset.
+  window.addEventListener("popstate", handlePopState, { capture: true });
 });
 </script>
 
 <!-- App.vue -->
 <template>
-  <div ref="appRoot" class="relative">
+  <div
+    ref="appRoot"
+    class="relative"
+    @wheel="blockTransitionScroll"
+    @touchmove="blockTransitionScroll"
+  >
     <RouterView v-slot="{ Component, route }">
       <Transition
         :css="false"
-        mode="out-in"
+        :mode="ROUTE_TRANSITION_MODE"
         @before-leave="handleBeforeLeave"
         @leave="handleLeave"
+        @after-leave="handleAfterLeave"
+        @leave-cancelled="handleLeaveCancelled"
         @before-enter="handleBeforeEnter"
         @enter="handleEnter"
+        @enter-cancelled="handleEnterCancelled"
       >
         <component :is="Component" :key="route.fullPath" />
       </Transition>

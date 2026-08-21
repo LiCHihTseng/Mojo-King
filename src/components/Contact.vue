@@ -163,89 +163,63 @@ onBeforeUnmount(() => {
 <template>
   <section
     ref="sectionRef"
-    class="relative flex min-h-screen items-center overflow-hidden bg-[#FF891D] py-20 sm:py-28 lg:py-36"
+    class="relative flex min-h-[66svh] items-center overflow-hidden bg-[#F9F8F6] py-14 sm:py-16 md:py-12 xl:py-14"
   >
-    <!-- 背景裝飾圖形：置中、比容器大很多，用比底色更深的同色系疊上去 -->
-    <div
-      ref="decorRef"
-      class="pointer-events-none absolute inset-0 z-0 flex items-center justify-center"
-      aria-hidden="true"
-    >
-      <svg
-        class="h-[130%] w-auto min-w-[620px] sm:h-[145%] lg:h-[165%]"
-        viewBox="0 0 3622 5110"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <g clip-path="url(#contact-decor-clip)">
-          <path
-            d="M2823.17 3126.72C2924.6 3029.34 3054.85 2949.36 3198.16 2936.32C3467.51 2911.85 3678.18 3005.75 3608.58 3309.17C3529.78 3652.47 2965.36 4138.97 2706.34 4394.95C2313.58 4783.08 1846.49 5336.03 1244.41 5012.48C956.926 4857.97 248.584 4371.35 94.4617 4099.84C-218.631 3548.51 604.681 3263.22 895.152 3672.34C959.039 3762.26 989.49 3875.78 1061.08 3966.08C1277.23 4238.7 1346.71 4010.54 1327.69 3774.18C1319.11 3667.74 1255.72 3486.66 1190.47 3402.07C1077.86 3255.76 916.282 3254.77 759.55 3186.83C234.415 2959.17 -120.564 2468.07 38.1572 1877.87C183.828 1336.1 625.811 1766.46 785.527 2042.93C924.361 2283.26 1134.42 2812.11 1134.42 2812.11C1134.42 2812.11 1550.17 2958.67 1526.56 2631.4C1504.68 2328.97 1101.35 1727.33 1101.35 1727.33C1101.35 1727.33 699.889 761.163 889.932 331.92C1088.3 -115.953 1776.76 -82.9151 2066.86 265.721C2565.02 864.251 1927.4 2126.39 1927.4 2126.39C1927.4 2126.39 1953.25 2575.63 2191.27 2352.81C2476.77 2085.53 2677.63 1175.75 3112.03 1124.21C3361.36 1094.65 3443.39 1288.53 3463.28 1503.27C3529.53 2218.68 2495.79 2855.83 2495.79 2855.83C2495.79 2855.83 2124.9 3449.4 2202.83 3669.48C2252.92 3811.07 2356.08 3661.23 2445.33 3625.14C2671.68 3533.6 2672.03 3271.66 2822.93 3126.84L2823.17 3126.72Z"
-            fill="#2F2F2F4D"
-            fill-opacity="0.55"
-          />
-        </g>
-        <defs>
-          <clipPath id="contact-decor-clip">
-            <rect width="3622" height="5110" fill="white" />
-          </clipPath>
-        </defs>
-      </svg>
-    </div>
 
     <!-- 內容 -->
-    <div class="relative z-10 mx-auto w-full max-w-[2000px] px-5 sm:px-8 lg:px-12">
-      <div class="lg:grid lg:grid-cols-12 lg:gap-x-10">
+    <div class="relative z-10 mx-auto w-full max-w-8xl px-5 sm:px-8 lg:px-10 xl:px-12">
+      <div class="md:grid md:grid-cols-12 ">
         <!-- 左側：小標（桌機才獨立成一欄）-->
-        <div class="lg:col-span-2">
+        <div class="md:col-span-12 lg:col-span-2">
           <p
             ref="eyebrowRef"
-            class="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-white sm:text-sm"
+            class="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-[#B55F00] sm:text-sm"
           >
-            <span class="inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-white"></span>
+            <span class="inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-[#B55F00]"></span>
             {{ eyebrow }}
           </p>
         </div>
 
-        <!-- 中間：標題 + 引言 + 大圖 -->
-        <div class="mt-10 lg:col-span-6 lg:mt-0">
+        <!-- 中間：標題 + 引言 + 輔助圖片 -->
+        <div class="mt-8 md:col-span-7 md:mt-8 lg:col-span-6 lg:mt-0">
           <h2
             ref="headingRef"
-            class="text-3xl font-medium leading-tight text-white sm:text-4xl lg:text-5xl"
+            class="text-3xl font-medium leading-tight text-[#252525] sm:text-4xl lg:text-4xl xl:text-5xl"
           >
             {{ heading }}
           </h2>
 
           <p
             ref="introRef"
-            class="mt-6 max-w-2xl text-base leading-relaxed text-white sm:text-lg"
+            class="mt-4 max-w-2xl text-base leading-relaxed text-[#555] sm:mt-5 sm:text-lg"
           >
             {{ intro }}
           </p>
 
           <div
             ref="imageWrapRef"
-            class="mt-10 overflow-hidden rounded-sm sm:mt-14"
+            class="mt-8 w-full max-w-[34rem] overflow-hidden rounded-sm sm:mt-10 md:mt-8 lg:mt-7"
             style="will-change: transform, opacity;"
           >
             <img
               :src="image"
               :alt="imageAlt"
-              class="aspect-[4/3] w-full object-cover sm:aspect-[3/2]"
+              class="aspect-4/3 w-full object-cover object-center "
               loading="lazy"
             />
           </div>
         </div>
 
         <!-- 右側：結語 + CTA（桌機靠下對齊，呼應參考圖的配置）-->
-        <div class="mt-10 lg:col-span-4 lg:mt-0 lg:flex lg:flex-col lg:justify-end lg:pb-2">
+        <div class="mt-8 md:col-span-5 md:mt-8 md:flex md:flex-col md:justify-end md:pb-1 lg:col-span-4 lg:mt-0">
           <p
             ref="outroRef"
-            class="max-w-md text-base leading-relaxed text-white sm:text-lg"
+            class="max-w-md text-base leading-relaxed text-[#555] sm:text-lg md:text-base xl:text-lg"
           >
             {{ outro }}
           </p>
 
-          <div ref="ctaRef" class="mt-8 sm:mt-10">
+          <div ref="ctaRef" class="mt-6 sm:mt-8 lg:mt-7">
             <HeroCTA :text="ctaText" href="#consultation-form" />
           </div>
         </div>

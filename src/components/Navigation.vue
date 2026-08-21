@@ -39,7 +39,9 @@ const menuButtonStyle = {
 
 const rootRef = ref<HTMLElement | null>(null);
 const brandRef = ref<HTMLElement | null>(null);
+const centerEntranceRef = ref<HTMLElement | null>(null);
 const centerLinksRef = ref<HTMLElement | null>(null);
+const rightControlsRef = ref<HTMLElement | null>(null);
 const hamburgerRef = ref<HTMLElement | null>(null);
 const ctaRef = ref<HTMLElement | null>(null);
 const backdropRef = ref<HTMLElement | null>(null);
@@ -115,7 +117,7 @@ const handleLinkLeave = (event: MouseEvent) => {
 ---------------------------------- */
 
 const updateNavVisibility = (instant = false) => {
-  if (!centerLinksRef.value || !hamburgerRef.value) return;
+  if (!centerLinksRef.value || !hamburgerRef.value || !ctaRef.value) return;
 
   const showHamburger = shouldShowHamburger.value;
   const duration = instant || prefersReducedMotion ? 0 : 0.35;
@@ -123,7 +125,7 @@ const updateNavVisibility = (instant = false) => {
   const method = instant ? gsap.set : gsap.to;
 
   method(centerLinksRef.value, {
-    opacity: showHamburger ? 0 : 1,
+    autoAlpha: showHamburger ? 0 : 1,
     duration,
     ease: "power3.out",
     pointerEvents: showHamburger ? "none" : "auto",
@@ -131,7 +133,7 @@ const updateNavVisibility = (instant = false) => {
   });
 
   method(hamburgerRef.value, {
-    opacity: showHamburger ? 1 : 0,
+    autoAlpha: showHamburger ? 1 : 0,
     duration,
     ease: "power3.out",
     pointerEvents: showHamburger ? "auto" : "none",
@@ -139,7 +141,7 @@ const updateNavVisibility = (instant = false) => {
   });
 
   method(ctaRef.value, {
-    opacity: showHamburger ? 0 : 1,
+    autoAlpha: showHamburger ? 0 : 1,
     duration,
     ease: "power3.out",
     pointerEvents: showHamburger ? "none" : "auto",
@@ -316,19 +318,23 @@ onMounted(async () => {
     gsap.set(drawerRef.value, { xPercent: 100 });
 
     if (!prefersReducedMotion) {
-      const controlTargets = shouldShowHamburger.value
-        ? [hamburgerRef.value]
-        : [...Array.from(centerLinksRef.value?.children ?? []), ctaRef.value];
-      const visibleControlTargets = controlTargets.filter(Boolean);
+      /*
+       * 入場動畫只控制穩定的外層容器；CTA、Menu 與中央連結的互斥狀態
+       * 完全交給 updateNavVisibility，避免直接載入 hash 時兩套動畫搶 opacity。
+       */
+      const entranceTargets = [
+        centerEntranceRef.value,
+        rightControlsRef.value,
+      ].filter(Boolean);
 
       gsap.set(brandRef.value, { autoAlpha: 0, y: -16 });
-      gsap.set(visibleControlTargets, { autoAlpha: 0, y: -14 });
+      gsap.set(entranceTargets, { autoAlpha: 0, y: -14 });
 
       entranceTimeline = gsap.timeline({
         paused: true,
         defaults: { ease: "power3.out" },
         onComplete: () => {
-          gsap.set([brandRef.value, ...visibleControlTargets], {
+          gsap.set([brandRef.value, ...entranceTargets], {
             clearProps: "transform,opacity,visibility,willChange",
           });
         },
@@ -341,7 +347,7 @@ onMounted(async () => {
           duration: 0.72,
           willChange: "transform,opacity",
         }, 0)
-        .to(visibleControlTargets, {
+        .to(entranceTargets, {
           autoAlpha: 1,
           y: 0,
           duration: 0.62,
@@ -404,40 +410,42 @@ onBeforeUnmount(() => {
         <!--
           中：連結（桌機未滾動時顯示）
           外層只負責「絕對定位置中」，完全不被 GSAP 碰到；
-          內層（centerLinksRef）才是 GSAP 控制 opacity / y 的對象。
-          兩者職責分開，避免 transform 互相覆蓋造成次像素模糊。
+          centerEntranceRef 負責入場，centerLinksRef 只負責捲動顯隱。
+          各層職責分開，避免 transform 與 opacity 互相覆蓋。
         -->
         <div class="pointer-events-none absolute left-1/2 top-1/2 hidden -translate-x-1/2 -translate-y-1/2 lg:flex">
-          <div ref="centerLinksRef" class="flex items-center gap-1">
-            <a href="#about" class="relative inline-flex min-h-12 items-center justify-center px-4 py-2"
-              @mouseenter="handleLinkEnter('about', $event)" @mouseleave="handleLinkLeave">
-              <span class="nav-group inline-flex flex-col items-center">
-                <span class="nav-label whitespace-nowrap text-lg font-medium tracking-[0.08em] text-white">
-                  {{ aboutText }}
+          <div ref="centerEntranceRef">
+            <div ref="centerLinksRef" class="flex items-center gap-1">
+              <a href="#about" class="relative inline-flex min-h-12 items-center justify-center px-4 py-2"
+                @mouseenter="handleLinkEnter('about', $event)" @mouseleave="handleLinkLeave">
+                <span class="nav-group inline-flex flex-col items-center">
+                  <span class="nav-label whitespace-nowrap text-lg font-medium tracking-[0.08em] text-white">
+                    {{ aboutText }}
+                  </span>
+                  <span class="nav-dot mt-2 h-1.5 w-1.5 scale-0 rounded-full bg-[#B55F00] opacity-0"></span>
                 </span>
-                <span class="nav-dot mt-2 h-1.5 w-1.5 scale-0 rounded-full bg-[#B55F00] opacity-0"></span>
-              </span>
-            </a>
+              </a>
 
-            <a href="#service" class="relative inline-flex min-h-12 items-center justify-center px-4 py-2"
-              @mouseenter="handleLinkEnter('service', $event)" @mouseleave="handleLinkLeave">
-              <span class="nav-group inline-flex flex-col items-center">
-                <span class="nav-label whitespace-nowrap text-lg font-medium tracking-[0.08em] text-white">
-                  {{ serviceText }}
+              <a href="#service" class="relative inline-flex min-h-12 items-center justify-center px-4 py-2"
+                @mouseenter="handleLinkEnter('service', $event)" @mouseleave="handleLinkLeave">
+                <span class="nav-group inline-flex flex-col items-center">
+                  <span class="nav-label whitespace-nowrap text-lg font-medium tracking-[0.08em] text-white">
+                    {{ serviceText }}
+                  </span>
+                  <span class="nav-dot mt-2 h-1.5 w-1.5 scale-0 rounded-full bg-[#B55F00] opacity-0"></span>
                 </span>
-                <span class="nav-dot mt-2 h-1.5 w-1.5 scale-0 rounded-full bg-[#B55F00] opacity-0"></span>
-              </span>
-            </a>
+              </a>
 
-            <a href="#contact" class="relative inline-flex min-h-12 items-center justify-center px-4 py-2"
-              @mouseenter="handleLinkEnter('contact', $event)" @mouseleave="handleLinkLeave">
-              <span class="nav-group inline-flex flex-col items-center">
-                <span class="nav-label whitespace-nowrap text-lg font-medium tracking-[0.08em] text-white">
-                  {{ contactText }}
+              <a href="#contact" class="relative inline-flex min-h-12 items-center justify-center px-4 py-2"
+                @mouseenter="handleLinkEnter('contact', $event)" @mouseleave="handleLinkLeave">
+                <span class="nav-group inline-flex flex-col items-center">
+                  <span class="nav-label whitespace-nowrap text-lg font-medium tracking-[0.08em] text-white">
+                    {{ contactText }}
+                  </span>
+                  <span class="nav-dot mt-2 h-1.5 w-1.5 scale-0 rounded-full bg-[#B55F00] opacity-0"></span>
                 </span>
-                <span class="nav-dot mt-2 h-1.5 w-1.5 scale-0 rounded-full bg-[#B55F00] opacity-0"></span>
-              </span>
-            </a>
+              </a>
+            </div>
           </div>
         </div>
 
@@ -445,7 +453,7 @@ onBeforeUnmount(() => {
           右側：CTA 與 Menu 按鈕疊在同一個 grid 格子裡。
           兩者都靠右對齊、佔用同一格，所以互相淡入淡出時不會造成版面位移。
         -->
-        <div class="grid place-items-center">
+        <div ref="rightControlsRef" class="grid place-items-center">
           <!-- CTA：尚未捲到 About 時顯示 -->
           <div ref="ctaRef" class="col-start-1 row-start-1 justify-self-end">
             <HeroCTA :text="ctaText" href="#consultation-form" bg-color="#f8f4eecc" text-color="#252525" :blur="6"
