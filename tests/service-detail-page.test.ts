@@ -44,6 +44,15 @@ test("valid detail output exposes the hero, editorial sections, and one shared 5
   assert.match(html, /href="\/#consultation-form"/);
 });
 
+test("the server-rendered hero is edge-safe before client parallax initializes", async () => {
+  const html = await renderDetail("hr-consulting");
+
+  assert.match(
+    html,
+    /data-parallax-image[^>]+class="[^"]*scale-\[1\.08\][^"]*"/,
+  );
+});
+
 test("detail layout defers wide title and numbered-row grids until large screens", async () => {
   const html = await renderDetail("hr-consulting");
 

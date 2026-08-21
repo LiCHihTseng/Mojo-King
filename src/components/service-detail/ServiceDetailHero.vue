@@ -1,13 +1,131 @@
 <script setup lang="ts">
-import { inject } from "vue";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { inject, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { useRouter } from "vue-router";
 import type { ServiceDefinition } from "../../data/services";
 import { routeTransitionKey } from "../../lib/appShell";
 
-defineProps<{ service: ServiceDefinition }>();
+gsap.registerPlugin(ScrollTrigger);
+
+const props = defineProps<{ service: ServiceDefinition }>();
 
 const router = useRouter();
 const transition = inject(routeTransitionKey, null);
+const heroRoot = ref<HTMLElement | null>(null);
+const parallaxImage = ref<HTMLImageElement | null>(null);
+
+let mounted = false;
+let initializationFrame = 0;
+let refreshFrame = 0;
+let initializationGeneration = 0;
+let parallaxMedia: ReturnType<typeof gsap.matchMedia> | null = null;
+
+const revertParallax = () => {
+  initializationGeneration += 1;
+  cancelAnimationFrame(initializationFrame);
+  cancelAnimationFrame(refreshFrame);
+  initializationFrame = 0;
+  refreshFrame = 0;
+  parallaxMedia?.revert();
+  parallaxMedia = null;
+
+  if (parallaxImage.value) {
+    gsap.set(parallaxImage.value, {
+      clearProps: "transform,willChange",
+    });
+  }
+};
+
+const createParallax = async (generation: number) => {
+  const hero = heroRoot.value;
+  const image = parallaxImage.value;
+  if (!mounted || generation !== initializationGeneration || !hero || !image) {
+    return;
+  }
+
+  try {
+    await image.decode();
+  } catch {
+    // A failed decode must not prevent the readable fallback hero from mounting.
+  }
+
+  if (
+    !mounted ||
+    generation !== initializationGeneration ||
+    hero !== heroRoot.value ||
+    image !== parallaxImage.value
+  ) {
+    return;
+  }
+
+  parallaxMedia = gsap.matchMedia();
+  parallaxMedia.add(
+    {
+      desktop: "(min-width: 768px)",
+      mobile: "(max-width: 767px)",
+      reduceMotion: "(prefers-reduced-motion: reduce)",
+    },
+    (context) => {
+      const { desktop, reduceMotion } = context.conditions as {
+        desktop: boolean;
+        mobile: boolean;
+        reduceMotion: boolean;
+      };
+
+      if (reduceMotion) {
+        gsap.set(image, {
+          yPercent: 0,
+          scale: 1.08,
+          willChange: "auto",
+        });
+        return;
+      }
+
+      gsap.fromTo(
+        image,
+        {
+          yPercent: desktop ? -4 : -2,
+          scale: 1.12,
+          willChange: "transform",
+        },
+        {
+          yPercent: desktop ? 8 : 4,
+          scale: 1.12,
+          ease: "none",
+          scrollTrigger: {
+            trigger: hero,
+            start: "top top",
+            end: "bottom top",
+            scrub: true,
+            invalidateOnRefresh: true,
+          },
+        },
+      );
+    },
+    hero,
+  );
+
+  refreshFrame = requestAnimationFrame(() => {
+    refreshFrame = 0;
+    if (mounted && generation === initializationGeneration) {
+      ScrollTrigger.refresh();
+    }
+  });
+};
+
+const rebuildParallax = async () => {
+  revertParallax();
+  const generation = initializationGeneration;
+  await nextTick();
+
+  if (!mounted || generation !== initializationGeneration) return;
+
+  initializationFrame = requestAnimationFrame(() => {
+    initializationFrame = 0;
+    void createParallax(generation);
+  });
+};
 
 const returnToServices = () => {
   if (transition) {
@@ -17,20 +135,40 @@ const returnToServices = () => {
 
   void router.push("/#service");
 };
+
+onMounted(() => {
+  mounted = true;
+  void rebuildParallax();
+});
+
+watch(
+  () => props.service.slug,
+  () => {
+    if (mounted) void rebuildParallax();
+  },
+  { flush: "post" },
+);
+
+onBeforeUnmount(() => {
+  mounted = false;
+  revertParallax();
+});
 </script>
 
 <template>
   <header
+    ref="heroRoot"
     data-detail-hero
     class="relative isolate min-h-[92svh] overflow-hidden bg-[#493c31] text-white md:min-h-[96svh]"
   >
     <img
+      ref="parallaxImage"
       data-parallax-image
       :src="service.image"
       alt=""
       loading="eager"
       fetchpriority="high"
-      class="absolute inset-0 -z-20 h-full w-full object-cover"
+      class="absolute inset-0 -z-20 h-full w-full scale-[1.08] object-cover"
     />
     <div
       aria-hidden="true"

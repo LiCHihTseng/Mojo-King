@@ -1,13 +1,123 @@
 <script setup lang="ts">
-import { computed } from "vue";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+import {
+  computed,
+  nextTick,
+  onBeforeUnmount,
+  onMounted,
+  ref,
+  watch,
+} from "vue";
 import type { ServiceDetailSection as ServiceDetailSectionDefinition } from "../data/services";
 import { getServiceBySlug } from "../data/services";
 import FiveDMethod from "../components/service-detail/FiveDMethod.vue";
 import ServiceDetailHero from "../components/service-detail/ServiceDetailHero.vue";
 import ServiceDetailSection from "../components/service-detail/ServiceDetailSection.vue";
 
+gsap.registerPlugin(ScrollTrigger);
+
 const props = defineProps<{ slug: string }>();
 const service = computed(() => getServiceBySlug(props.slug));
+const detailPageRoot = ref<HTMLElement | null>(null);
+
+let mounted = false;
+let initializationFrame = 0;
+let initializationGeneration = 0;
+let detailMedia: ReturnType<typeof gsap.matchMedia> | null = null;
+
+const revertDetailMotion = () => {
+  initializationGeneration += 1;
+  cancelAnimationFrame(initializationFrame);
+  initializationFrame = 0;
+  detailMedia?.revert();
+  detailMedia = null;
+
+  const sections = detailPageRoot.value?.querySelectorAll<HTMLElement>(
+    "[data-detail-section]",
+  );
+  if (sections?.length) {
+    gsap.set(sections, {
+      clearProps: "opacity,visibility,transform,willChange",
+    });
+  }
+};
+
+const createDetailMotion = (generation: number) => {
+  const root = detailPageRoot.value;
+  if (!mounted || generation !== initializationGeneration || !root || !service.value) {
+    return;
+  }
+
+  const sections = gsap.utils.toArray<HTMLElement>(
+    "[data-detail-section]",
+    root,
+  );
+  detailMedia = gsap.matchMedia();
+  detailMedia.add(
+    {
+      motionOK: "(prefers-reduced-motion: no-preference)",
+      reduceMotion: "(prefers-reduced-motion: reduce)",
+    },
+    (context) => {
+      const { reduceMotion } = context.conditions as {
+        motionOK: boolean;
+        reduceMotion: boolean;
+      };
+
+      if (reduceMotion) {
+        gsap.set(sections, {
+          autoAlpha: 1,
+          y: 0,
+          willChange: "auto",
+        });
+        return;
+      }
+
+      sections.forEach((section) => {
+        gsap.fromTo(
+          section,
+          {
+            autoAlpha: 0,
+            y: 20,
+            willChange: "transform,opacity",
+          },
+          {
+            autoAlpha: 1,
+            y: 0,
+            duration: 0.55,
+            ease: "power2.out",
+            onComplete: () => {
+              gsap.set(section, { clearProps: "willChange" });
+            },
+            scrollTrigger: {
+              trigger: section,
+              start: "top 84%",
+              once: true,
+              invalidateOnRefresh: true,
+            },
+          },
+        );
+      });
+    },
+    root,
+  );
+
+  ScrollTrigger.refresh();
+};
+
+const rebuildDetailMotion = async () => {
+  revertDetailMotion();
+  const generation = initializationGeneration;
+  await nextTick();
+
+  if (!mounted || generation !== initializationGeneration) return;
+
+  initializationFrame = requestAnimationFrame(() => {
+    initializationFrame = 0;
+    createDetailMotion(generation);
+  });
+};
 const introSection = computed<ServiceDetailSectionDefinition | null>(() => {
   if (!service.value) return null;
 
@@ -18,11 +128,30 @@ const introSection = computed<ServiceDetailSectionDefinition | null>(() => {
     columns: [service.value.detailIntro],
   };
 });
+
+onMounted(() => {
+  mounted = true;
+  void rebuildDetailMotion();
+});
+
+watch(
+  () => service.value?.slug ?? null,
+  () => {
+    if (mounted) void rebuildDetailMotion();
+  },
+  { flush: "post" },
+);
+
+onBeforeUnmount(() => {
+  mounted = false;
+  revertDetailMotion();
+});
 </script>
 
 <template>
   <main
     v-if="service && introSection"
+    ref="detailPageRoot"
     data-route-page
     data-route-kind="detail"
     class="min-h-screen overflow-x-clip bg-[#f4f0e8] text-[#1c1b17]"
