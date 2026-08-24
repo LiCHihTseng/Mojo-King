@@ -3,7 +3,9 @@
 import { onBeforeUnmount, onMounted, ref } from "vue";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import consultingImg from "../assets/Consulting_img.png";
+import about1 from "../assets/About_1.avif";
+import about2 from "../assets/About_2.avif";
+import about3 from "../assets/About_3.avif";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -16,14 +18,6 @@ interface Scene {
   stat: { value: string; label: string };
   image: string;
 }
-
-// Scene 01 用專案自己的照片；Scene 02 / 03 先用 Unsplash 佔位，
-// 方便確認切換效果，換成正式照片時只要改這裡的 image 欄位即可。
-// 直接跟 Unsplash 要 3:4 直式裁切，避免用 object-cover 把橫圖裁掉一大半
-const UNSPLASH_PARAMS =
-  "?q=80&w=900&h=1200&fit=crop&crop=faces,center&auto=format";
-const placeholder = (id: string) =>
-  `https://images.unsplash.com/${id}${UNSPLASH_PARAMS}`;
 
 const scenes: Scene[] = [
   {
@@ -41,7 +35,7 @@ const scenes: Scene[] = [
       "從經營視角思考人才與組織問題",
     ],
     stat: { value: "100+", label: "企業合作案例" },
-    image: consultingImg,
+    image: about1,
   },
   {
     id: "company",
@@ -58,7 +52,7 @@ const scenes: Scene[] = [
       "管理培訓｜讓制度真正被主管理解與運用",
     ],
     stat: { value: "150+", label: "一對一深度諮詢" },
-    image: placeholder("photo-1552664730-d307ca884978"),
+    image: about2,
   },
   {
     id: "why-us",
@@ -74,7 +68,7 @@ const scenes: Scene[] = [
       "國際專業認證",
     ],
     stat: { value: "100%", label: "教練顧問陪跑" },
-    image: placeholder("photo-1521737604893-d14cc237f11d"),
+    image: about3,
   },
 ];
 
