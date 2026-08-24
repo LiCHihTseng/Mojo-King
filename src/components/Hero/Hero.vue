@@ -235,7 +235,7 @@ onBeforeUnmount(() => {
 
           <p
             ref="descriptionRef"
-            class="max-w-[52ch] pl-4 text-sm leading-7 text-white/70 sm:text-lg sm:leading-8"
+            class="max-w-[52ch]  text-sm leading-7 text-white/70 sm:text-lg sm:leading-8"
           >
             {{ description }}
           </p>
