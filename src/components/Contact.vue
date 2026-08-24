@@ -186,7 +186,7 @@ onBeforeUnmount(() => {
     class="flex min-h-screen w-full items-center bg-[#F9F8F6] px-5 py-12 sm:px-8 lg:px-10 lg:py-16"
   >
     <div
-      class="mx-auto flex w-full max-w-[1600px] flex-col gap-12 rounded-[2rem] bg-[#252525] px-6 py-14 shadow-[0_30px_60px_-25px_rgba(0,0,0,0.45)] sm:px-10 sm:py-16 lg:flex-row lg:items-center lg:gap-20 lg:px-20 lg:py-20"
+      class="mx-auto flex w-full max-w-[1600px] flex-col-reverse gap-8 rounded-[2rem] bg-[#252525] px-6 py-14 shadow-[0_30px_60px_-25px_rgba(0,0,0,0.45)] sm:px-10 sm:py-16 lg:flex-row lg:items-center lg:gap-20 lg:px-20 lg:py-20"
     >
       <!-- 左：標題 + 邀請 + 聯絡資訊 -->
       <div class="lg:flex-1">
@@ -208,17 +208,27 @@ onBeforeUnmount(() => {
           <p class="text-lg font-bold text-white">{{ personName }}</p>
           <p class="mt-1 text-white/55">{{ personRole }}</p>
 
-          <div class="mt-6 flex flex-col gap-2.5 text-white/70">
+          <div class="mt-6 flex flex-col gap-3 text-white/70">
             <a
               :href="`mailto:${email}`"
-              class="w-fit transition-colors hover:text-[#FF891D]"
+              class="flex w-fit items-center gap-3 transition-colors hover:text-[#FF891D]"
             >
+              <svg viewBox="0 0 24 24" fill="none" class="h-[18px] w-[18px] shrink-0" aria-hidden="true">
+                <rect x="2.75" y="5.25" width="18.5" height="13.5" rx="2" stroke="currentColor" stroke-width="1.5" />
+                <path d="M3.5 7l8.5 6 8.5-6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+              </svg>
               {{ email }}
             </a>
             <a
               :href="phoneHref()"
-              class="w-fit transition-colors hover:text-[#FF891D]"
+              class="flex w-fit items-center gap-3 transition-colors hover:text-[#FF891D]"
             >
+              <svg viewBox="0 0 24 24" fill="none" class="h-[18px] w-[18px] shrink-0" aria-hidden="true">
+                <path
+                  d="M6.5 3.5h3l1.5 4-2 1.5a12 12 0 0 0 6 6l1.5-2 4 1.5v3a2 2 0 0 1-2.2 2A17 17 0 0 1 4.5 5.7 2 2 0 0 1 6.5 3.5Z"
+                  stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
+                />
+              </svg>
               {{ phone }}
             </a>
             <a
@@ -226,8 +236,14 @@ onBeforeUnmount(() => {
               :href="linkedinUrl"
               target="_blank"
               rel="noopener noreferrer"
-              class="w-fit transition-colors hover:text-[#FF891D]"
+              class="flex w-fit items-center gap-3 transition-colors hover:text-[#FF891D]"
             >
+              <svg viewBox="0 0 24 24" fill="none" class="h-[18px] w-[18px] shrink-0" aria-hidden="true">
+                <circle cx="18" cy="5.5" r="2.5" stroke="currentColor" stroke-width="1.5" />
+                <circle cx="6" cy="12" r="2.5" stroke="currentColor" stroke-width="1.5" />
+                <circle cx="18" cy="18.5" r="2.5" stroke="currentColor" stroke-width="1.5" />
+                <path d="M8.3 10.8 15.7 6.8M8.3 13.2l7.4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+              </svg>
               {{ linkedinLabel }}
             </a>
           </div>
@@ -245,12 +261,10 @@ onBeforeUnmount(() => {
 
       <!-- 右：人像。照片本身是白底，圓形裁切後邊緣直接就是白色，
            在深色卡片上會讀成一個乾淨的白色圓盤，不需要任何混色技巧。 -->
-      <div class="relative flex shrink-0 justify-center lg:justify-end">
-
-
+      <div class="relative flex shrink-0 justify-start lg:justify-end">
         <div
           ref="imageWrapRef"
-          class="relative aspect-square w-full max-w-[24rem] overflow-hidden rounded-full lg:w-[30rem] lg:max-w-none"
+          class="relative aspect-square w-24 overflow-hidden rounded-full sm:w-28 lg:w-[30rem]"
           style="will-change: transform, opacity;"
         >
           <img

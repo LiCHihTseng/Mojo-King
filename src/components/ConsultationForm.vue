@@ -17,6 +17,7 @@ gsap.registerPlugin(ScrollTrigger);
 
 interface ConsultationFormState {
   name: string;
+  email: string;
   title: string;
   companyAddress: string;
   referrer: string;
@@ -27,6 +28,7 @@ interface ConsultationFormState {
 
 const form = reactive<ConsultationFormState>({
   name: "",
+  email: "",
   title: "",
   companyAddress: "",
   referrer: "",
@@ -37,9 +39,21 @@ const form = reactive<ConsultationFormState>({
 
 type SubmitStatus = "idle" | "submitting" | "success" | "error";
 const status = ref<SubmitStatus>("idle");
+const errorMessage = ref("");
+
+/** 只擋明顯打錯的格式，真正的驗證交給後端 */
+const isValidEmail = (value: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 
 async function handleSubmit() {
   if (status.value === "submitting") return;
+
+  if (!isValidEmail(form.email)) {
+    errorMessage.value = "請填寫正確的 email，我們會寄一封確認信給你。";
+    status.value = "error";
+    return;
+  }
+
+  errorMessage.value = "";
   status.value = "submitting";
 
   try {
@@ -50,24 +64,31 @@ async function handleSubmit() {
     });
 
     if (!response.ok) {
-      throw new Error(`送出失敗（${response.status}）`);
+      const body = await response.json().catch(() => null);
+      throw new Error(body?.error ?? `送出失敗（${response.status}）`);
     }
 
     status.value = "success";
   } catch (error) {
     console.error("送出預約表單失敗", error);
+    errorMessage.value =
+      error instanceof Error && error.message
+        ? error.message
+        : "送出時發生問題，請稍後再試一次，或直接聯繫我們。";
     status.value = "error";
   }
 }
 
 function resetForm() {
   form.name = "";
+  form.email = "";
   form.title = "";
   form.companyAddress = "";
   form.referrer = "";
   form.inquiry = "";
   form.reason = "";
   form.agreeContact = false;
+  errorMessage.value = "";
   status.value = "idle";
 }
 
@@ -150,7 +171,7 @@ onBeforeUnmount(() => {
             收到了，謝謝你花時間填寫！
           </p>
           <p class="mt-2 text-sm text-[#555] sm:text-base">
-            我們會盡快與你聯繫，安排適合的諮詢時間。
+            我們已經寄了一封確認信到 {{ form.email }}，並會盡快與你聯繫，安排適合的諮詢時間。
           </p>
           <button
             type="button"
@@ -176,6 +197,23 @@ onBeforeUnmount(() => {
                 autocomplete="name"
                 required
                 placeholder="請輸入你的姓名"
+                class="mt-3 w-full border-0 border-b border-[#25252533] bg-transparent pb-3 text-sm text-[#252525] placeholder:text-[#25252566] focus:border-[#FF891D] focus:outline-none focus:ring-0"
+              />
+            </div>
+
+            <div>
+              <label for="cf-email" class="block text-sm text-[#252525]">
+                Email <span class="text-[#FF891D]">*</span>
+              </label>
+              <input
+                id="cf-email"
+                v-model.trim="form.email"
+                type="email"
+                name="email"
+                autocomplete="email"
+                required
+                inputmode="email"
+                placeholder="我們會寄一封確認信到這個信箱"
                 class="mt-3 w-full border-0 border-b border-[#25252533] bg-transparent pb-3 text-sm text-[#252525] placeholder:text-[#25252566] focus:border-[#FF891D] focus:outline-none focus:ring-0"
               />
             </div>
@@ -266,8 +304,8 @@ onBeforeUnmount(() => {
             </label>
           </div>
 
-          <div v-if="status === 'error'" class="text-sm text-red-600">
-            送出時發生問題，請稍後再試一次，或直接聯繫我們。
+          <div v-if="status === 'error'" role="alert" class="text-sm text-red-600">
+            {{ errorMessage || "送出時發生問題，請稍後再試一次，或直接聯繫我們。" }}
           </div>
 
           <button

@@ -299,6 +299,24 @@ onMounted(async () => {
           })
         : null;
 
+      /*
+       * ScrollTrigger.refresh() 會重新 render 整條 timeline，播放頭掃過
+       * imageFull 標籤時會把下面那個 .call() 一併觸發，導致 introCopyFade
+       * 在圖片還沒展開時就播放（重整後第一幕文案直接出現在畫面上）。
+       * 用這個旗標把「refresh 造成的 render」和「使用者真的捲過去」分開。
+       */
+      let isRefreshing = false;
+
+      const syncIntroCopyToPlayhead = () => {
+        if (!introCopyFade) return;
+
+        const imageFullTime = timeline.labels.imageFull ?? 0;
+        const passed = timeline.time() >= imageFullTime;
+
+        introCopyFade.progress(passed ? 1 : 0);
+        applyIntroCopyAccessibility(passed ? "forward-complete" : "initial");
+      };
+
       const timeline = gsap.timeline({
         defaults: { ease: "none" },
         scrollTrigger: {
@@ -309,7 +327,16 @@ onMounted(async () => {
           scrub: introEnabled ? 0.85 : 1,
           invalidateOnRefresh: true,
           refreshPriority: -10,
-          onRefreshInit: syncTrackHeight,
+          onRefreshInit: () => {
+            isRefreshing = true;
+            syncTrackHeight();
+          },
+          // refresh 完成後，依播放頭實際位置把 intro 文案的狀態重新對齊，
+          // 而不是沿用 refresh 途中被誤觸的結果。
+          onRefresh: () => {
+            isRefreshing = false;
+            syncIntroCopyToPlayhead();
+          },
         },
       });
 
@@ -348,6 +375,9 @@ onMounted(async () => {
           )
           .addLabel("imageFull")
           .call(() => {
+            // refresh 途中的 render 不算「真的捲過這個點」，交給 onRefresh 對齊
+            if (isRefreshing) return;
+
             const direction = timeline.scrollTrigger?.direction ?? 1;
             if (direction >= 0) {
               introCopyFade?.play();

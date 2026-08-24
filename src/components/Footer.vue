@@ -93,18 +93,24 @@ const handleFooterLinkClick = (event: MouseEvent, hash: string) => {
             </p>
           </div>
 
-          <div class="flex gap-16">
-            <div>
-              <ul class="flex flex-col gap-2 text-lg text-white/70">
+          <!-- 手機：導覽與 email 併成同一列（各佔一半），桌機維持兩欄並排 -->
+          <div class="flex gap-8 sm:gap-16">
+            <div class="min-w-0 flex-1 sm:flex-none">
+              <ul class="flex flex-col gap-2 text-sm text-white/70 sm:text-base lg:text-lg">
                 <li><a href="#about" class="transition-colors hover:text-[#B55F00]" @click="handleFooterLinkClick($event, '#about')">關於慕玖</a></li>
                 <li><a href="#service" class="transition-colors hover:text-[#B55F00]" @click="handleFooterLinkClick($event, '#service')">服務內容</a></li>
                 <li><a href="#consultation-form" class="transition-colors hover:text-[#B55F00]" @click="handleFooterLinkClick($event, '#consultation-form')">聯絡我們</a></li>
               </ul>
             </div>
 
-            <div>
-              <ul class="flex flex-col gap-2 text-lg text-white/70">
-                <li>{{ email }}</li>
+            <div class="min-w-0 flex-1 sm:flex-none">
+              <ul class="flex flex-col gap-2 text-sm text-white/70 sm:text-base lg:text-lg">
+                <li>
+                  <a
+                    :href="`mailto:${email}`"
+                    class="break-all transition-colors hover:text-[#B55F00]"
+                  >{{ email }}</a>
+                </li>
               </ul>
             </div>
           </div>
