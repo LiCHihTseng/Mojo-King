@@ -1,21 +1,145 @@
 <!doctype html>
-<html lang="en">
+<!--
+  lang 一定要是 zh-Hant-TW：原本寫 en 會讓搜尋引擎把整站當英文內容，
+  中文關鍵字（人資、顧問、人才、雇用）等於白做。
+-->
+<html lang="zh-Hant-TW">
+
+<head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <!-- ===== 基本 SEO ===== -->
+  <title>慕玖 MoJo King｜人資顧問・人才發展與雇用策略｜共享人資長服務</title>
+  <meta
+    name="description"
+    content="慕玖 MoJo King 是專注於人力資源管理與組織發展的人資顧問公司。由 20 年上市櫃人資長經驗的顧問親自帶領，提供共享人資長、人才發展、雇用與招募制度、主管培訓與組織診斷服務，協助企業把人才策略真正落地。"
+  />
+  <meta
+    name="keywords"
+    content="人資顧問,人資,共享人資長,人才發展,人才策略,雇用,招募,人力資源管理,組織發展,主管培訓,HR顧問,人資長,慕玖,MoJo King"
+  />
+  <meta name="author" content="慕玖股份有限公司 MoJo King" />
+  <meta name="robots" content="index, follow, max-image-preview:large" />
 
+  <!-- 網址若改成 www 或其他網域，canonical 與下面的 og:url 都要一起改 -->
+  <link rel="canonical" href="https://mojo-king.com/" />
+
+  <link rel="icon" type="image/avif" href="/mojo.avif" />
+  <meta name="theme-color" content="#252525" />
+
+  <!-- ===== Open Graph（Facebook / LINE 分享預覽）===== -->
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="慕玖 MoJo King" />
+  <meta property="og:locale" content="zh_TW" />
+  <meta property="og:url" content="https://mojo-king.com/" />
+  <meta property="og:title" content="慕玖 MoJo King｜人資顧問・人才發展與雇用策略" />
+  <meta
+    property="og:description"
+    content="20 年上市櫃人資長經驗的人資顧問，提供共享人資長、人才發展、雇用制度與主管培訓，協助企業把人才策略真正落地。"
+  />
+  <meta property="og:image" content="https://mojo-king.com/og-image.png" />
+  <meta property="og:image:width" content="1270" />
+  <meta property="og:image:height" content="845" />
+  <meta property="og:image:alt" content="慕玖人資顧問王郁婷" />
+
+  <!-- ===== Twitter / X ===== -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="慕玖 MoJo King｜人資顧問・人才發展與雇用策略" />
+  <meta
+    name="twitter:description"
+    content="20 年上市櫃人資長經驗的人資顧問，提供共享人資長、人才發展、雇用制度與主管培訓。"
+  />
+  <meta name="twitter:image" content="https://mojo-king.com/og-image.png" />
+
+  <!-- ===== 結構化資料：讓 Google 認得這是一間人資顧問公司 ===== -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "ProfessionalService",
+    "name": "慕玖股份有限公司 MoJo King",
+    "alternateName": "慕玖人資顧問",
+    "url": "https://mojo-king.com/",
+    "image": "https://mojo-king.com/og-image.png",
+    "description": "專注於人力資源管理與組織發展的人資顧問公司，提供共享人資長、人才發展、雇用與招募制度、主管培訓與組織診斷服務。",
+    "email": "services@mojo-king.com",
+    "telephone": "+886932178741",
+    "priceRange": "$$",
+    "areaServed": { "@type": "Country", "name": "台灣" },
+    "knowsLanguage": ["zh-Hant", "en"],
+    "founder": {
+      "@type": "Person",
+      "name": "王郁婷",
+      "jobTitle": "執行長暨人資顧問",
+      "description": "擁有超過 20 年上市櫃企業人資經驗，曾任科技、半導體、製造與傳統產業人資長。"
+    },
+    "hasOfferCatalog": {
+      "@type": "OfferCatalog",
+      "name": "人資顧問服務",
+      "itemListElement": [
+        {
+          "@type": "Offer",
+          "itemOffered": {
+            "@type": "Service",
+            "name": "共享人資長",
+            "description": "以外部人資長的角色協助企業建立人才策略與人資制度。"
+          }
+        },
+        {
+          "@type": "Offer",
+          "itemOffered": {
+            "@type": "Service",
+            "name": "人才發展與人才策略",
+            "description": "建立符合企業成長階段的人才盤點、培育與接班規劃。"
+          }
+        },
+        {
+          "@type": "Offer",
+          "itemOffered": {
+            "@type": "Service",
+            "name": "雇用與招募制度建置",
+            "description": "從職務盤點、雇用流程到面談機制，建立可重複運作的招募系統。"
+          }
+        },
+        {
+          "@type": "Offer",
+          "itemOffered": {
+            "@type": "Service",
+            "name": "主管培訓與領導力培育",
+            "description": "提升主管帶人、溝通與決策能力，讓制度真正被理解與運用。"
+          }
+        }
+      ]
+    }
+  }
+  </script>
+
+  <!-- ===== 字型 ===== -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link
     href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@100..900&family=Rubik:ital,wght@0,300..900;1,300..900&display=swap"
     rel="stylesheet"
   />
-
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>MoJo-King 慕玖</title>
 </head>
 
 <body>
   <div id="app"></div>
+
+  <!--
+    JS 停用或首次載入前給搜尋引擎與使用者的靜態內容。
+    Vue 掛載後這段會被 #app 的內容蓋過，不影響畫面。
+  -->
+  <noscript>
+    <h1>慕玖 MoJo King｜人資顧問・人才發展與雇用策略</h1>
+    <p>
+      慕玖股份有限公司是專注於人力資源管理與組織發展的人資顧問公司，提供共享人資長、
+      人才發展、雇用與招募制度建置、主管培訓與組織診斷服務。
+      聯絡我們：services@mojo-king.com
+    </p>
+  </noscript>
+
   <script type="module" src="/src/main.ts"></script>
 </body>
+
 </html>
