@@ -100,38 +100,54 @@ function resetForm() {
 const sectionRef = ref<HTMLElement | null>(null);
 const imageRef = ref<HTMLImageElement | null>(null);
 
-let parallaxTrigger: ScrollTrigger | null = null;
+let mm: ReturnType<typeof gsap.matchMedia> | null = null;
 
 onMounted(async () => {
   await nextTick();
 
-  const prefersReducedMotion = window.matchMedia(
-    "(prefers-reduced-motion: reduce)",
-  ).matches;
+  mm = gsap.matchMedia();
 
-  if (prefersReducedMotion || !sectionRef.value || !imageRef.value) return;
+  /*
+   * 視差只在桌機執行。
+   *
+   * 手機版圖片容器是 h-[45vh]，高度直接綁在視窗高度上；捲到接近頁尾時
+   * 網址列會反覆收合／展開，innerHeight 一變，這條 scrub 補間就跟著
+   * 來回跳，看起來像畫面在抽動。手機沒有這個裝飾也不損失什麼，
+   * 直接不註冊，跟 Footer、About 的處理方式一致。
+   */
+  mm.add(
+    "(min-width: 768px) and (prefers-reduced-motion: no-preference)",
+    () => {
+      const section = sectionRef.value;
+      const image = imageRef.value;
+      if (!section || !image) return;
 
-  gsap.set(imageRef.value, { yPercent: -8 });
+      gsap.set(image, { yPercent: -8 });
 
-  const tween = gsap.to(imageRef.value, {
-    yPercent: 8,
-    ease: "none",
-    scrollTrigger: {
-      trigger: sectionRef.value,
-      start: "top bottom",
-      end: "bottom top",
-      scrub: 1,
-      invalidateOnRefresh: true,
+      const tween = gsap.to(image, {
+        yPercent: 8,
+        ease: "none",
+        scrollTrigger: {
+          trigger: section,
+          start: "top bottom",
+          end: "bottom top",
+          scrub: 1,
+          invalidateOnRefresh: true,
+        },
+      });
+
+      return () => {
+        tween.scrollTrigger?.kill();
+        tween.kill();
+        gsap.set(image, { clearProps: "transform" });
+      };
     },
-  });
-
-  parallaxTrigger = tween.scrollTrigger ?? null;
+  );
 });
 
 onBeforeUnmount(() => {
-  parallaxTrigger?.kill();
-  parallaxTrigger = null;
-  if (imageRef.value) gsap.killTweensOf(imageRef.value);
+  mm?.revert();
+  mm = null;
 });
 </script>
 
@@ -145,7 +161,7 @@ onBeforeUnmount(() => {
         ref="imageRef"
         :src="consultationImage"
         alt="慕玖顧問團隊與客戶對談"
-        class="absolute left-0 -top-[15%] h-[130%] w-full object-cover will-change-transform"
+        class="absolute left-0 -top-[15%] h-[130%] w-full object-cover md:will-change-transform"
         loading="lazy"
       />
     </div>

@@ -23,6 +23,18 @@ import {
 
 gsap.registerPlugin(ScrollTrigger);
 
+/*
+ * 手機瀏覽器的網址列會隨捲動收合／展開，這會改變 window.innerHeight，
+ * 進而觸發 ScrollTrigger 的 resize refresh。本站有多處版面依賴視窗高度
+ * （Service 甚至會用 innerHeight 重算 section 高度），refresh 會改變文件
+ * 總高度、推移捲動位置，位移又再次觸發網址列 —— 形成回饋迴圈，在頁尾
+ * 表現為畫面不斷抽動。
+ *
+ * ignoreMobileResize 讓 ScrollTrigger 忽略「觸控裝置上只有高度改變」的
+ * resize（也就是網址列造成的那種），真正的轉向／視窗縮放仍照常處理。
+ */
+ScrollTrigger.config({ ignoreMobileResize: true });
+
 let lenis: Lenis | null = null;
 let routeContext: gsap.Context | null = null;
 let routeTimeline: gsap.core.Timeline | null = null;

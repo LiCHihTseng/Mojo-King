@@ -20,45 +20,55 @@ withDefaults(defineProps<Props>(), {
 const footerWrapRef = ref<HTMLElement | null>(null); // 外層：決定觸發時機的容器
 const footerRef = ref<HTMLElement | null>(null); // 整個 footer 本身：做位移動畫
 
-let footerTrigger: ScrollTrigger | null = null;
-let prefersReducedMotion = false;
+let mm: ReturnType<typeof gsap.matchMedia> | null = null;
 
 onMounted(async () => {
   await nextTick();
 
-  prefersReducedMotion = window.matchMedia(
-    "(prefers-reduced-motion: reduce)",
-  ).matches;
-
-  if (prefersReducedMotion || !footerWrapRef.value || !footerRef.value) return;
+  mm = gsap.matchMedia();
 
   /*
-   * 整個 footer 一開始位置偏低，
-   * 隨滾動以比正常速度稍慢的方式「追上」到定位。
+   * 這段位移只在桌機執行。
+   *
+   * 它的範圍結束在 "bottom bottom"，也就是整頁的最底部 —— 正好是手機
+   * 網址列收合／展開的地方。捲到底時視窗高度反覆變化，scrub 補間就會
+   * 跟著來回跳，看起來像畫面在抽動。手機本來就沒有這個裝飾的必要，
+   * 直接不註冊，跟 About 的做法一致。
    */
-  gsap.fromTo(
-    footerRef.value,
-    { y: 150 },
-    {
-      y: 0,
-      ease: "none",
-      scrollTrigger: {
-        trigger: footerWrapRef.value,
-        start: "top bottom",
-        end: "bottom bottom",
-        scrub: 0.8,
-      },
+  mm.add(
+    "(min-width: 768px) and (prefers-reduced-motion: no-preference)",
+    () => {
+      const wrap = footerWrapRef.value;
+      const footer = footerRef.value;
+      if (!wrap || !footer) return;
+
+      const tween = gsap.fromTo(
+        footer,
+        { y: 150 },
+        {
+          y: 0,
+          ease: "none",
+          scrollTrigger: {
+            trigger: wrap,
+            start: "top bottom",
+            end: "bottom bottom",
+            scrub: 0.8,
+          },
+        },
+      );
+
+      return () => {
+        tween.scrollTrigger?.kill();
+        tween.kill();
+        gsap.set(footer, { clearProps: "transform" });
+      };
     },
   );
-
-  footerTrigger = ScrollTrigger.getAll().find(
-    (t) => t.trigger === footerWrapRef.value,
-  ) ?? null;
 });
 
 onBeforeUnmount(() => {
-  footerTrigger?.kill();
-  if (footerRef.value) gsap.killTweensOf(footerRef.value);
+  mm?.revert();
+  mm = null;
 });
 /** 站內錨點統一走 Lenis，原生 hash 跳轉會被 Lenis 吃掉 */
 const handleFooterLinkClick = (event: MouseEvent, hash: string) => {
@@ -70,7 +80,11 @@ const handleFooterLinkClick = (event: MouseEvent, hash: string) => {
 
 <template>
   <div ref="footerWrapRef" class="relative overflow-hidden">
-    <footer ref="footerRef" class="w-full bg-[#252525] px-6 py-16 text-white sm:py-20" style="will-change: transform;">
+    <!-- will-change 只在有動畫的桌機才給，手機掛著等於白白多一層合成層 -->
+    <footer
+      ref="footerRef"
+      class="w-full bg-[#252525] px-6 py-16 text-white sm:py-20 md:[will-change:transform]"
+    >
       <div class="mx-auto max-w-[1800px]">
         <div class="flex flex-col gap-10 sm:flex-row sm:items-start sm:justify-between">
           <div>
