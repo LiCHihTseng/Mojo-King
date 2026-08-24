@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { inject } from "vue";
 import About from "../components/About.vue";
-import ConsultationBridge from "../components/ConsultationBridge.vue";
+// import ConsultationBridge from "../components/ConsultationBridge.vue";
 import ConsultationForm from "../components/ConsultationForm.vue";
 import Contact from "../components/Contact.vue";
 import Footer from "../components/Footer.vue";
@@ -38,7 +38,7 @@ if (!entranceReady) throw new Error("HomePage requires entranceReady");
     <Testimonials />
     <Process />
     <Contact id="contact" />
-    <ConsultationBridge />
+
     <ConsultationForm />
     <Footer />
   </div>

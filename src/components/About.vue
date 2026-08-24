@@ -1,17 +1,5 @@
 <script setup lang="ts">
-/**
- * About.vue
- *
- * Desktop（≥768px）：Single Sticky Visual Stage + Scroll-driven Layer Transition
- *   - 一個 sticky stage，三組 image layer 與三組 content layer 疊在完全相同的位置
- *   - 沒有 intro，一進場就是 Scene 01 的正式左圖右文版面
- *   - Scroll 只控制 opacity 的 crossfade，不改變任何 layout
- *   - 不使用 ScrollTrigger 的 pin，改用 CSS sticky，捲動距離由外層 wrapper 提供
- *
- * Mobile（<768px）：完全沒有動畫，三幕依序往下正常閱讀（image 上、content 下）
- *
- * 兩種版型共用同一份 `scenes` 資料，不維護兩份文案。
- */
+
 import { onBeforeUnmount, onMounted, ref } from "vue";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -252,12 +240,7 @@ onBeforeUnmount(() => {
       >
         <div class="mx-auto w-full max-w-[2000px]">
           <!-- 區塊標籤：固定顯示，不參與場景切換 -->
-          <p
-            class="mb-8 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-[#B55F00]"
-          >
-            <span class="inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-[#FF891D]"></span>
-            關於慕玖
-          </p>
+
 
           <!-- 左圖右文：位置從 Scene 01 到 Scene 03 完全不變 -->
           <div class="grid grid-cols-[minmax(0,44fr)_minmax(0,44fr)] gap-[12%]">
@@ -279,6 +262,12 @@ onBeforeUnmount(() => {
 
             <!-- Content Stage：三組文字疊在完全相同的位置 -->
             <div class="relative h-[76vh]">
+              <p
+            class="mb-8 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-[#B55F00]"
+          >
+            <span class="inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-[#FF891D]"></span>
+            關於慕玖
+          </p>
               <article
                 v-for="(scene, i) in scenes"
                 :key="scene.id"

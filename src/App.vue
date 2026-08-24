@@ -416,8 +416,9 @@ onMounted(async () => {
 
   document.fonts?.ready.then(refreshAfterLayout);
 
-  // loader 蓋著的期間，先把捲動位置歸零，避免瀏覽器記憶上次的 scroll position
-  window.scrollTo(0, 0);
+  // loader 蓋著的期間，先把捲動位置歸零，避免瀏覽器記憶上次的 scroll position。
+  // 網址帶 #hash 時不歸零，否則會把使用者想直接到達的區塊也一起清掉。
+  if (!window.location.hash) window.scrollTo(0, 0);
   // loading 期間鎖住背景捲動，避免使用者在 loader 蓋著時偷滑到底層內容
   document.documentElement.style.overflow = "hidden";
 
@@ -446,6 +447,12 @@ async function handleLoaderDone() {
 
   // Loader 已經完全離場後，才允許 Hero 與 Navigation 播放進場。
   entranceReady.value = true;
+
+  // 保險：解除捲動鎖的「當下」再歸零一次。
+  // Loader 蓋著時 overflow 是 hidden，某些瀏覽器會把待處理的捲動
+  // （bfcache 還原、scroll anchoring、擴充套件）留到解鎖後才套用，
+  // 那會讓畫面不是從 Hero 開始。有 hash 時不動，才不會擋掉深連結。
+  if (!window.location.hash) window.scrollTo(0, 0);
   document.documentElement.style.overflow = "";
 
   initSmoothScroll();
