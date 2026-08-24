@@ -73,7 +73,7 @@ const scenes: Scene[] = [
       "跨產業實戰經驗",
       "國際專業認證",
     ],
-    stat: { value: "100%", label: "真人顧問陪跑" },
+    stat: { value: "100%", label: "教練顧問陪跑" },
     image: placeholder("photo-1521737604893-d14cc237f11d"),
   },
 ];
