@@ -1,0 +1,16 @@
+{
+  // Vercel 的 @vercel/node 在編譯 serverless function 時，
+  // 會從函式檔案往上找「最近的 tsconfig.json」。
+  // 根目錄那份只有 references、沒有 types，所以 process 會被判定為未定義。
+  // 這份檔案放在 api/ 底下讓它優先找到，才吃得到 Node 的型別。
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "types": ["node"],
+    "strict": true,
+    "skipLibCheck": true,
+    "noEmit": true
+  },
+  "include": ["**/*.ts"]
+}
