@@ -11,20 +11,12 @@
   <section class="flex min-h-[50vh] items-center overflow-hidden bg-[#F9F8F6] px-5 py-16 sm:px-8 sm:py-20 lg:px-12">
 
 
-    <div class="z-10 mx-auto grid w-full max-w-8xl gap-y-10 lg:grid-cols-12 lg:gap-x-10 items-start">
+    <div class="z-10 mx-auto grid w-full max-w-[2000px] gap-y-10 lg:grid-cols-12 lg:gap-x-10 items-start">
       <!-- 左側：小標 + 裝飾圖示 -->
-      <div class="lg:col-span-2">
-        <p
-          class="flex items-center justify-start gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-[#B55F00]"
-        >
-          <span class="inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-[#FF891D]"></span>
-          現在就可以開始
-        </p>
 
-      </div>
 
       <!-- 中間：標題 + 內文 -->
-      <div class="lg:col-span-7">
+      <div class="lg:col-span-9">
         <h2 class="text-2xl font-medium leading-tight text-[#252525] sm:text-3xl">
           一次對話，不是一個承諾。<br />
           讓我們一起找到最適合你的方向。

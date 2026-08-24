@@ -105,8 +105,6 @@ onMounted(async () => {
     "(prefers-reduced-motion: reduce)",
   ).matches;
 
-  await document.fonts.ready;
-
   /*
    * 標題進場動畫（原本 HeroTitle.vue 的邏輯，合併進來）
    */
@@ -192,6 +190,7 @@ onBeforeUnmount(() => {
     <!-- 群組容器：照片 + 所有遮罩，一起被 GSAP 縮放，永遠對齊 -->
     <div ref="visualGroupRef" class="absolute inset-0" style="transform-origin: center center;">
       <img
+        data-critical-image
         :src="Portrait"
         alt="王郁婷，慕玖共享人資長"
         class="absolute inset-0 h-full w-full object-cover"

@@ -146,8 +146,6 @@ const applyProgress = (progress: number) => {
   if (count === 0) return;
 
   const segment = 1 / count;
-  let activeY = startY;
-
   for (let i = 0; i < count; i++) {
     const ball = ballRefs.value[i];
     if (!ball) continue;
@@ -165,13 +163,11 @@ const applyProgress = (progress: number) => {
 
     gsap.set(ball, { y });
 
-    // 目前正在移動的那一顆，決定進度線要畫到哪裡
-    if (localProgress > 0) activeY = y;
   }
 
   if (progressLineRef.value) {
     gsap.set(progressLineRef.value, {
-      scaleY: gsap.utils.clamp(0, 1, (activeY - startY) / travel),
+      scaleY: gsap.utils.clamp(0, 1, progress),
     });
   }
 };
@@ -231,12 +227,14 @@ onMounted(async () => {
   gsap.set(ballRefs.value, { xPercent: -50, yPercent: -50 });
 
   /* 3. 主控：一個 scrub ScrollTrigger 驅動四顆球的接力 + 進度線 */
+  const isCompactScreen = window.matchMedia("(max-width: 767px)").matches;
+
   triggers.push(
     ScrollTrigger.create({
       trigger: timelineWrapRef.value,
-      start: "top 62%",
-      end: "bottom 78%",
-      scrub: 0.6,
+      start: isCompactScreen ? "top 74%" : "top 62%",
+      end: isCompactScreen ? "bottom 36%" : "bottom 78%",
+      scrub: isCompactScreen ? 0.25 : 0.6,
       invalidateOnRefresh: true,
       onRefresh: () => {
         measure();

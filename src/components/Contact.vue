@@ -167,7 +167,7 @@ onBeforeUnmount(() => {
   >
 
     <!-- 內容 -->
-    <div class="relative z-10 mx-auto w-full max-w-8xl px-5 sm:px-8 lg:px-10 xl:px-12">
+    <div class="relative z-10 mx-auto w-full max-w-[2000px] px-5 sm:px-8 lg:px-10 xl:px-12">
       <div class="md:grid md:grid-cols-12 ">
         <!-- 左側：小標（桌機才獨立成一欄）-->
         <div class="md:col-span-12 lg:col-span-2">
@@ -220,7 +220,7 @@ onBeforeUnmount(() => {
           </p>
 
           <div ref="ctaRef" class="mt-6 sm:mt-8 lg:mt-7">
-            <HeroCTA :text="ctaText" href="#consultation-form" />
+            <HeroCTA :text="ctaText" href="#consultation-form" bg-color="#252525" text-color="#FFFFFF"/>
           </div>
         </div>
       </div>

@@ -3,6 +3,7 @@ import { nextTick, onBeforeUnmount, onMounted, provide, readonly, ref } from "vu
 import Lenis from "lenis";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { waitForCriticalImages } from "./lib/pageReadiness";
 import { isNavigationFailure, useRouter } from "vue-router";
 
 import MojoKingLoader from "./components/MojoKingLoader.vue";
@@ -420,8 +421,19 @@ onMounted(async () => {
   // loading 期間鎖住背景捲動，避免使用者在 loader 蓋著時偷滑到底層內容
   document.documentElement.style.overflow = "hidden";
 
-  // TODO: 換成你實際的初始化流程（等字型、圖片、API 資料等準備好）
-  await new Promise((resolve) => setTimeout(resolve, 1500));
+  // 只等待首屏關鍵圖片，並保留短暫的品牌動畫時間。字型與折下內容
+  // 不再阻塞 Loader；它們完成後會由上方的 fonts.ready 再 refresh。
+  await Promise.all([
+    waitForCriticalImages(
+      document.querySelectorAll<HTMLImageElement>("[data-critical-image]"),
+    ),
+    new Promise((resolve) => setTimeout(resolve, 650)),
+  ]);
+
+  // 讓各區塊的 onMounted / ScrollTrigger 註冊先完成，再開始 Loader 離場。
+  await new Promise<void>((resolve) => {
+    requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+  });
 
   // 通知 loader：資料/資源準備好了，可以開始 complete → reveal → swipe
   isLoading.value = false;

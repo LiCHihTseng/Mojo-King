@@ -476,8 +476,7 @@ onBeforeUnmount(() => {
           <div class="service-copy-grid mx-auto grid w-full max-w-[90rem] items-center gap-8 md:grid-cols-[minmax(0,1.15fr)_minmax(18rem,0.7fr)] md:gap-[clamp(4rem,10vw,12rem)]">
             <div>
               <div class="mb-5 flex items-center gap-3 text-sm font-medium tracking-[0.16em] text-[#ff9a3d] md:mb-7 md:text-base">
-                <span aria-hidden="true" class="h-px w-9 bg-current"></span>
-                <span>{{ firstCard.tag }}</span>
+
               </div>
 
               <h3 class="max-w-[15ch] text-balance text-[clamp(2.15rem,8.4vw,4.5rem)] font-semibold leading-[1.08] tracking-[-0.055em] text-white md:text-[clamp(3rem,5.2vw,6rem)]">
@@ -528,8 +527,7 @@ onBeforeUnmount(() => {
             <div class="service-copy-grid mx-auto grid w-full max-w-[90rem] items-center gap-8 md:grid-cols-[minmax(0,1.15fr)_minmax(18rem,0.7fr)] md:gap-[clamp(4rem,10vw,12rem)]">
               <div>
                 <div class="mb-5 flex items-center gap-3 text-sm font-medium tracking-[0.16em] text-[#ff9a3d] md:mb-7 md:text-base">
-                  <span aria-hidden="true" class="h-px w-9 bg-current"></span>
-                  <span>{{ card.tag }}</span>
+
                 </div>
 
                 <h3

@@ -1,1187 +1,441 @@
 <script setup lang="ts">
-import { nextTick, onBeforeUnmount, onMounted, ref } from "vue";
+/**
+ * About.vue
+ *
+ * Desktop（≥768px）：Single Sticky Visual Stage + Scroll-driven Layer Transition
+ *   - 一個 sticky stage，三組 image layer 與三組 content layer 疊在完全相同的位置
+ *   - 沒有 intro，一進場就是 Scene 01 的正式左圖右文版面
+ *   - Scroll 只控制 opacity 的 crossfade，不改變任何 layout
+ *   - 不使用 ScrollTrigger 的 pin，改用 CSS sticky，捲動距離由外層 wrapper 提供
+ *
+ * Mobile（<768px）：完全沒有動畫，三幕依序往下正常閱讀（image 上、content 下）
+ *
+ * 兩種版型共用同一份 `scenes` 資料，不維護兩份文案。
+ */
+import { onBeforeUnmount, onMounted, ref } from "vue";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import TreeIcon from "./Tree.vue";
+import consultingImg from "../assets/Consulting_img.png";
 
 gsap.registerPlugin(ScrollTrigger);
 
-interface Props {
-  introText?: string;
-  travelImage2?: string;
-  statValue1?: string;
-  statLabel1?: string;
-  quote1Highlight?: string;
-  quote1Rest?: string;
-  statValue2?: string;
-  statLabel2?: string;
-  quote2Highlight?: string;
-  quote2Rest?: string;
-  statValue3?: string;
-  statLabel3?: string;
-  statValue4?: string;
-  statLabel4?: string;
-  quote3Highlight?: string;
-  quote3Rest?: string;
+interface Scene {
+  id: string;
+  title: string;
+  /** 每段獨立一個 <p>，第一段會以較深的顏色作為 lead */
+  description: string[];
+  bullets: string[];
+  stat: { value: string; label: string };
+  image: string;
 }
 
-withDefaults(defineProps<Props>(), {
-  introText: "關於慕玖",
-  travelImage2:
-    "https://images.unsplash.com/photo-1521737604893-d14cc237f11d?q=80&w=1200&auto=format&fit=crop",
-  statValue1: "100+",
-  statLabel1: "企業合作案例",
-  quote1Highlight: "我是人資顧問郁婷，慕玖的執行長，外號「HR女神」。",
-  quote1Rest:
-    "擁有２０年的上市櫃公司人資經驗，人資長的經驗讓我發現人資專業對於組織長期發展至關重要，而許多企業卻因缺乏經驗豐富的人資長導致企業發展停滯不前，因此創立慕玖股份有限公司。",
-  statValue2: "150+",
-  statLabel2: "一對一深度諮詢",
-  quote2Highlight: "慕玖股份有限公司（MoJo King）是一家專注於人力資源管理與組織發展的顧問公司。",
-  quote2Rest: "我們致力於透過策略型人力資源顧問與管理培訓服務，協助企業建立人才發展、領導力培育與組織文化系統，讓人資從行政功能升級為企業策略的重要力量。。",
-  statValue3: "100%",
-  statLabel3: "真人陪跑",
-  statValue4: "24hr",
-  statLabel4: "問題回覆時效",
-  quote3Highlight: "我們提供短期的培力課程、工作坊，也提供中長期的教練陪跑。",
-  quote3Rest: "針對公司未來３－５年發展方向，提供客製化建議並導入系統。我們的客戶包括中小型企業以及上市櫃公司，涵蓋製造業、科技業、旅遊業、餐飲業、銀行等多元產業。",
-});
+// Scene 01 用專案自己的照片；Scene 02 / 03 先用 Unsplash 佔位，
+// 方便確認切換效果，換成正式照片時只要改這裡的 image 欄位即可。
+// 直接跟 Unsplash 要 3:4 直式裁切，避免用 object-cover 把橫圖裁掉一大半
+const UNSPLASH_PARAMS =
+  "?q=80&w=900&h=1200&fit=crop&crop=faces,center&auto=format";
+const placeholder = (id: string) =>
+  `https://images.unsplash.com/${id}${UNSPLASH_PARAMS}`;
 
-/* ----------------------------------
-   桌機版 Refs
----------------------------------- */
+const scenes: Scene[] = [
+  {
+    id: "founder",
+    title: "20 年經驗，讓我看見企業真正的人資問題",
+    description: [
+      "我是人資顧問郁婷，慕玖股份有限公司執行長，外號「HR 女神」。",
+      "擁有超過 20 年上市櫃企業人資經驗，從人資管理到人資長的歷練，讓我深刻體會：人資不只是制度與行政，而是影響人才、組織與企業長期發展的重要力量。",
+      "也因為看見許多企業在成長過程中，缺乏成熟的人資策略與經驗支持，我創立了慕玖，希望把多年企業實戰經驗帶進更多組織。",
+    ],
+    bullets: [
+      "20+ 年企業人資實戰經驗",
+      "上市櫃科技、半導體、製造與傳統產業歷練",
+      "參與企業整併、組織轉型與制度重建",
+      "從經營視角思考人才與組織問題",
+    ],
+    stat: { value: "100+", label: "企業合作案例" },
+    image: consultingImg,
+  },
+  {
+    id: "company",
+    title: "讓人資，成為企業成長的策略力量",
+    description: [
+      "慕玖股份有限公司（MoJo King）專注於人力資源管理與組織發展。",
+      "我們透過策略型人資顧問與管理培訓，協助企業從人才發展、領導力到組織文化，建立真正符合企業發展階段的管理系統。",
+      "我們不只是解決眼前的人資問題，更希望協助企業建立一套未來能夠自己持續運作的管理能力。",
+    ],
+    bullets: [
+      "人才發展｜建立符合企業成長階段的人才策略",
+      "領導力培育｜提升主管帶人、溝通與決策能力",
+      "組織文化｜建立支持企業長期發展的制度與文化",
+      "管理培訓｜讓制度真正被主管理解與運用",
+    ],
+    stat: { value: "150+", label: "一對一深度諮詢" },
+    image: placeholder("photo-1552664730-d307ca884978"),
+  },
+  {
+    id: "why-us",
+    title: "我們留下的不只是一套制度",
+    description: [
+      "慕玖結合企業人資長的實戰經驗、組織顧問能力與管理培訓方法，從問題診斷、制度設計到實際導入，陪企業把改變真正落實。",
+    ],
+    bullets: [
+      "具備經營視角的人資專業",
+      "從制度設計到真正落地",
+      "顧問 × 培訓雙重能力",
+      "跨產業實戰經驗",
+      "國際專業認證",
+    ],
+    stat: { value: "100%", label: "真人顧問陪跑" },
+    image: placeholder("photo-1521737604893-d14cc237f11d"),
+  },
+];
 
 const wrapperRef = ref<HTMLElement | null>(null);
-const desktopIntroLayerRef = ref<HTMLElement | null>(null);
-const desktopIntroTextRef = ref<HTMLElement | null>(null);
-const scene1ContentRef = ref<HTMLElement | null>(null);
-const scene1StaticTreeRef = ref<HTMLElement | null>(null);
-const travelRef = ref<HTMLElement | null>(null);
-const scene1Ref = ref<HTMLElement | null>(null);
-const scene2Ref = ref<HTMLElement | null>(null);
-const scene3Ref = ref<HTMLElement | null>(null);
-const imageSlot1Ref = ref<HTMLElement | null>(null);
-const imageSlot2Ref = ref<HTMLElement | null>(null);
-const imageSlot3Ref = ref<HTMLElement | null>(null);
-const scene1TextRef = ref<HTMLElement | null>(null);
-const scene1StatRef = ref<HTMLElement | null>(null);
-const scene2TextRef = ref<HTMLElement | null>(null);
-const scene2StatRef = ref<HTMLElement | null>(null);
-const scene3TextRef = ref<HTMLElement | null>(null);
-const scene3StatRef = ref<HTMLElement | null>(null);
+const imageLayerRefs = ref<HTMLElement[]>([]);
+const contentLayerRefs = ref<HTMLElement[]>([]);
 
-/* ----------------------------------
-   手機版 Refs
----------------------------------- */
-
-const mWrapperRef = ref<HTMLElement | null>(null);
-const mScene1Ref = ref<HTMLElement | null>(null);
-const mobileIntroLayerRef = ref<HTMLElement | null>(null);
-const mobileIntroTextRef = ref<HTMLElement | null>(null);
-const mScene1ContentRef = ref<HTMLElement | null>(null);
-const mScene1StaticTreeRef = ref<HTMLElement | null>(null);
-
-const mScene2Ref = ref<HTMLElement | null>(null);
-const mTravel12Ref = ref<HTMLElement | null>(null);
-const mSlot1Ref = ref<HTMLElement | null>(null);
-const mSlot2Ref = ref<HTMLElement | null>(null);
-const mScene1TextRef = ref<HTMLElement | null>(null);
-const mScene1StatRef = ref<HTMLElement | null>(null);
-const mScene2TextRef = ref<HTMLElement | null>(null);
-const mScene2StatRef = ref<HTMLElement | null>(null);
-
-const mScene3WrapRef = ref<HTMLElement | null>(null);
-const mScene3Ref = ref<HTMLElement | null>(null);
-
-const mScene3SecondRowRef = ref<HTMLElement | null>(null);
-const mTravel3Ref = ref<HTMLElement | null>(null);
-const mStatSlot1Ref = ref<HTMLElement | null>(null);
-const mStatSlot2Ref = ref<HTMLElement | null>(null);
-const mScene3StatRef = ref<HTMLElement | null>(null);
-const mScene4StatRef = ref<HTMLElement | null>(null);
-const mScene3TextRef = ref<HTMLElement | null>(null);
-
-let mediaContext: ReturnType<typeof gsap.matchMedia> | null = null;
-
-/* ----------------------------------
-   場景內容 reveal
-
-   每個場景共用一條 scrub timeline，文字與數據在場景進入 viewport 時
-   稍微由下往上移動並淡入。進度直接跟隨捲動，因此往回滾也能自然反向。
----------------------------------- */
-
-interface SceneRevealGroup {
-  trigger: HTMLElement | null;
-  elements: Array<HTMLElement | null>;
-  start?: string;
-  end?: string;
-  y?: number;
-  stagger?: number;
-  ease?: string;
-  duration?: number;
-  scrub?: boolean | number;
-  toggleActions?: string;
-}
-
-const CONTENT_REVEAL_Y = 80;
-const STAT_REVEAL_START = "center 68%";
-const STAT_REVEAL_DURATION = 0.9;
-// 場景一內容本身佔滿一個 viewport：中心 50% + 30% = 畫面約 80% 高度。
-const SCENE_ONE_START_Y_PERCENT = 30;
-
-const setupSceneReveals = (groups: SceneRevealGroup[]) => {
-  const timelines: gsap.core.Timeline[] = [];
-
-  groups.forEach(({
-    trigger,
-    elements,
-    start = "top 64%",
-    end = "top 8%",
-    y = CONTENT_REVEAL_Y,
-    stagger = 0.12,
-    ease = "power1.out",
-    duration = 1,
-    scrub = true,
-    toggleActions,
-  }) => {
-    const targets = elements.filter(Boolean) as HTMLElement[];
-    if (!trigger || targets.length === 0) return;
-
-    gsap.set(targets, { autoAlpha: 0, y });
-
-    const timeline = gsap.timeline({
-      scrollTrigger: {
-        trigger,
-        start,
-        end,
-        scrub,
-        toggleActions,
-        invalidateOnRefresh: true,
-      },
-    });
-
-    timeline.to(targets, {
-      autoAlpha: 1,
-      y: 0,
-      duration,
-      stagger,
-      ease,
-    });
-
-    timelines.push(timeline);
-  });
-
-  return () => {
-    timelines.forEach((timeline) => {
-      timeline.scrollTrigger?.kill();
-      timeline.kill();
-    });
-
-    const targets = groups.flatMap(({ elements }) =>
-      elements.filter(Boolean),
-    ) as HTMLElement[];
-    gsap.set(targets, {
-      clearProps: "opacity,visibility,transform",
-    });
-  };
+const setImageLayerRef = (el: unknown, i: number) => {
+  if (el) imageLayerRefs.value[i] = el as HTMLElement;
+};
+const setContentLayerRef = (el: unknown, i: number) => {
+  if (el) contentLayerRefs.value[i] = el as HTMLElement;
 };
 
-/* ----------------------------------
-   About intro：與第一幕共用同一個 viewport
+/**
+ * 進度指示器放在 article 內，所以三幕各有一份。
+ * 用 data 屬性把「同一顆點」的三個分身一次抓出來統一驅動，
+ * 就不必為了重複的元素維護巢狀 ref。
+ */
+const queryProgressFills = (scope: HTMLElement, dotIndex: number) =>
+  scope.querySelectorAll<HTMLElement>(`[data-progress-fill="${dotIndex}"]`);
 
-   pin 的只有第一幕，動畫也只作用在它的子元素。
-   第一幕用靜態圖形淡入，pin 結束後再交棒給原本的跨場景移動圖形，
-   因此額外的捲動距離始終有內容，不會出現空白 spacer。
----------------------------------- */
+/**
+ * 圖片切換：新圖是「完整的一整張」從中心點放大疊在舊圖上面。
+ * scale 0 時面積為零、等於看不見，所以完全不需要動 opacity，
+ * 舊圖自始至終都不淡出，只是被新的一張蓋住。
+ */
+const IMAGE_HIDDEN_SCALE = 0;
+const IMAGE_FULL_SCALE = 1;
 
-const setupIntroTransition = (
-  stage: HTMLElement,
-  introLayer: HTMLElement,
-  introText: HTMLElement,
-  contentTarget: HTMLElement,
-  staticVisual: HTMLElement,
-  travelVisual: HTMLElement,
-  scrollDistance: number,
-) => {
-  gsap.set(introLayer, { autoAlpha: 1 });
-  gsap.set(introText, {
-    autoAlpha: 1,
-    y: 0,
-    scale: 1,
-    transformOrigin: "50% 50%",
-  });
-  gsap.set(contentTarget, {
-    autoAlpha: 0,
-    y: 0,
-    yPercent: SCENE_ONE_START_Y_PERCENT,
-  });
-  gsap.set(staticVisual, { autoAlpha: 1 });
-  gsap.set(travelVisual, { autoAlpha: 0 });
+/**
+ * 進度指示器。
+ *
+ * SCENE_BOUNDS 是每一幕在整條 timeline 上的起訖點，切換點抓在兩段轉場的
+ * 中間，跟畫面上真正看到的那一幕一致。目前這幕的膠囊會隨著捲動慢慢填滿，
+ * 填滿後才跳到下一顆。
+ */
+const activeScene = ref(0);
+const SCENE_BOUNDS = [0, 0.4, 0.75, 1];
 
-  const timeline = gsap.timeline({
-    defaults: { ease: "none" },
-    scrollTrigger: {
-      trigger: stage,
-      start: "top top",
-      end: () => `+=${Math.round(window.innerHeight * scrollDistance)}`,
-      scrub: true,
-      pin: stage,
-      pinSpacing: true,
-      invalidateOnRefresh: true,
-    },
-  });
+const resolveActiveScene = (progress: number) =>
+  progress < SCENE_BOUNDS[1] ? 0 : progress < SCENE_BOUNDS[2] ? 1 : 2;
 
-  timeline
-    .to(introText, {
-      autoAlpha: 0,
-      y: 0,
-      scale: 0.68,
-      duration: 0.28,
-    })
-    // 文字完全透明後才切掉遮罩層，避免父子 opacity 相乘造成變速感。
-    .set(introLayer, { autoAlpha: 0 })
-    .to(
-      contentTarget,
-      {
+/** 目前這一幕自己走到幾成（0～1） */
+const resolveSceneProgress = (progress: number, scene: number) => {
+  const start = SCENE_BOUNDS[scene];
+  const end = SCENE_BOUNDS[scene + 1];
+  return gsap.utils.clamp(0, 1, (progress - start) / (end - start));
+};
+
+let mm: ReturnType<typeof gsap.matchMedia> | null = null;
+
+onMounted(() => {
+  mm = gsap.matchMedia();
+
+  // ---- Desktop：scroll story ----
+  mm.add(
+    "(min-width: 768px) and (prefers-reduced-motion: no-preference)",
+    () => {
+      const wrapper = wrapperRef.value;
+      const images = imageLayerRefs.value.filter(Boolean);
+      const contents = contentLayerRefs.value.filter(Boolean);
+      if (!wrapper) return;
+
+      // 進度條寬度每個 tick 都在變，用 quickSetter 直接寫 DOM，
+      // 不透過 Vue 的響應式，避免每一幀都觸發重繪。
+      // quickSetter 接受多個目標，一次就把三幕裡同一顆點的分身全部寫好。
+      const fillSetters = scenes.map((_, di) =>
+        gsap.quickSetter(queryProgressFills(wrapper, di), "width", "%"),
+      );
+
+      // 圖片全部都是不透明的，靠 scale 決定「已經放大到多少」，
+      // 舊圖不淡出，新圖整張從中心點放大疊在上面。
+      gsap.set(images, {
         autoAlpha: 1,
-        y: 0,
-        yPercent: 0,
-        duration: 0.4,
-      },
-    );
-
-  return () => {
-    timeline.scrollTrigger?.kill();
-    timeline.kill();
-    gsap.set(
-      [introLayer, introText, contentTarget, staticVisual, travelVisual],
-      {
-        clearProps: "opacity,visibility,transform",
-      },
-    );
-  };
-};
-
-/*
- * Intro pin 結束後，先讓靜態樹與移動樹在相同位置交叉淡化，
- * 完成交棒後才開始往場景二移動。這段同樣採 1:1 scrub，
- * 避免 numeric scrub 在往回滾時追趕進度而產生吸附感。
- */
-const setupTreeHandoff = (
-  trigger: HTMLElement,
-  staticVisual: HTMLElement,
-  travelVisual: HTMLElement,
-  end: string,
-  syncTravelPosition: () => void,
-) => {
-  const timeline = gsap.timeline({
-    scrollTrigger: {
-      trigger,
-      start: "top 100%",
-      end,
-      scrub: true,
-      invalidateOnRefresh: true,
-      onEnter: syncTravelPosition,
-    },
-  });
-
-  timeline
-    .to(staticVisual, { autoAlpha: 0, duration: 1, ease: "none" }, 0)
-    .to(travelVisual, { autoAlpha: 1, duration: 1, ease: "none" }, 0);
-
-  return () => {
-    timeline.scrollTrigger?.kill();
-    timeline.kill();
-    gsap.set([staticVisual, travelVisual], {
-      clearProps: "opacity,visibility",
-    });
-  };
-};
-
-/* ----------------------------------
-   移動物件定位
----------------------------------- */
-
-const getCenterRelativeTo = (
-  wrapper: HTMLElement,
-  slot: HTMLElement,
-) => {
-  const wrapperRect = wrapper.getBoundingClientRect();
-  const slotRect = slot.getBoundingClientRect();
-
-  return {
-    top:
-      slotRect.top -
-      wrapperRect.top +
-      slotRect.height / 2,
-    left:
-      slotRect.left -
-      wrapperRect.left +
-      slotRect.width / 2,
-  };
-};
-
-/*
- * 平板的場景一會被 ScrollTrigger pin 住。此時 getBoundingClientRect()
- * 會包含 pin 產生的 transform，若在捲動途中 refresh，Tree 的起點就可能
- * 被算到畫面外。offset 座標只反映 DOM 的固定版面位置，因此適合用來建立
- * 「數據一右側 → 數據二右側」這條垂直移動軌道。
- */
-const getLayoutCenterRelativeTo = (
-  wrapper: HTMLElement,
-  slot: HTMLElement,
-) => {
-  let top = slot.offsetHeight / 2;
-  let left = slot.offsetWidth / 2;
-  let current: HTMLElement | null = slot;
-
-  while (current && current !== wrapper) {
-    top += current.offsetTop;
-    left += current.offsetLeft;
-    current = current.offsetParent as HTMLElement | null;
-  }
-
-  return current === wrapper
-    ? { top, left }
-    : getCenterRelativeTo(wrapper, slot);
-};
-
-const getPinSpacingOffset = (stage: HTMLElement) => {
-  const spacer = stage.parentElement;
-  if (!spacer?.classList.contains("pin-spacer")) return 0;
-
-  return Number.parseFloat(getComputedStyle(spacer).paddingBottom) || 0;
-};
-
-const placeTravelerAtSlot = (
-  wrapper: HTMLElement,
-  traveler: HTMLElement,
-  slot: HTMLElement,
-) => {
-  const position = getCenterRelativeTo(wrapper, slot);
-
-  gsap.set(traveler, {
-    top: position.top,
-    left: position.left,
-    xPercent: -50,
-    yPercent: -50,
-    x: 0,
-    y: 0,
-    opacity: 1,
-    force3D: true,
-  });
-};
-
-const getVerticalSlotDelta = (
-  wrapper: HTMLElement,
-  fromSlot: HTMLElement,
-  toSlot: HTMLElement,
-) => {
-  const from = getCenterRelativeTo(wrapper, fromSlot);
-  const to = getCenterRelativeTo(wrapper, toSlot);
-
-  return to.top - from.top;
-};
-
-onMounted(async () => {
-  await nextTick();
-
-  const prefersReducedMotion = window.matchMedia(
-    "(prefers-reduced-motion: reduce)",
-  ).matches;
-
-  if (prefersReducedMotion) {
-    [desktopIntroLayerRef.value, mobileIntroLayerRef.value].forEach(
-      (element) => {
-        if (element) gsap.set(element, { autoAlpha: 0 });
-      },
-    );
-    if (scene1StaticTreeRef.value) {
-      gsap.set(scene1StaticTreeRef.value, { autoAlpha: 1 });
-    }
-    if (mScene1StaticTreeRef.value) {
-      gsap.set(mScene1StaticTreeRef.value, { autoAlpha: 0 });
-    }
-
-    [
-      scene1ContentRef.value,
-      scene1StatRef.value,
-      scene1TextRef.value,
-      scene2StatRef.value,
-      scene2TextRef.value,
-      scene3StatRef.value,
-      scene3TextRef.value,
-      mScene1ContentRef.value,
-      mScene1StatRef.value,
-      mScene1TextRef.value,
-      mScene2StatRef.value,
-      mScene2TextRef.value,
-      mScene3StatRef.value,
-      mScene4StatRef.value,
-      mScene3TextRef.value,
-    ].forEach((element) => {
-      if (element) {
-        gsap.set(element, {
-          autoAlpha: 1,
-          y: 0,
-        });
-      }
-    });
-
-    if (travelRef.value) {
-      gsap.set(travelRef.value, { opacity: 0 });
-    }
-
-    if (
-      mWrapperRef.value &&
-      mTravel12Ref.value &&
-      mSlot1Ref.value
-    ) {
-      placeTravelerAtSlot(
-        mWrapperRef.value,
-        mTravel12Ref.value,
-        mSlot1Ref.value,
-      );
-    }
-
-    if (
-      mScene3WrapRef.value &&
-      mTravel3Ref.value &&
-      mStatSlot1Ref.value
-    ) {
-      placeTravelerAtSlot(
-        mScene3WrapRef.value,
-        mTravel3Ref.value,
-        mStatSlot1Ref.value,
-      );
-    }
-
-    return;
-  }
-
-  await document.fonts.ready;
-  await new Promise<void>((resolve) => {
-    requestAnimationFrame(() => resolve());
-  });
-
-  mediaContext = gsap.matchMedia();
-
-  mediaContext.add("(min-width: 1024px)", () => {
-    if (
-      !wrapperRef.value ||
-      !desktopIntroLayerRef.value ||
-      !desktopIntroTextRef.value ||
-      !scene1ContentRef.value ||
-      !scene1StaticTreeRef.value ||
-      !travelRef.value ||
-      !scene1Ref.value ||
-      !scene2Ref.value ||
-      !scene3Ref.value ||
-      !imageSlot1Ref.value ||
-      !imageSlot2Ref.value ||
-      !imageSlot3Ref.value
-    ) {
-      return;
-    }
-
-    const initialPosition = getCenterRelativeTo(
-      wrapperRef.value,
-      imageSlot1Ref.value,
-    );
-
-    gsap.set(travelRef.value, {
-      top: 0,
-      left: 0,
-      x: initialPosition.left,
-      y: initialPosition.top,
-      xPercent: -50,
-      yPercent: -50,
-      force3D: true,
-    });
-
-    const cleanupIntro = setupIntroTransition(
-      scene1Ref.value,
-      desktopIntroLayerRef.value,
-      desktopIntroTextRef.value,
-      scene1ContentRef.value,
-      scene1StaticTreeRef.value,
-      travelRef.value,
-      0.9,
-    );
-
-    const cleanupHandoff = setupTreeHandoff(
-      scene2Ref.value,
-      scene1StaticTreeRef.value,
-      travelRef.value,
-      "top 80%",
-      () => {
-        const position = getCenterRelativeTo(
-          wrapperRef.value!,
-          imageSlot1Ref.value!,
-        );
-
-        gsap.set(travelRef.value!, {
-          top: 0,
-          left: 0,
-          x: position.left,
-          y: position.top,
-          xPercent: -50,
-          yPercent: -50,
-          force3D: true,
-        });
-      },
-    );
-
-    const moveToScene2 = gsap.fromTo(
-      travelRef.value,
-      {
-        x: () =>
-          getCenterRelativeTo(
-            wrapperRef.value!,
-            imageSlot1Ref.value!,
-          ).left,
-        y: () =>
-          getCenterRelativeTo(
-            wrapperRef.value!,
-            imageSlot1Ref.value!,
-          ).top,
-      },
-      {
-        x: () =>
-          getCenterRelativeTo(
-            wrapperRef.value!,
-            imageSlot2Ref.value!,
-          ).left,
-        y: () =>
-          getCenterRelativeTo(
-            wrapperRef.value!,
-            imageSlot2Ref.value!,
-          ).top,
-        ease: "none",
+        transformOrigin: "50% 50%",
         force3D: true,
-        immediateRender: false,
+      });
+      gsap.set(images[0] ?? [], { scale: IMAGE_FULL_SCALE });
+      gsap.set(images.slice(1), { scale: IMAGE_HIDDEN_SCALE });
+
+      gsap.set(contents, { autoAlpha: 0 });
+      gsap.set(contents[0] ?? [], { autoAlpha: 1 });
+
+      const timeline = gsap.timeline({
+        defaults: { ease: "none", overwrite: "auto" },
         scrollTrigger: {
-          trigger: scene2Ref.value,
-          start: "top 80%",
-          end: "top 20%",
-          scrub: true,
+          trigger: wrapper,
+          start: "top top",
+          end: "bottom bottom",
+          scrub: 0.6,
           invalidateOnRefresh: true,
-        },
-      },
-    );
+          onUpdate: (self) => {
+            const scene = resolveActiveScene(self.progress);
+            // 只有跨過切換點時值才會真的變動，Vue 不會每個 tick 都重繪
+            activeScene.value = scene;
 
-    const moveToScene3 = gsap.fromTo(
-      travelRef.value,
-      {
-        x: () =>
-          getCenterRelativeTo(
-            wrapperRef.value!,
-            imageSlot2Ref.value!,
-          ).left,
-        y: () =>
-          getCenterRelativeTo(
-            wrapperRef.value!,
-            imageSlot2Ref.value!,
-          ).top,
-      },
-      {
-        x: () =>
-          getCenterRelativeTo(
-            wrapperRef.value!,
-            imageSlot3Ref.value!,
-          ).left,
-        y: () =>
-          getCenterRelativeTo(
-            wrapperRef.value!,
-            imageSlot3Ref.value!,
-          ).top,
-        ease: "none",
-        force3D: true,
-        immediateRender: false,
-        scrollTrigger: {
-          trigger: scene3Ref.value,
-          start: "top 95%",
-          end: "top 20%",
-          scrub: true,
-          invalidateOnRefresh: true,
-        },
-      },
-    );
-
-    const cleanupReveals = setupSceneReveals([
-      {
-        trigger: scene2Ref.value,
-        elements: [scene2TextRef.value],
-      },
-      {
-        trigger: scene2StatRef.value,
-        elements: [scene2StatRef.value],
-        start: STAT_REVEAL_START,
-        y: 30,
-        stagger: 0,
-        ease: "power2.out",
-        duration: STAT_REVEAL_DURATION,
-        scrub: false,
-        toggleActions: "play none none reverse",
-      },
-      {
-        trigger: scene3Ref.value,
-        elements: [scene3TextRef.value],
-      },
-      {
-        trigger: scene3StatRef.value,
-        elements: [scene3StatRef.value],
-        start: STAT_REVEAL_START,
-        y: 30,
-        stagger: 0,
-        ease: "power2.out",
-        duration: STAT_REVEAL_DURATION,
-        scrub: false,
-        toggleActions: "play none none reverse",
-      },
-    ]);
-
-    return () => {
-      cleanupReveals();
-      cleanupHandoff();
-      moveToScene2.scrollTrigger?.kill();
-      moveToScene2.kill();
-      moveToScene3.scrollTrigger?.kill();
-      moveToScene3.kill();
-      cleanupIntro();
-    };
-  });
-
-  mediaContext.add({
-    isTablet: "(min-width: 768px) and (max-width: 1023px)",
-    isMobile: "(max-width: 767px)",
-  }, (context) => {
-    const isTablet = Boolean(context.conditions?.isTablet);
-    const mobileTweens: gsap.core.Tween[] = [];
-    let cleanupIntro = () => {};
-    let cleanupHandoff = () => {};
-
-    if (
-      mWrapperRef.value &&
-      mScene1Ref.value &&
-      mobileIntroLayerRef.value &&
-      mobileIntroTextRef.value &&
-      mScene1ContentRef.value &&
-      mScene1StaticTreeRef.value &&
-      mTravel12Ref.value &&
-      mSlot1Ref.value
-    ) {
-      placeTravelerAtSlot(
-        mWrapperRef.value,
-        mTravel12Ref.value,
-        mSlot1Ref.value,
-      );
-
-      cleanupIntro = setupIntroTransition(
-        mScene1Ref.value,
-        mobileIntroLayerRef.value,
-        mobileIntroTextRef.value,
-        mScene1ContentRef.value,
-        mScene1StaticTreeRef.value,
-        mTravel12Ref.value,
-        0.75,
-      );
-    }
-
-    if (
-      mWrapperRef.value &&
-      mScene1Ref.value &&
-      mScene2Ref.value &&
-      mTravel12Ref.value &&
-      mSlot1Ref.value &&
-      mSlot2Ref.value
-    ) {
-      const wrapper = mWrapperRef.value;
-      const scene1 = mScene1Ref.value;
-      const scene2 = mScene2Ref.value;
-      const traveler = mTravel12Ref.value;
-      const slot1 = mSlot1Ref.value;
-      const slot2 = mSlot2Ref.value;
-
-      const getTreeAnchor = (slot: HTMLElement) => {
-        if (!isTablet) return getCenterRelativeTo(wrapper, slot);
-
-        const anchor = getLayoutCenterRelativeTo(wrapper, slot);
-
-        // 場景一離開 pin 後會保留 spacer 的位移，補回後才是數據一
-        // 真正在頁面上的右側中心；場景二不在 pin 內，不需要補償。
-        if (slot === slot1) {
-          anchor.top += getPinSpacingOffset(scene1);
-        }
-
-        return anchor;
-      };
-
-      const resetTreePosition = () => {
-        const start = getTreeAnchor(slot1);
-
-        gsap.set(traveler, {
-          top: 0,
-          left: 0,
-          x: start.left,
-          y: start.top,
-          xPercent: -50,
-          yPercent: -50,
-          force3D: true,
-        });
-      };
-
-      resetTreePosition();
-
-      if (mScene1StaticTreeRef.value) {
-        cleanupHandoff = setupTreeHandoff(
-          scene2,
-          mScene1StaticTreeRef.value,
-          traveler,
-          "top 90%",
-          resetTreePosition,
-        );
-      }
-
-      // 平板固定在兩筆數據右側的同一條軌道，只沿 Y 軸垂直往下。
-      const treeTween = gsap.fromTo(
-        traveler,
-        {
-          x: () => getTreeAnchor(slot1).left,
-          y: () => getTreeAnchor(slot1).top,
-        },
-        {
-          x: () =>
-            isTablet
-              ? getTreeAnchor(slot1).left
-              : getTreeAnchor(slot2).left,
-          y: () => getTreeAnchor(slot2).top,
-          ease: "none",
-          force3D: true,
-          immediateRender: false,
-          scrollTrigger: {
-            trigger: scene2,
-            start: "top 90%",
-            end: "top 32%",
-            scrub: true,
-            invalidateOnRefresh: true,
-            onRefreshInit: resetTreePosition,
+            // 已看過的填滿、還沒到的空著、目前這幕跟著捲動慢慢填
+            fillSetters.forEach((setFill, i) => {
+              if (i < scene) setFill(100);
+              else if (i > scene) setFill(0);
+              else setFill(resolveSceneProgress(self.progress, scene) * 100);
+            });
           },
         },
-      );
-
-      mobileTweens.push(treeTween);
-    }
-
-    if (
-      mScene3WrapRef.value &&
-      mScene3SecondRowRef.value &&
-      mTravel3Ref.value &&
-      mStatSlot1Ref.value &&
-      mStatSlot2Ref.value
-    ) {
-      const wrapper = mScene3WrapRef.value;
-      const secondRow = mScene3SecondRowRef.value;
-      const traveler = mTravel3Ref.value;
-      const slot1 = mStatSlot1Ref.value;
-      const slot2 = mStatSlot2Ref.value;
-
-      const resetPhotoPosition = () => {
-        placeTravelerAtSlot(wrapper, traveler, slot1);
-      };
-
-      resetPhotoPosition();
-
-      // 手機版照片僅由第一列往第二列移動，沒有 X 軸位移。
-      const photoTween = gsap.to(traveler, {
-        x: 0,
-        y: () =>
-          getVerticalSlotDelta(wrapper, slot1, slot2),
-        ease: "none",
-        force3D: true,
-        scrollTrigger: {
-          trigger: secondRow,
-          start: "top 88%",
-          end: "top 35%",
-          scrub: 1.4,
-          invalidateOnRefresh: true,
-          onRefreshInit: resetPhotoPosition,
-        },
       });
 
-      mobileTweens.push(photoTween);
-    }
+      // 佔位補間：把 timeline 總長固定成 1，下面的位置參數才會等於捲動百分比
+      // （否則總長會被最後一個補間的結束點決定，所有時間點都被拉長）
+      timeline.to({}, { duration: 1 }, 0);
 
-    const cleanupReveals = setupSceneReveals([
-      {
-        trigger: mScene2Ref.value,
-        elements: [mScene2TextRef.value],
-      },
-      {
-        trigger: mScene2StatRef.value,
-        elements: [mScene2StatRef.value],
-        start: STAT_REVEAL_START,
-        y: 30,
-        stagger: 0,
-        ease: "power2.out",
-        duration: STAT_REVEAL_DURATION,
-        scrub: false,
-        toggleActions: "play none none reverse",
-      },
-      {
-        trigger: mScene3Ref.value,
-        elements: [mScene3TextRef.value],
-      },
-      {
-        trigger: mScene3StatRef.value,
-        elements: [
-          mScene3StatRef.value,
-          mScene4StatRef.value,
-        ],
-        start: STAT_REVEAL_START,
-        y: 30,
-        stagger: 0.08,
-        ease: "power2.out",
-        duration: STAT_REVEAL_DURATION,
-        scrub: false,
-        toggleActions: "play none none reverse",
-      },
-    ]);
+      // 0% → 30%：Scene 01 hold
+      // 30% → 50%：Image 02 整張從中心放大蓋在 Image 01 上（舊圖不淡出）
+      timeline.to(images[1], { scale: IMAGE_FULL_SCALE, duration: 0.14 }, 0.3);
+      timeline.to(contents[0], { autoAlpha: 0, duration: 0.1 }, 0.3);
+      timeline.to(contents[1], { autoAlpha: 1, duration: 0.1 }, 0.38);
 
-    return () => {
-      cleanupReveals();
-      cleanupHandoff();
+      // 65% → 85%：Image 03 整張從中心放大蓋在 Image 02 上
+      timeline.to(images[2], { scale: IMAGE_FULL_SCALE, duration: 0.14 }, 0.65);
+      timeline.to(contents[1], { autoAlpha: 0, duration: 0.1 }, 0.65);
+      timeline.to(contents[2], { autoAlpha: 1, duration: 0.1 }, 0.73);
 
-      mobileTweens.forEach((tween) => {
-        tween.scrollTrigger?.kill();
-        tween.kill();
+      // 85% → 100%：Scene 03 hold
+    },
+  );
+
+  // ---- Desktop + 使用者要求減少動態：直接顯示最終狀態 ----
+  mm.add("(min-width: 768px) and (prefers-reduced-motion: reduce)", () => {
+    gsap.set(imageLayerRefs.value.filter(Boolean), {
+      autoAlpha: 1,
+      scale: IMAGE_HIDDEN_SCALE,
+    });
+    gsap.set(imageLayerRefs.value[0] ?? [], { scale: IMAGE_FULL_SCALE });
+    gsap.set(contentLayerRefs.value.filter(Boolean), { autoAlpha: 0 });
+    gsap.set(contentLayerRefs.value[0] ?? [], { autoAlpha: 1 });
+    if (wrapperRef.value) {
+      scenes.forEach((_, di) => {
+        gsap.set(queryProgressFills(wrapperRef.value!, di), {
+          width: di === 0 ? "100%" : "0%",
+        });
       });
-
-      cleanupIntro();
-    };
+    }
   });
 
-  ScrollTrigger.refresh();
+  // Mobile（<768px）不註冊任何 GSAP／ScrollTrigger，維持純 document flow。
 });
 
 onBeforeUnmount(() => {
-  mediaContext?.revert();
-  mediaContext = null;
+  mm?.revert();
+  mm = null;
 });
 </script>
 
 <template>
-  <!-- ============ 桌機版 ============ -->
-  <section
-    ref="wrapperRef"
-    class="relative hidden min-h-[300vh] w-full overflow-hidden text-[#1a1a1a] lg:block bg-[#F9F8F6]"
-  >
+  <section class="w-full bg-[#F9F8F6] text-[#1a1a1a]">
+    <!-- ================= Desktop / Tablet：sticky scroll story ================= -->
     <div
-      ref="travelRef"
-      class="pointer-events-none absolute left-0 top-0 z-20 h-[clamp(300px,38vw,560px)] max-h-[60vh] w-[clamp(300px,38vw,560px)] max-w-[60vh] will-change-transform [contain:layout_paint]"
-    >
-      <TreeIcon
-        size="100%"
-        color="#5D5D5D"
-        class="block h-full w-full"
-      />
-    </div>
-
-    <div
-      ref="scene1Ref"
-      class="relative min-h-screen w-full"
+      ref="wrapperRef"
+      class="relative hidden min-h-[340vh] md:block"
     >
       <div
-        ref="desktopIntroLayerRef"
-        class="pointer-events-none absolute inset-0 z-30 flex min-h-screen items-center justify-center bg-[#F9F8F6] px-6 text-center"
-        aria-hidden="true"
+        class="sticky top-0 flex h-screen w-full items-center overflow-hidden px-8 lg:px-16"
       >
-        <h2
-          ref="desktopIntroTextRef"
-          class="will-change-transform text-[clamp(2.75rem,6vw,6.5rem)] font-semibold tracking-[-0.04em] text-[#1a1a1a]"
-        >
-          {{ introText }}
-        </h2>
-      </div>
-
-      <div
-        ref="scene1ContentRef"
-        class="relative z-10 grid min-h-screen w-full grid-cols-2 items-center will-change-[opacity]"
-      >
-        <div class="grid h-full grid-cols-[22%_78%] items-center px-[2.75vw]">
-          <div ref="scene1StatRef" class="min-w-0">
-            <p class="text-[clamp(2.5rem,3vw,3.5rem)] font-bold leading-none tracking-wide text-[#FF891D]">
-              {{ statValue1 }}
-            </p>
-            <p class="mt-2 text-[clamp(.875rem,1vw,1.125rem)] leading-tight text-[#252525]/50">
-              {{ statLabel1 }}
-            </p>
-          </div>
-
-          <div
-            ref="imageSlot1Ref"
-            class="h-[clamp(300px,38vw,560px)] max-h-[60vh] w-[clamp(300px,38vw,560px)] max-w-[60vh] justify-self-center"
+        <div class="mx-auto w-full max-w-[2000px]">
+          <!-- 區塊標籤：固定顯示，不參與場景切換 -->
+          <p
+            class="mb-8 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-[#B55F00]"
           >
-            <div ref="scene1StaticTreeRef" class="h-full w-full">
-              <TreeIcon
-                size="100%"
-                color="#5D5D5D"
-                class="block h-full w-full"
+            <span class="inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-[#FF891D]"></span>
+            關於慕玖
+          </p>
+
+          <!-- 左圖右文：位置從 Scene 01 到 Scene 03 完全不變 -->
+          <div class="grid grid-cols-[minmax(0,44fr)_minmax(0,44fr)] gap-[12%]">
+            <!-- Image Stage：三張圖疊在完全相同的位置 -->
+            <div
+              class="relative aspect-[3/4] h-[76vh] max-h-[76vh] w-auto justify-self-start overflow-hidden rounded-lg shadow-2xl shadow-black/10"
+            >
+              <img
+                v-for="(scene, i) in scenes"
+                :key="scene.id"
+                :ref="(el) => setImageLayerRef(el, i)"
+                :src="scene.image"
+                alt=""
+                class="absolute inset-0 h-full w-full object-cover will-change-transform [transform:scale(0)] first:[transform:scale(1)]"
+                :fetchpriority="i === 0 ? 'high' : 'low'"
+                decoding="async"
               />
             </div>
-          </div>
-        </div>
 
-        <div ref="scene1TextRef" class="px-[5.5vw]">
-          <p class="max-w-full text-[clamp(1.05rem,1.05vw,1.35rem)] text-[#252525]/60">
-            <span class="font-semibold text-[#252525]">
-              {{ quote1Highlight }}
-            </span>
-            {{ quote1Rest }}
-          </p>
-        </div>
-      </div>
-    </div>
+            <!-- Content Stage：三組文字疊在完全相同的位置 -->
+            <div class="relative h-[76vh]">
+              <article
+                v-for="(scene, i) in scenes"
+                :key="scene.id"
+                :ref="(el) => setContentLayerRef(el, i)"
+                class="absolute inset-0 flex flex-col justify-center opacity-0 will-change-[opacity]"
+              >
+                <h2
+                  class="text-[clamp(1.5rem,2.2vw,2.25rem)] font-semibold leading-tight tracking-tight"
+                >
+                  {{ scene.title }}
+                </h2>
 
-    <div
-      ref="scene2Ref"
-      class="grid min-h-screen w-full grid-cols-2 items-center"
-    >
-      <div ref="scene2TextRef" class="px-[5.5vw]">
-        <p class="max-w-full text-[clamp(1.05rem,1.25vw,1.45rem)] leading-relaxed text-[#252525]/60">
-          <span class="font-semibold text-[#252525]">
-            {{ quote2Highlight }}
-          </span>
-          {{ quote2Rest }}
-        </p>
-      </div>
+                <div class="mt-5 flex flex-col gap-3">
+                  <p
+                    v-for="(paragraph, pi) in scene.description"
+                    :key="pi"
+                    class="text-[clamp(.95rem,1.05vw,1.1rem)] leading-[1.85]"
+                    :class="pi === 0 ? 'font-semibold text-[#1a1a1a]' : 'text-[#1a1a1a]/65'"
+                  >
+                    {{ paragraph }}
+                  </p>
+                </div>
 
-      <div class="grid h-full grid-cols-[78%_22%] items-center px-[2.75vw]">
-        <div
-          ref="imageSlot2Ref"
-          class="h-[clamp(300px,38vw,560px)] max-h-[60vh] w-[clamp(300px,38vw,560px)] max-w-[60vh] justify-self-center"
-        ></div>
+                <ul class="mt-7 flex flex-col gap-3">
+                  <li
+                    v-for="(bullet, bi) in scene.bullets"
+                    :key="bi"
+                    class="flex gap-3"
+                  >
+                    <svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      class="mt-0.5 h-5 w-5 shrink-0 text-[#FF891D]"
+                      aria-hidden="true"
+                    >
+                      <circle cx="12" cy="12" r="10" fill="currentColor" />
+                      <path
+                        d="M7.5 12.5l3 3 6-6.5"
+                        stroke="white"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      />
+                    </svg>
+                    <span class="text-[clamp(.9rem,1vw,1rem)] leading-relaxed text-[#1a1a1a]/70">
+                      {{ bullet }}
+                    </span>
+                  </li>
+                </ul>
 
-        <div ref="scene2StatRef" class="min-w-0">
-          <p class="text-[clamp(2.5rem,3vw,3.5rem)] font-bold leading-none tracking-wide text-[#FF891D]">
-            {{ statValue2 }}
-          </p>
-          <p class="mt-2 text-[clamp(.875rem,1vw,1.125rem)] leading-tight text-[#252525]/50">
-            {{ statLabel2 }}
-          </p>
-        </div>
-      </div>
-    </div>
+                <div class="mt-8 flex items-baseline gap-3">
+                  <span
+                    class="text-[clamp(2rem,3vw,2.75rem)] font-bold leading-none tracking-wide text-[#FF891D]"
+                  >
+                    {{ scene.stat.value }}
+                  </span>
+                  <span class="text-sm text-[#1a1a1a]/50">{{ scene.stat.label }}</span>
+                </div>
 
-    <div
-      ref="scene3Ref"
-      class="grid min-h-screen w-full grid-cols-2 items-center"
-    >
-      <div class="grid h-full grid-cols-[22%_78%] items-center px-[2.75vw]">
-        <div ref="scene3StatRef" class="min-w-0">
-          <p class="text-[clamp(2.5rem,3vw,3.5rem)] font-bold leading-none tracking-wide text-[#FF891D]">
-            {{ statValue3 }}
-          </p>
-          <p class="mt-2 text-[clamp(.875rem,1vw,1.125rem)] leading-tight text-[#252525]/50">
-            {{ statLabel3 }}
-          </p>
-        </div>
-
-        <div
-          ref="imageSlot3Ref"
-          class="h-[clamp(300px,38vw,560px)] max-h-[60vh] w-[clamp(300px,38vw,560px)] max-w-[60vh] justify-self-center"
-        ></div>
-      </div>
-
-      <div ref="scene3TextRef" class="px-[5.5vw]">
-        <p class="max-w-full text-[clamp(1.05rem,1.25vw,1.45rem)] leading-relaxed text-[#252525]/60">
-          <span class="font-semibold text-[#252525]">
-            {{ quote3Highlight }}
-          </span>
-          {{ quote3Rest }}
-        </p>
-      </div>
-    </div>
-  </section>
-
-  <!-- ============ 手機版：場景一、二 ============ -->
-  <section
-    ref="mWrapperRef"
-    class="relative w-full overflow-hidden bg-white text-[#1a1a1a] lg:hidden"
-  >
-    <div
-      ref="mTravel12Ref"
-      class="pointer-events-none absolute left-0 top-0 z-20 h-[clamp(112px,30vw,180px)] w-[clamp(112px,30vw,180px)] will-change-transform [contain:layout_paint] md:h-[clamp(180px,24vw,240px)] md:w-[clamp(180px,24vw,240px)]"
-    >
-      <TreeIcon
-        size="100%"
-        color="#5D5D5D"
-        class="block h-full w-full"
-      />
-    </div>
-
-    <!-- 場景一：文案在上，數據與 Tree 在下 -->
-    <article
-      ref="mScene1Ref"
-      class="relative min-h-[100svh]"
-    >
-      <div
-        ref="mobileIntroLayerRef"
-        class="pointer-events-none absolute inset-0 z-30 flex min-h-[100svh] items-center justify-center bg-white px-5 text-center"
-        aria-hidden="true"
-      >
-        <h2
-          ref="mobileIntroTextRef"
-          class="will-change-transform text-[clamp(2.5rem,13vw,5rem)] font-semibold tracking-[-0.04em] text-[#1a1a1a]"
-        >
-          {{ introText }}
-        </h2>
-      </div>
-
-      <div
-        ref="mScene1ContentRef"
-        class="relative z-10 flex min-h-[100svh] flex-col justify-center gap-12 px-5 pb-16 pt-24 will-change-[opacity] sm:px-8"
-      >
-        <div ref="mScene1TextRef">
-          <p class="max-w-3xl text-lg leading-[1.8] text-[#1a1a1a]/60 sm:text-xl">
-            <span class="font-semibold text-[#1a1a1a]">
-              {{ quote1Highlight }}
-            </span>
-            {{ quote1Rest }}
-          </p>
-        </div>
-
-        <div class="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4">
-          <div ref="mScene1StatRef" class="min-w-0">
-            <p class="text-[clamp(2.25rem,10vw,3.5rem)] font-bold leading-none tracking-wide">
-              {{ statValue1 }}
-            </p>
-            <p class="mt-3 max-w-[12rem] text-sm leading-relaxed text-[#1a1a1a]/50 sm:text-base">
-              {{ statLabel1 }}
-            </p>
-          </div>
-
-          <div
-            ref="mSlot1Ref"
-            class="h-[clamp(112px,30vw,180px)] w-[clamp(112px,30vw,180px)] justify-self-end md:h-[clamp(180px,24vw,240px)] md:w-[clamp(180px,24vw,240px)]"
-            aria-hidden="true"
-          >
-            <div ref="mScene1StaticTreeRef" class="h-full w-full">
-              <TreeIcon
-                size="100%"
-                color="#5D5D5D"
-                class="block h-full w-full"
-              />
+                <!-- 捲動進度：釘在 article 底部、水平置中。
+                     用絕對定位而不是 mt-auto，才不會影響文案本身的垂直置中。
+                     三幕各有一份，但隱藏的那幾層是 visibility:hidden，
+                     不會被螢幕閱讀器讀到，也不會互相干擾。 -->
+                <div
+                  class="absolute bottom-0 left-1/2 flex w-fit -translate-x-1/2 items-center gap-2.5 rounded-full bg-[#F1F0EE] px-4 py-3"
+                  role="status"
+                  :aria-label="`關於慕玖：第 ${activeScene + 1} 幕，共 ${scenes.length} 幕`"
+                >
+                  <span
+                    v-for="(dot, di) in scenes"
+                    :key="dot.id"
+                    class="block h-2 overflow-hidden rounded-full bg-[#D6D3CE] transition-[width] duration-500 ease-out"
+                    :class="di === activeScene ? 'w-8' : 'w-2'"
+                  >
+                    <span
+                      :data-progress-fill="di"
+                      class="block h-full rounded-full bg-[#1a1a1a]"
+                      style="width: 0%"
+                    ></span>
+                  </span>
+                </div>
+              </article>
             </div>
           </div>
         </div>
       </div>
-    </article>
+    </div>
 
-    <!-- 場景二：數據與 Tree 在上，文案在下 -->
-    <article
-      ref="mScene2Ref"
-      class="flex min-h-[50svh] flex-col justify-center gap-12 px-5 pb-16 pt-24 sm:px-8"
-    >
-      <div class="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4">
-        <div ref="mScene2StatRef" class="min-w-0">
-          <p class="text-[clamp(2.25rem,10vw,3.5rem)] font-bold leading-none tracking-wide">
-            {{ statValue2 }}
-          </p>
-          <p class="mt-3 max-w-[12rem] text-sm leading-relaxed text-[#1a1a1a]/50 sm:text-base">
-            {{ statLabel2 }}
-          </p>
-        </div>
-
-        <div
-          ref="mSlot2Ref"
-          class="h-[clamp(112px,30vw,180px)] w-[clamp(112px,30vw,180px)] justify-self-end md:h-[clamp(180px,24vw,240px)] md:w-[clamp(180px,24vw,240px)]"
-          aria-hidden="true"
-        ></div>
-      </div>
-
-      <div ref="mScene2TextRef">
-        <p class="max-w-3xl text-lg leading-[1.8] text-[#1a1a1a]/60 sm:text-xl">
-          <span class="font-semibold text-[#1a1a1a]">
-            {{ quote2Highlight }}
-          </span>
-          {{ quote2Rest }}
-        </p>
-      </div>
-    </article>
-  </section>
-
-  <!-- ============ 手機版：場景三 ============ -->
-  <section
-    class="relative w-full overflow-hidden bg-white text-[#1a1a1a] lg:hidden"
-  >
-    <div ref="mScene3WrapRef" class="relative">
-      <div
-        ref="mTravel3Ref"
-        class="pointer-events-none absolute z-20 h-[clamp(132px,36vw,260px)] w-[clamp(132px,36vw,260px)] overflow-hidden rounded-2xl shadow-xl will-change-transform"
+    <!-- ================= Mobile：純 document flow，零動畫 ================= -->
+    <div class="px-5 py-16 md:hidden">
+      <p
+        class="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-[#B55F00]"
       >
-        <img
-          :src="travelImage2"
-          alt=""
-          class="h-full w-full object-cover"
-          loading="eager"
-          aria-hidden="true"
-        />
-      </div>
+        <span class="inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-[#FF891D]"></span>
+        關於慕玖
+      </p>
 
       <article
-        ref="mScene3Ref"
-        class="px-5 pb-20 pt-16 sm:px-8"
+        v-for="scene in scenes"
+        :key="scene.id"
+        class="mt-12 flex flex-col gap-5 first:mt-8"
       >
-        <!-- 數據三與照片 -->
-        <div class="grid  grid-cols-[minmax(0,1fr)_auto] items-center gap-4">
-          <div ref="mScene3StatRef" class="min-w-0">
-            <p class="text-[clamp(2.25rem,10vw,3.5rem)] font-bold leading-none tracking-wide">
-              {{ statValue3 }}
-            </p>
-            <p class="mt-3 max-w-[12rem] text-sm leading-relaxed text-[#1a1a1a]/50 sm:text-base">
-              {{ statLabel3 }}
-            </p>
-          </div>
+        <img
+          :src="scene.image"
+          alt=""
+          class="block aspect-square w-full rounded-lg object-cover shadow-lg"
+          loading="lazy"
+          decoding="async"
+        />
 
-          <div
-            ref="mStatSlot1Ref"
-            class="h-[clamp(132px,36vw,260px)] w-[clamp(132px,36vw,260px)] justify-self-end"
-            aria-hidden="true"
-          ></div>
-        </div>
+        <h2 class="text-[1.5rem] font-semibold leading-tight tracking-tight">
+          {{ scene.title }}
+        </h2>
 
-        <!-- 數據四與同一張往下移動的照片 -->
-        <div
-          ref="mScene3SecondRowRef"
-          class="grid  grid-cols-[minmax(0,1fr)_auto] items-center gap-4"
-        >
-          <div ref="mScene4StatRef" class="min-w-0">
-            <p class="text-[clamp(2.25rem,10vw,3.5rem)] font-bold leading-none tracking-wide">
-              {{ statValue4 }}
-            </p>
-            <p class="mt-3 max-w-[12rem] text-sm leading-relaxed text-[#1a1a1a]/50 sm:text-base">
-              {{ statLabel4 }}
-            </p>
-          </div>
-
-          <div
-            ref="mStatSlot2Ref"
-            class="h-[clamp(132px,36vw,260px)] w-[clamp(132px,36vw,260px)] justify-self-end"
-            aria-hidden="true"
-          ></div>
-        </div>
-
-        <!-- 場景三最後才出現的文案位置 -->
-        <div
-          ref="mScene3TextRef"
-          class="flex min-h-[45svh] items-center"
-        >
-          <p class="max-w-3xl text-lg leading-[1.8] text-[#1a1a1a]/60 sm:text-xl">
-            <span class="font-semibold text-[#1a1a1a]">
-              {{ quote3Highlight }}
-            </span>
-            {{ quote3Rest }}
+        <div class="flex flex-col gap-3">
+          <p
+            v-for="(paragraph, pi) in scene.description"
+            :key="pi"
+            class="text-base leading-[1.85]"
+            :class="pi === 0 ? 'font-semibold text-[#1a1a1a]' : 'text-[#1a1a1a]/65'"
+          >
+            {{ paragraph }}
           </p>
+        </div>
+
+        <ul class="flex flex-col gap-3">
+          <li
+            v-for="(bullet, bi) in scene.bullets"
+            :key="bi"
+            class="flex gap-3"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              class="mt-0.5 h-5 w-5 shrink-0 text-[#FF891D]"
+              aria-hidden="true"
+            >
+              <circle cx="12" cy="12" r="10" fill="currentColor" />
+              <path
+                d="M7.5 12.5l3 3 6-6.5"
+                stroke="white"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
+            <span class="text-[.95rem] leading-relaxed text-[#1a1a1a]/70">
+              {{ bullet }}
+            </span>
+          </li>
+        </ul>
+
+        <div class="flex items-baseline gap-3">
+          <span class="text-[2rem] font-bold leading-none tracking-wide text-[#FF891D]">
+            {{ scene.stat.value }}
+          </span>
+          <span class="text-sm text-[#1a1a1a]/50">{{ scene.stat.label }}</span>
         </div>
       </article>
     </div>
