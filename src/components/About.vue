@@ -126,7 +126,7 @@ onMounted(() => {
 
   // ---- Desktop：scroll story ----
   mm.add(
-    "(min-width: 768px) and (prefers-reduced-motion: no-preference)",
+    "(min-width: 1024px) and (prefers-reduced-motion: no-preference)",
     () => {
       const wrapper = wrapperRef.value;
       const images = imageLayerRefs.value.filter(Boolean);
@@ -196,7 +196,7 @@ onMounted(() => {
   );
 
   // ---- Desktop + 使用者要求減少動態：直接顯示最終狀態 ----
-  mm.add("(min-width: 768px) and (prefers-reduced-motion: reduce)", () => {
+  mm.add("(min-width: 1024px) and (prefers-reduced-motion: reduce)", () => {
     gsap.set(imageLayerRefs.value.filter(Boolean), {
       autoAlpha: 1,
       scale: IMAGE_HIDDEN_SCALE,
@@ -213,7 +213,7 @@ onMounted(() => {
     }
   });
 
-  // Mobile（<768px）不註冊任何 GSAP／ScrollTrigger，維持純 document flow。
+  // Mobile / Tablet（<1024px）不註冊任何 GSAP／ScrollTrigger，維持純 document flow。
 });
 
 onBeforeUnmount(() => {
@@ -224,10 +224,10 @@ onBeforeUnmount(() => {
 
 <template>
   <section class="w-full bg-[#F9F8F6] text-[#1a1a1a]">
-    <!-- ================= Desktop / Tablet：sticky scroll story ================= -->
+    <!-- ================= Desktop ：sticky scroll story ================= -->
     <div
       ref="wrapperRef"
-      class="relative hidden min-h-[340vh] md:block"
+      class="relative hidden min-h-[340vh] lg:block"
     >
       <div
         class="sticky top-0 flex h-screen w-full items-center overflow-hidden px-8 lg:px-16"
@@ -240,7 +240,7 @@ onBeforeUnmount(() => {
           <div class="grid grid-cols-[minmax(0,44fr)_minmax(0,44fr)] gap-[12%]">
             <!-- Image Stage：三張圖疊在完全相同的位置 -->
             <div
-              class="relative aspect-[3/4] h-[76vh] max-h-[76vh] w-auto justify-self-start overflow-hidden rounded-lg shadow-2xl shadow-black/10"
+              class="relative aspect-[3/4] h-[76vh] max-h-[76vh] w-auto max-w-full justify-self-start overflow-hidden rounded-lg shadow-2xl shadow-black/10"
             >
               <img
                 v-for="(scene, i) in scenes"
@@ -351,7 +351,7 @@ onBeforeUnmount(() => {
     </div>
 
     <!-- ================= Mobile：純 document flow，零動畫 ================= -->
-    <div class="px-5 py-16 md:hidden">
+    <div class="px-5 py-16 lg:hidden">
       <p
         class="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-[#B55F00]"
       >
