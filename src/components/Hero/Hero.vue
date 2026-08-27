@@ -263,7 +263,8 @@ onBeforeUnmount(() => {
         </div>
 
         <div ref="ctaWrapRef" class="mt-6 sm:mt-8">
-          <HeroCTA :text="ctaText" href="#consultation-form"   bg-color="#f8f4eecc"  text-color="#252525" :blur="6" radius="4px"/>
+          <HeroCTA :text="ctaText" href="#consultation-form"  variant="solid" bg-color="#ffffff" radius="4px"
+                text-color="#252525"/>
         </div>
       </div>
     </div>

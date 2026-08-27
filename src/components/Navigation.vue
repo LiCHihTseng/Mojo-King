@@ -505,8 +505,7 @@ onBeforeUnmount(() => {
         <div ref="rightControlsRef" class="grid place-items-center">
           <!-- CTA：尚未捲到 About 時顯示 -->
           <div ref="ctaRef" class="col-start-1 row-start-1 justify-self-end">
-            <HeroCTA :text="ctaText" href="#consultation-form" bg-color="#f8f4eecc" text-color="#252525" :blur="6"
-              radius="4px" />
+            <HeroCTA :text="ctaText" href="#consultation-form"    variant="solid" bg-color="#ffffff" radius="4px" text-color="#252525" />
           </div>
 
           <!-- Menu 按鈕：捲到 About 之後（手機版則一律）顯示 -->

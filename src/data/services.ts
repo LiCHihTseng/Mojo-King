@@ -93,8 +93,8 @@ export const services: ServiceDefinition[] = [
     slug: "fractional-chro",
     index: "02",
     tag: "共享人資長",
-    titleLine1: "每個成長中的企業，",
-    titleLine2: "都需要人資長的視角。",
+    titleLine1: "共享人資長",
+    titleLine2: "",
     summary:
       "定期參與經營與人資決策，從策略、組織與人才角度整合關鍵議題，成為經營團隊長期且可信賴的人資夥伴。",
     image: "https://picsum.photos/seed/svc-2/1920/1280",
@@ -132,8 +132,8 @@ export const services: ServiceDefinition[] = [
     slug: "custom-training",
     index: "03",
     tag: "客製化課程設計",
-    titleLine1: "不只上一堂課，",
-    titleLine2: "而是解決真實的管理問題。",
+    titleLine1: "客製化課程設計",
+    titleLine2: "",
     summary:
       "從企業情境、學員特性與管理痛點出發，客製案例、演練與工具，讓學習真正轉化為工作現場可運用的管理行為。",
     image: "https://picsum.photos/seed/svc-3/1920/1280",
