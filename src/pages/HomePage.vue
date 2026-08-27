@@ -2,7 +2,7 @@
 import { inject } from "vue";
 import About from "../components/About.vue";
 // import ConsultationBridge from "../components/ConsultationBridge.vue";
-import ConsultationForm from "../components/ConsultationForm.vue";
+// import ConsultationForm from "../components/ConsultationForm.vue";
 import Contact from "../components/Contact.vue";
 import Footer from "../components/Footer.vue";
 import Hero from "../components/Hero/Hero.vue";
