@@ -48,8 +48,8 @@ export const services: ServiceDefinition[] = [
     slug: "hr-consulting",
     index: "01",
     tag: "人資顧問",
-    titleLine1: "從經營問題出發，",
-    titleLine2: "建立真正能運作的人才管理體系。",
+    titleLine1: "人資顧問",
+    titleLine2: "",
     summary:
       "聚焦關鍵管理議題與制度建置，從診斷問題、凝聚共識到陪伴導入，打造符合企業發展階段的人才管理方案。",
     image: DEFAULT_SERVICE_HERO_IMAGE,

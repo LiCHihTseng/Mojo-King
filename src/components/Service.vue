@@ -253,14 +253,14 @@ onMounted(async () => {
 
       const introUnits = introEnabled
         ? INTRO_HOLD_DURATION +
-          INTRO_EXPAND_DURATION +
-          INTRO_FULL_HOLD_DURATION
+        INTRO_EXPAND_DURATION +
+        INTRO_FULL_HOLD_DURATION
         : 0;
       const totalUnits =
         introUnits +
         FIRST_SCENE_HOLD_DURATION +
         motionPlan.incomingSceneIndexes.length *
-          (SCENE_MOVE_DURATION + SCENE_COPY_DURATION + SCENE_HOLD_DURATION);
+        (SCENE_MOVE_DURATION + SCENE_COPY_DURATION + SCENE_HOLD_DURATION);
       const scrollDistanceFactor = introEnabled
         ? INTRO_SCROLL_DISTANCE_FACTOR
         : BASE_SCROLL_DISTANCE_FACTOR;
@@ -288,15 +288,15 @@ onMounted(async () => {
 
       const introCopyFade = introEnabled
         ? gsap.to(firstIntroCopy, {
-            autoAlpha: 1,
-            y: 0,
-            duration: INTRO_COPY_FADE_DURATION,
-            ease: "power2.out",
-            paused: true,
-            onComplete: () => {
-              applyIntroCopyAccessibility("forward-complete");
-            },
-          })
+          autoAlpha: 1,
+          y: 0,
+          duration: INTRO_COPY_FADE_DURATION,
+          ease: "power2.out",
+          paused: true,
+          onComplete: () => {
+            applyIntroCopyAccessibility("forward-complete");
+          },
+        })
         : null;
 
       /*
@@ -455,134 +455,93 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <section
-    ref="sectionRef"
-    class="service-story relative isolate w-full bg-[#11110f]"
-    aria-labelledby="service-section-title"
-  >
+  <section ref="sectionRef" class="service-story relative isolate w-full bg-[#11110f]"
+    aria-labelledby="service-section-title">
     <h2 id="service-section-title" class="sr-only">專業人資顧問服務</h2>
 
     <div class="service-stage relative w-full overflow-hidden md:sticky md:top-0 md:h-[100svh]">
-      <div
-        ref="introLayerRef"
-        class="service-intro pointer-events-none absolute inset-0 z-40 items-center justify-center overflow-hidden"
-      >
-        <div
-          ref="introLeftRef"
-          class="service-intro__copy service-intro__copy--left"
-          aria-hidden="true"
-        >
+      <div ref="introLayerRef"
+        class="service-intro pointer-events-none absolute inset-0 z-40 items-center justify-center overflow-hidden">
+        <div ref="introLeftRef" class="service-intro__copy service-intro__copy--left" aria-hidden="true">
           <span class="service-intro__lead">{{ props.introLead }}</span><span>{{ props.introMiddle }}</span>
         </div>
 
-        <div
-          ref="introImageRef"
-          class="service-intro__image absolute inset-0"
-          aria-hidden="true"
-        >
-          <img
-            :src="props.backgroundImage"
-            alt=""
-            class="h-full w-full object-cover"
-            fetchpriority="high"
-          />
+        <div ref="introImageRef" class="service-intro__image absolute inset-0" aria-hidden="true">
+          <img :src="props.backgroundImage" alt="" class="h-full w-full object-cover" fetchpriority="high" />
         </div>
 
-        <div
-          ref="introRightRef"
-          class="service-intro__copy service-intro__copy--right"
-          aria-hidden="true"
-        >
+        <div ref="introRightRef" class="service-intro__copy service-intro__copy--right" aria-hidden="true">
           {{ props.introEnd }}
         </div>
 
-        <div
-          v-if="firstCard"
-          ref="firstIntroCopyRef"
+        <div v-if="firstCard" ref="firstIntroCopyRef"
           class="service-intro__scene-copy absolute inset-0 z-30 flex items-center px-6 py-16 sm:px-10 md:px-[clamp(3rem,7vw,8.5rem)]"
-          aria-hidden="true"
-          inert
-        >
-          <div class="service-copy-grid mx-auto grid w-full max-w-[90rem] items-center gap-8 md:grid-cols-[minmax(0,1.15fr)_minmax(18rem,0.7fr)] md:gap-[clamp(4rem,10vw,12rem)]">
+          aria-hidden="true" inert>
+          <div
+            class="service-copy-grid mx-auto grid w-full max-w-[90rem] items-center gap-8 md:grid-cols-[minmax(0,1.15fr)_minmax(18rem,0.7fr)] md:gap-[clamp(4rem,10vw,12rem)] ">
             <div>
-              <div class="mb-5 flex items-center gap-3 text-sm font-medium tracking-[0.16em] text-[#ff9a3d] md:mb-7 md:text-base">
+              <div
+                class="mb-5 flex items-center gap-3 text-sm font-medium tracking-[0.16em] text-[#ff9a3d] md:mb-7 md:text-base">
 
               </div>
 
-              <h3 class="max-w-[15ch] text-balance text-[clamp(2.15rem,8.4vw,4.5rem)] font-semibold leading-[1.08] tracking-[-0.055em] text-white md:text-[clamp(3rem,5.2vw,6rem)]">
+              <h3
+                class="max-w-[15ch] text-balance text-[clamp(2.15rem,8.4vw,4.5rem)] font-semibold leading-[1.08] tracking-[-0.055em] text-white md:text-[clamp(3rem,5.2vw,6rem)]">
                 {{ firstCard.titleLine1 }}<br />{{ firstCard.titleLine2 }}
               </h3>
+
+              <p
+                class="mt-5 max-w-[34rem] text-pretty text-[clamp(1rem,2.4vw,1.25rem)] leading-[1.75] text-white md:mt-7 md:text-[clamp(1rem,1.3vw,1.3rem)]">
+                {{ firstCard.summary }}
+              </p>
             </div>
 
             <div class="md:pt-14">
-              <p class="max-w-[34rem] text-pretty text-[clamp(1rem,2.4vw,1.25rem)] leading-[1.75] text-white md:text-[clamp(1rem,1.3vw,1.3rem)]">
-                {{ firstCard.summary }}
-              </p>
-
-              <div class="mt-7 md:mt-9">
-                <HeroCTA
-                  text="深入了解"
-                  :href="getServiceHref(firstCard.slug)"
-                  variant="ghost"
-                  text-color="#ffffff"
-                  @click="handleServiceCtaClick($event, getServiceHref(firstCard.slug))"
-                  @focus="preloadServiceHero(props.backgroundImage)"
-                  @pointerenter="preloadServiceHero(props.backgroundImage)"
-                />
-              </div>
+              <HeroCTA text="深入了解" :href="getServiceHref(firstCard.slug)" variant="solid" bg-color="#ffffff" radius="4px"
+                text-color="#252525" @click="handleServiceCtaClick($event, getServiceHref(firstCard.slug))"
+                @focus="preloadServiceHero(props.backgroundImage)"
+                @pointerenter="preloadServiceHero(props.backgroundImage)" />
             </div>
           </div>
         </div>
       </div>
 
       <div class="service-scenes relative flex w-full flex-col md:absolute md:inset-0 md:block">
-        <article
-          v-for="(card, index) in props.cards"
-          :key="`${card.tag}-${index}`"
+        <article v-for="(card, index) in props.cards" :key="`${card.tag}-${index}`"
           :ref="(el) => setSceneRef(el as Element | null, index)"
           class="service-scene relative isolate flex min-h-[100svh] w-full items-center overflow-hidden md:absolute md:inset-0 md:min-h-0"
-          :aria-labelledby="`service-scene-title-${index}`"
-        >
-          <img
-            :src="index === 0 ? props.backgroundImage : card.image"
-            alt=""
+          :aria-labelledby="`service-scene-title-${index}`">
+          <img :src="index === 0 ? props.backgroundImage : card.image" alt=""
             class="service-scene__image absolute inset-0 h-full w-full object-cover"
-            :loading="index === 0 ? 'eager' : 'lazy'"
-          />
+            :loading="index === 0 ? 'eager' : 'lazy'" />
 
-          <div
-            :ref="(el) => setSceneCopyRef(el as Element | null, index)"
-            class="service-scene__content relative z-10 w-full px-6 py-16 sm:px-10 md:px-[clamp(3rem,7vw,8.5rem)]"
-          >
-            <div class="service-copy-grid mx-auto grid w-full max-w-[90rem] items-center gap-8 md:grid-cols-[minmax(0,1.15fr)_minmax(18rem,0.7fr)] md:gap-[clamp(4rem,10vw,12rem)]">
+          <div :ref="(el) => setSceneCopyRef(el as Element | null, index)"
+            class="service-scene__content relative z-10 w-full px-6 py-16 sm:px-10 md:px-[clamp(3rem,7vw,8.5rem)]">
+            <div
+              class="service-copy-grid mx-auto grid w-full max-w-[90rem] items-center gap-8 md:grid-cols-[minmax(0,1.15fr)_minmax(18rem,0.7fr)] md:gap-[clamp(4rem,10vw,12rem)]">
               <div>
-                <div class="mb-5 flex items-center gap-3 text-sm font-medium tracking-[0.16em] text-[#ff9a3d] md:mb-7 md:text-base">
+                <div
+                  class="mb-5 flex items-center gap-3 text-sm font-medium tracking-[0.16em] text-[#ff9a3d] md:mb-7 md:text-base">
 
                 </div>
 
-                <h3
-                  :id="`service-scene-title-${index}`"
-                  class="max-w-[15ch] text-balance text-[clamp(2.15rem,8.4vw,4.5rem)] font-semibold leading-[1.08] tracking-[-0.055em] text-white md:text-[clamp(3rem,5.2vw,6rem)]"
-                >
+                <h3 :id="`service-scene-title-${index}`"
+                  class="max-w-[15ch] text-balance text-[clamp(2.15rem,8.4vw,4.5rem)] font-semibold leading-[1.08] tracking-[-0.055em] text-white md:text-[clamp(3rem,5.2vw,6rem)]">
                   {{ card.titleLine1 }}<br />{{ card.titleLine2 }}
                 </h3>
               </div>
 
               <div class="md:pt-14">
-                <p class="max-w-[34rem] text-pretty text-[clamp(1rem,2.4vw,1.25rem)] leading-[1.75] text-white md:text-[clamp(1rem,1.3vw,1.3rem)]">
+                <p
+                  class="max-w-[34rem] text-pretty text-[clamp(1rem,2.4vw,1.25rem)] leading-[1.75] text-white md:text-[clamp(1rem,1.3vw,1.3rem)]">
                   {{ card.summary }}
                 </p>
 
                 <div class="mt-7 md:mt-9">
-                  <HeroCTA
-                    text="深入了解"
-                    :href="getServiceHref(card.slug)"
-                    variant="ghost"
-                    text-color="#ffffff"
+                  <HeroCTA text="深入了解" :href="getServiceHref(card.slug)" variant="ghost" text-color="#ffffff"
                     @click="handleServiceCtaClick($event, getServiceHref(card.slug))"
                     @focus="preloadServiceHero(index === 0 ? props.backgroundImage : card.image)"
-                    @pointerenter="preloadServiceHero(index === 0 ? props.backgroundImage : card.image)"
-                  />
+                    @pointerenter="preloadServiceHero(index === 0 ? props.backgroundImage : card.image)" />
                 </div>
               </div>
             </div>

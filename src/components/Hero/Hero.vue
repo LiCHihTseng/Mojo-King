@@ -186,48 +186,69 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <section ref="sectionRef" class="relative min-h-[100svh] overflow-hidden">
+  <section ref="sectionRef" class="relative h-full min-h-[100dvh] overflow-hidden">
     <!-- 群組容器：照片 + 所有遮罩，一起被 GSAP 縮放，永遠對齊 -->
     <div ref="visualGroupRef" class="absolute inset-0" style="transform-origin: center center;">
       <img
         data-critical-image
         :src="Portrait"
         alt="王郁婷，慕玖共享人資長"
-        class="absolute inset-0 h-full w-full object-cover"
+        class="absolute inset-0 h-full w-full object-cover object-[46%_50%] lg:object-center"
         loading="eager"
         fetchpriority="high"
       />
 
       <div ref="dimOverlayRef" class="pointer-events-none absolute inset-0 z-[5] bg-[#1f1f1f] opacity-0"></div>
-      <div class="pointer-events-none absolute inset-0 z-0 bg-gradient-to-r from-black via-black/65 to-transparent"></div>
-      <div class="pointer-events-none absolute inset-x-0 bottom-0 z-0 h-60 bg-gradient-to-t from-black/70 to-transparent"></div>
+      <!-- 桌機：左→右壓暗。文字在左、人像在右，兩邊互不干擾 -->
+      <div class="pointer-events-none absolute inset-0 z-0 hidden bg-gradient-to-r from-black via-black/65 to-transparent lg:block"></div>
+
+      <!--
+        手機／平板：畫面太窄，左→右遮罩會整片壓在人像上。
+        改成下→上，文字落在下方暗部，臉部留在上方乾淨區。
+      -->
+      <div class="pointer-events-none absolute inset-x-0 bottom-0 z-0 h-[72%] bg-gradient-to-t from-black via-black/80 to-transparent lg:hidden"></div>
+
+      <!-- 桌機底部收邊，接住下方 About 的圓角 -->
+      <div class="pointer-events-none absolute inset-x-0 bottom-0 z-0 hidden h-60 bg-gradient-to-t from-black/70 to-transparent lg:block"></div>
     </div>
 
     <!--
-      內容容器：統一用同一組水平內距（px-6 md:px-10），
-      標題、說明文字、CTA 按鈕全部共用這一個基準。
-      justify-center 直接負責垂直置中，不再靠內層 flex-1 撐開，
-      避免 CTA 的高度把標題往上擠。
+      內容容器：標題、說明文字、CTA 共用同一組水平內距，
+      並用 max-w-[2000px] 對齊下方 About 的容器，捲動接縫才不會歪。
+
+      垂直定位分兩種：
+      - lg 以上：justify-center，人像在右、文字在左，互不重疊。
+      - lg 以下：justify-end。照片是固定 1.5:1，視窗一窄 object-cover
+        就往中間裁，人臉會滑到畫面正中央；文字若還置中就會壓在臉上。
+        改成靠下對齊，臉留在上方。pb 用 vh 而非固定值，矮螢幕
+        （iPhone SE 667px）才不會被文字區把臉吃掉。
     -->
     <div
       ref="contentRef"
-      class="relative z-20 mx-auto flex min-h-[100svh] w-full max-w-full flex-col justify-center px-6 md:px-10"
+      class="relative z-20 mx-auto flex h-full min-h-[100dvh] w-full max-w-[2000px] flex-col justify-end px-8 pb-[5vh] sm:pb-[7vh] lg:justify-center lg:px-16 lg:pb-0"
       style="transform-origin: left center;"
     >
       <div class="flex w-full min-w-0 max-w-full flex-col">
         <!-- 標題區塊（原本 HeroTitle.vue） -->
         <div ref="headingWrapRef" class="flex flex-col gap-6 md:gap-10 lg:gap-14">
-          <h1 class="max-w-[13ch] text-5xl font-medium leading-[0.98] tracking-[-0.045em] text-white sm:text-6xl md:text-7xl xl:text-8xl">
-            <!-- <span :ref="(el) => setHeadingRef(el as Element | null, 0)" class="block whitespace-nowrap">
+          <!--
+            外層 span 的 overflow-hidden 是進場遮罩用的，它同時也會把
+            超出寬度的字「無聲裁掉」（不會出現捲軸，字就是消失）。
+            所以內層不能用 whitespace-nowrap：文案一加長就會少字。
+            改由 max-w-[13ch] 控制每行字數，超過就換行；
+            text-balance 讓換行後不會掉出一個孤字。
+          -->
+          <h1 class="max-w-[13ch] text-balance text-5xl font-medium leading-[0.98] tracking-[-0.045em] text-white sm:text-6xl md:text-7xl xl:text-8xl">
+            <!-- <span :ref="(el) => setHeadingRef(el as Element | null, 0)" class="block">
               {{ headingLine1 }}
             </span> -->
             <span class="block overflow-hidden pb-[0.08em]">
-              <span :ref="(el) => setHeadingRef(el as Element | null, 1)" class="block whitespace-nowrap">
+              <span :ref="(el) => setHeadingRef(el as Element | null, 1)" class="block">
                 {{ headingLine2 }}
               </span>
             </span>
             <span class="block overflow-hidden pb-[0.08em]">
-              <span :ref="(el) => setHeadingRef(el as Element | null, 2)" class="block whitespace-nowrap">
+              <span :ref="(el) => setHeadingRef(el as Element | null, 2)" class="block">
                 {{ headingLine3 }}
               </span>
             </span>
@@ -235,7 +256,7 @@ onBeforeUnmount(() => {
 
           <p
             ref="descriptionRef"
-            class="max-w-[52ch]  text-sm leading-7 text-white/70 sm:text-lg sm:leading-8"
+            class="max-w-[52ch] text-base leading-7 text-white/75 sm:text-lg sm:leading-8"
           >
             {{ description }}
           </p>

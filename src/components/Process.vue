@@ -282,16 +282,16 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <section ref="sectionRef" class="relative min-h-screen overflow-hidden bg-[#F9F8F6] py-20 sm:py-28 lg:py-36">
+  <section ref="sectionRef" class="relative min-h-dvh overflow-hidden bg-[#F9F8F6] py-20 sm:py-28 lg:py-36">
 
 
     <div class="relative mx-auto w-full max-w-[1400px] px-5 sm:px-8">
       <!-- 標題區 -->
-      <div ref="headRef" class="mb-14 text-center sm:mb-20 lg:mb-28">
+      <div ref="headRef" class="mb-14 text-left sm:mb-20 md:text-center lg:mb-28">
         <p class="text-sm font-medium tracking-[0.2em] text-[#B55F00] sm:text-base">
           {{ eyebrow }}
         </p>
-        <h2 class="mt-4 text-2xl font-medium leading-tight text-[#1a1a1a] sm:text-3xl md:text-4xl lg:text-5xl">
+        <h2 class="mt-4 text-[1.75rem] font-medium leading-[1.25] tracking-[-0.01em] text-[#1a1a1a] sm:text-3xl sm:tracking-normal md:text-4xl lg:text-5xl">
           {{ heading }}
         </h2>
       </div>
@@ -317,7 +317,7 @@ onBeforeUnmount(() => {
           <span class="h-2.5 w-2.5 rounded-full bg-[#B55F00]"></span>
         </div>
 
-        <ol class="relative space-y-20 sm:space-y-32 lg:space-y-48">
+        <ol class="relative space-y-16 sm:space-y-32 lg:space-y-48">
           <li v-for="(step, index) in steps" :key="index" class="relative md:grid md:grid-cols-2 md:gap-x-16 lg:gap-x-24">
             <!-- 量測用的錨點：不顯示，只負責告訴 JS 這個步驟的起點在哪。
                  位置必須跟球完全一致（left-2 / md:left-1/2），否則球會停錯位置 -->
@@ -326,7 +326,7 @@ onBeforeUnmount(() => {
               aria-hidden="true"></span>
 
             <!-- 內容：手機一律靠右排、md 以上才左右交錯 -->
-            <div :ref="(el) => setStepRef(el as Element | null, index)" class="pl-8 sm:pl-10 md:pl-0" :class="index % 2 === 0
+            <div :ref="(el) => setStepRef(el as Element | null, index)" class="pl-9 sm:pl-10 md:pl-0" :class="index % 2 === 0
                 ? 'md:col-start-2 md:pl-4'
                 : 'md:col-start-1 md:row-start-1 md:pr-4'
               " style="will-change: transform, opacity;">
@@ -335,11 +335,11 @@ onBeforeUnmount(() => {
                 {{ step.label }}
               </span>
 
-              <h3 class="mt-4 text-lg font-medium leading-snug text-[#1a1a1a] sm:mt-5 sm:text-2xl lg:text-3xl">
+              <h3 class="mt-4 text-xl font-medium leading-snug text-[#1a1a1a] sm:mt-5 sm:text-2xl lg:text-3xl">
                 {{ step.title }}
               </h3>
 
-              <p class="mt-3 max-w-xl text-sm leading-relaxed text-[#1a1a1a]/60 sm:mt-4 sm:text-base lg:text-lg">
+              <p class="mt-3 max-w-xl text-base leading-[1.75] text-[#1a1a1a]/70 sm:mt-4 lg:text-lg">
                 {{ step.body }}
               </p>
             </div>

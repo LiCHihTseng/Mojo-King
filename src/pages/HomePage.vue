@@ -39,7 +39,7 @@ if (!entranceReady) throw new Error("HomePage requires entranceReady");
     <Process />
     <Contact id="contact" />
 
-    <ConsultationForm />
+    <!-- <ConsultationForm /> -->
     <Footer />
   </div>
 </template>
