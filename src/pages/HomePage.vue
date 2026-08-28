@@ -1,8 +1,6 @@
 <script setup lang="ts">
 import { inject } from "vue";
 import About from "../components/About.vue";
-// import ConsultationBridge from "../components/ConsultationBridge.vue";
-import ConsultationForm from "../components/ConsultationForm.vue";
 import Contact from "../components/Contact.vue";
 import Footer from "../components/Footer.vue";
 import Hero from "../components/Hero/Hero.vue";
@@ -25,7 +23,7 @@ if (!entranceReady) throw new Error("HomePage requires entranceReady");
         <Hero :entrance-ready="entranceReady" />
       </section>
 
-      <section id="about" class="relative z-10 rounded-t-[2.5rem] bg-white">
+      <section id="about" class="relative z-10 rounded-t-[2rem] bg-white">
         <div
           class="pointer-events-none absolute inset-x-0 top-0 h-px shadow-[0_-30px_60px_15px_rgba(0,0,0,0.25)]"
         ></div>
@@ -39,7 +37,6 @@ if (!entranceReady) throw new Error("HomePage requires entranceReady");
     <Process />
     <Contact id="contact" />
 
-    <ConsultationForm />
     <Footer />
   </div>
 </template>

@@ -16,6 +16,7 @@ import {
   createRouteTransitionState,
   didBackNavigationReachHome,
   getPinnedPageTop,
+  isOverlayRoute,
   ROUTE_TRANSITION_MODE,
   shouldAnimateRouteTransition,
   shouldRememberHomeScrollOnPopstate,
@@ -287,7 +288,7 @@ const captureOutgoingServiceStage = () => {
 const beginImplicitTransition = () => {
   if (routeState.active) return;
 
-  const direction = router.currentRoute.value.name === "service-detail"
+  const direction = isOverlayRoute(router.currentRoute.value.name)
     ? "forward"
     : "back";
   beginRouteTransition(direction);
@@ -473,7 +474,7 @@ async function handleLoaderDone() {
   // 重新量測一次 ScrollTrigger，避免 pin/trigger 位置跟實際版面對不上
   scheduleRefresh();
 
-  if (router.currentRoute.value.name === "service-detail") {
+  if (isOverlayRoute(router.currentRoute.value.name)) {
     focusDetailHeading();
   }
 }
@@ -640,7 +641,9 @@ const handleAfterLeave = (element: Element) => {
   finishTransition();
 
   if (returningHome) ScrollTrigger.refresh();
-  if (enteringPage?.dataset.routeKind === "detail") focusDetailHeading();
+  if (enteringPage && enteringPage.dataset.routeKind !== "home") {
+    focusDetailHeading();
+  }
   scheduleRefresh();
 };
 

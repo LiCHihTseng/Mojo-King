@@ -23,22 +23,28 @@
   <meta name="robots" content="index, follow, max-image-preview:large" />
 
   <!-- 網址若改成 www 或其他網域，canonical 與下面的 og:url 都要一起改 -->
-  <link rel="canonical" href="https://mojo-king.com/" />
+  <link rel="canonical" href="https://www.mojo-king.com/" />
 
-  <link rel="icon" type="image/avif" href="/mojo.avif" />
+  <!--
+    Google 搜尋結果的網站圖示。三個條件缺一不可：
+      1. 格式必須是 Google 支援的（PNG / ICO / SVG / JPEG / GIF / WebP）—— 不含 AVIF
+      2. 必須是正方形（原本指向的 mojo.avif 是 327x105 的橫式字標）
+      3. 網址要穩定，換檔名會讓 Google 重新抓取、圖示暫時消失
+  -->
+  <link rel="icon" type="image/png" href="/icon.png" />
   <meta name="theme-color" content="#252525" />
 
   <!-- ===== Open Graph（Facebook / LINE 分享預覽）===== -->
   <meta property="og:type" content="website" />
   <meta property="og:site_name" content="慕玖 MoJo King" />
   <meta property="og:locale" content="zh_TW" />
-  <meta property="og:url" content="https://mojo-king.com/" />
+  <meta property="og:url" content="https://www.mojo-king.com/" />
   <meta property="og:title" content="慕玖 MoJo King｜人資顧問・人才發展與雇用策略" />
   <meta
     property="og:description"
     content="20 年上市櫃人資長經驗的人資顧問，提供共享人資長、人才發展、雇用制度與主管培訓，協助企業把人才策略真正落地。"
   />
-  <meta property="og:image" content="https://mojo-king.com/og-image.png" />
+  <meta property="og:image" content="https://www.mojo-king.com/og-image.png" />
   <meta property="og:image:width" content="1270" />
   <meta property="og:image:height" content="845" />
   <meta property="og:image:alt" content="慕玖人資顧問王郁婷" />
@@ -50,7 +56,7 @@
     name="twitter:description"
     content="20 年上市櫃人資長經驗的人資顧問，提供共享人資長、人才發展、雇用制度與主管培訓。"
   />
-  <meta name="twitter:image" content="https://mojo-king.com/og-image.png" />
+  <meta name="twitter:image" content="https://www.mojo-king.com/og-image.png" />
 
   <!-- ===== 結構化資料：讓 Google 認得這是一間人資顧問公司 ===== -->
   <script type="application/ld+json">
@@ -59,8 +65,8 @@
     "@type": "ProfessionalService",
     "name": "慕玖股份有限公司 MoJo King",
     "alternateName": "慕玖人資顧問",
-    "url": "https://mojo-king.com/",
-    "image": "https://mojo-king.com/og-image.png",
+    "url": "https://www.mojo-king.com/",
+    "image": "https://www.mojo-king.com/og-image.png",
     "description": "專注於人力資源管理與組織發展的人資顧問公司，提供共享人資長、人才發展、雇用與招募制度、主管培訓與組織診斷服務。",
     "email": "services@mojo-king.com",
     "telephone": "+886932178741",

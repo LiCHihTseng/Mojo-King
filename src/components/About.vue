@@ -223,14 +223,14 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <section class="w-full bg-[#F9F8F6] text-[#1a1a1a]">
+  <section class="w-full bg-white text-[#1a1a1a]">
     <!-- ================= Desktop ：sticky scroll story ================= -->
     <div
       ref="wrapperRef"
       class="relative hidden min-h-[340vh] lg:block"
     >
       <div
-        class="sticky top-0 flex h-screen w-full items-center overflow-hidden px-8 lg:px-16"
+        class="sticky top-0 flex h-[100dvh] w-full items-center overflow-hidden px-8 lg:px-16"
       >
         <div class="mx-auto w-full max-w-[2000px]">
           <!-- 區塊標籤：固定顯示，不參與場景切換 -->
@@ -301,7 +301,7 @@ onBeforeUnmount(() => {
                       <path
                         d="M7.5 12.5l3 3 6-6.5"
                         stroke="white"
-                        stroke-width="2"
+                        stroke-width="1.5"
                         stroke-linecap="round"
                         stroke-linejoin="round"
                       />
@@ -403,7 +403,7 @@ onBeforeUnmount(() => {
               <path
                 d="M7.5 12.5l3 3 6-6.5"
                 stroke="white"
-                stroke-width="2"
+                stroke-width="1.5"
                 stroke-linecap="round"
                 stroke-linejoin="round"
               />

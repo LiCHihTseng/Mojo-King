@@ -150,3 +150,14 @@ test("initial route mount does not start an orphaned transition", () => {
   assert.equal(shouldAnimateRouteTransition(false, true), true);
   assert.equal(shouldAnimateRouteTransition(true, false), true);
 });
+
+test("the consultation page uses the same overlay transition as service detail", () => {
+  assert.equal(shouldAppOwnRouteScroll("consultation", "home"), true);
+  assert.equal(shouldAppOwnRouteScroll("home", "consultation"), true);
+  assert.equal(classifyRouteTransition("consultation", "home"), "forward");
+  assert.equal(classifyRouteTransition("home", "consultation"), "back");
+  assert.equal(
+    classifyRouteTransition("consultation", "service-detail"),
+    "direct",
+  );
+});

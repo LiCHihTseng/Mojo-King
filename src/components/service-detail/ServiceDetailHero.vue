@@ -223,7 +223,7 @@ onBeforeUnmount(() => {
   <header
     ref="heroRoot"
     data-detail-hero
-    class="relative isolate h-[clamp(360px,44svh,440px)] overflow-hidden bg-[#F9F8F6] text-white sm:h-[clamp(380px,32svh,420px)] lg:h-[42svh] lg:max-h-[520px]"
+    class="relative isolate h-[clamp(360px,44svh,440px)] overflow-hidden bg-white text-white sm:h-[clamp(380px,32svh,420px)] lg:h-[42svh] lg:max-h-[520px]"
   >
     <img
       ref="parallaxImage"
@@ -253,7 +253,7 @@ onBeforeUnmount(() => {
         </span>
         <button
           type="button"
-          class="inline-flex items-center gap-3 py-2 text-white transition-opacity hover:opacity-70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d87820] focus-visible:ring-offset-4 focus-visible:ring-offset-transparent"
+          class="inline-flex items-center gap-3 py-2 text-white transition-opacity hover:opacity-70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF891D] focus-visible:ring-offset-4 focus-visible:ring-offset-transparent"
           @click="returnToServices"
         >
           <span aria-hidden="true">←</span>
@@ -266,13 +266,6 @@ onBeforeUnmount(() => {
         class="mt-auto grid items-end gap-5 pt-6 lg:grid-cols-12 lg:gap-8"
       >
         <div class="lg:col-span-10">
-          <div
-            class="mb-3 flex items-center gap-4 text-[11px] font-medium tracking-[0.18em] text-white/85 md:text-xs"
-          >
-            <span>{{ service.index }}</span>
-            <span class="h-px w-10 bg-[#d87820]" aria-hidden="true" />
-            <span>{{ service.tag }}</span>
-          </div>
           <h1
             :id="`service-${service.slug}-title`"
             data-detail-heading
@@ -280,7 +273,6 @@ onBeforeUnmount(() => {
             class="text-[clamp(2.1rem,3.35vw,3.75rem)] font-medium leading-[1.02] tracking-[-0.05em] text-balance focus:outline-none"
           >
             <span data-detail-title-line class="block lg:whitespace-nowrap">{{ service.titleLine1 }}</span>
-            <span data-detail-title-line class="block lg:whitespace-nowrap">{{ service.titleLine2 }}</span>
           </h1>
           <p
             class="mt-3 w-full text-sm leading-6 text-white/90 sm:mt-4 sm:text-base md:leading-7 lg:max-w-5xl"
@@ -290,9 +282,9 @@ onBeforeUnmount(() => {
         </div>
 
         <a
-          href="/#consultation-form"
+          href="/#contact"
           data-detail-hero-cta
-          class="group inline-flex w-fit items-center justify-between gap-8 border-b border-white pb-3 text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d87820] focus-visible:ring-offset-4 focus-visible:ring-offset-transparent md:text-base lg:col-span-2 lg:justify-self-end"
+          class="group inline-flex w-fit items-center justify-between gap-8 border-b border-white pb-3 text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF891D] focus-visible:ring-offset-4 focus-visible:ring-offset-transparent md:text-base lg:col-span-2 lg:justify-self-end"
         >
           預約諮詢
           <span aria-hidden="true" class="transition-transform duration-300 group-hover:translate-x-1">

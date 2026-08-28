@@ -26,7 +26,6 @@ interface CardData {
   slug: ServiceSlug;
   tag: string;
   titleLine1: string;
-  titleLine2: string;
   summary: string;
   image: string;
 }
@@ -40,8 +39,8 @@ interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  backgroundImage:
-    "https://images.unsplash.com/photo-1600880292203-757bb62b4baf?q=80&w=2000&auto=format&fit=crop",
+  // intro 的圖會展開成第一個場景，所以必須跟 services[0] 是同一張
+  backgroundImage: services[0]?.image ?? "",
   introLead: "人才",
   introMiddle: "有策略。",
   introEnd: "組織有未來。",
@@ -487,7 +486,7 @@ onBeforeUnmount(() => {
 
               <h3
                 class="max-w-[15ch] text-balance text-[clamp(2.15rem,8.4vw,3.35rem)] font-semibold leading-[1.08] tracking-[-0.055em] text-white lg:text-[clamp(3.35rem,5.2vw,6rem)]">
-                {{ firstCard.titleLine1 }}<br />{{ firstCard.titleLine2 }}
+                {{ firstCard.titleLine1 }}
               </h3>
 
               <p
@@ -527,7 +526,7 @@ onBeforeUnmount(() => {
                   :id="`service-scene-title-${index}`"
                   class="max-w-[15ch] text-balance text-[clamp(2.15rem,8.4vw,4.5rem)] font-semibold leading-[1.08] tracking-[-0.055em] text-white md:text-[clamp(3rem,5.2vw,6rem)]"
                 >
-                  {{ card.titleLine1 }}<br />{{ card.titleLine2 }}
+                  {{ card.titleLine1 }}
                 </h3>
 
                 <p class="mt-5 max-w-[34rem] text-pretty text-[clamp(1rem,2.4vw,1.25rem)] leading-[1.75] text-white md:mt-7 md:text-[clamp(1rem,1.3vw,1.3rem)]">

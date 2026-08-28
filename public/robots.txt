@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://mojo-king.com/sitemap.xml
+Sitemap: https://www.mojo-king.com/sitemap.xml

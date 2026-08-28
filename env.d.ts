@@ -9,3 +9,12 @@ declare module "*.vue" {
   
     export default component;
   }
+
+interface ImportMetaEnv {
+  /** GA4 評估 ID（G-XXXXXXXXXX）。沒設就完全不載入 GA。 */
+  readonly VITE_GA_ID?: string;
+}
+
+interface ImportMeta {
+  readonly env: ImportMetaEnv;
+}

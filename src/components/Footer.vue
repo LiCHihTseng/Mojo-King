@@ -113,7 +113,7 @@ const handleFooterLinkClick = (event: MouseEvent, hash: string) => {
               <ul class="flex flex-col gap-2 text-sm text-white/70 sm:text-base lg:text-lg">
                 <li><a href="#about" class="transition-colors hover:text-[#B55F00]" @click="handleFooterLinkClick($event, '#about')">關於慕玖</a></li>
                 <li><a href="#service" class="transition-colors hover:text-[#B55F00]" @click="handleFooterLinkClick($event, '#service')">服務內容</a></li>
-                <li><a href="#consultation-form" class="transition-colors hover:text-[#B55F00]" @click="handleFooterLinkClick($event, '#consultation-form')">聯絡我們</a></li>
+                <li><a href="#contact" class="transition-colors hover:text-[#B55F00]" @click="handleFooterLinkClick($event, '#contact')">聯絡我們</a></li>
               </ul>
             </div>
 

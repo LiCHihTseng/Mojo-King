@@ -435,13 +435,13 @@ onBeforeUnmount(() => {
     <!-- Navigation -->
     <nav ref="navRef" class="fixed inset-x-0 top-0 z-[70] mt-3 px-3 sm:mt-4 sm:px-6 lg:mt-5 lg:px-12 xl:px-16">
       <div
-        class="relative mx-auto flex h-14 w-full max-w-full items-center justify-between rounded-md bg-transparent px-2 sm:h-16 sm:px-3 lg:h-20 lg:px-0"
+        class="relative mx-auto flex h-14 w-full max-w-full items-center justify-between rounded-[4px] bg-transparent px-2 sm:h-16 sm:px-3 lg:h-20 lg:px-0"
       >
         <!-- 左：Logo -->
         <div ref="brandRef" class="group flex items-center gap-3">
           <a
             href="/"
-            class="flex shrink-0 items-center justify-center rounded-sm transition-opacity hover:opacity-70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#B55F00] focus-visible:ring-offset-2"
+            class="flex shrink-0 items-center justify-center rounded-[4px] transition-opacity hover:opacity-70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#B55F00] focus-visible:ring-offset-2"
             aria-label="回到首頁最上方"
             @click="handleBrandClick"
           >
@@ -484,8 +484,8 @@ onBeforeUnmount(() => {
                 </span>
               </a>
 
-              <a href="#consultation-form" class="relative inline-flex min-h-12 items-center justify-center px-4 py-2"
-                @click="handleNavLinkClick($event, '#consultation-form')"
+              <a href="#contact" class="relative inline-flex min-h-12 items-center justify-center px-4 py-2"
+                @click="handleNavLinkClick($event, '#contact')"
                 @mouseenter="handleLinkEnter('contact', $event)" @mouseleave="handleLinkLeave">
                 <span class="nav-group inline-flex flex-col items-center">
                   <span class="nav-label whitespace-nowrap text-lg font-medium tracking-[0.08em] text-white">
@@ -505,12 +505,12 @@ onBeforeUnmount(() => {
         <div ref="rightControlsRef" class="grid place-items-center">
           <!-- CTA：尚未捲到 About 時顯示 -->
           <div ref="ctaRef" class="col-start-1 row-start-1 justify-self-end">
-            <HeroCTA :text="ctaText" href="#consultation-form"    variant="solid" bg-color="#ffffff" radius="4px" text-color="#252525" />
+            <HeroCTA :text="ctaText" href="#contact"    variant="solid" bg-color="#ffffff" radius="4px" text-color="#252525" />
           </div>
 
           <!-- Menu 按鈕：捲到 About 之後（手機版則一律）顯示 -->
           <button ref="hamburgerRef" type="button" :style="menuButtonStyle"
-            class="col-start-1 row-start-1 flex h-11 w-11 items-center justify-center rounded-sm p-0 outline-none justify-self-end focus-visible:ring-2 focus-visible:ring-[#B55F00] focus-visible:ring-offset-2 lg:w-[200px] lg:justify-between lg:px-4"
+            class="col-start-1 row-start-1 flex h-11 w-11 items-center justify-center rounded-[4px] p-0 outline-none justify-self-end focus-visible:ring-2 focus-visible:ring-[#B55F00] focus-visible:ring-offset-2 lg:w-[200px] lg:justify-between lg:px-4"
             :aria-expanded="isDrawerOpen" aria-controls="navigation-drawer"
             :aria-label="isDrawerOpen ? '關閉選單' : '開啟選單'" @click="toggleDrawer">
             <!-- Menu icon ↔ X -->
@@ -570,14 +570,14 @@ onBeforeUnmount(() => {
           {{ serviceText }}
         </a>
 
-        <a href="#consultation-form"
+        <a href="#contact"
           class="drawer-link text-2xl font-semibold tracking-wide text-white transition-colors hover:text-[#B55F00] sm:text-3xl"
-          @click="handleNavLinkClick($event, '#consultation-form')">
+          @click="handleNavLinkClick($event, '#contact')">
           {{ contactText }}
         </a>
 
         <div class="drawer-cta">
-          <HeroCTA :text="ctaText" href="#consultation-form" />
+          <HeroCTA :text="ctaText" href="#contact" />
         </div>
       </div>
     </aside>

@@ -38,7 +38,7 @@ interface Props {
 
 const props = withDefaults(defineProps<Props>(), {
   text: "Book a Consultation",
-  href: "#consultation-form",
+  href: "#contact",
   variant: "solid",
   bgColor: "#F2F2EF",
   textColor: "#171717",
@@ -236,7 +236,7 @@ onBeforeUnmount(() => {
           <path
             d="M4 10H16M12 6L16 10L12 14"
             stroke="currentColor"
-            stroke-width="1.4"
+            stroke-width="1.6"
             stroke-linecap="round"
             stroke-linejoin="round"
           />
@@ -251,7 +251,7 @@ onBeforeUnmount(() => {
           <path
             d="M4 10H16M12 6L16 10L12 14"
             stroke="currentColor"
-            stroke-width="1.4"
+            stroke-width="1.6"
             stroke-linecap="round"
             stroke-linejoin="round"
           />

@@ -1,23 +1,28 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://mojo-king.com/</loc>
+    <loc>https://www.mojo-king.com/</loc>
     <changefreq>monthly</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://mojo-king.com/services/hr-consulting</loc>
+    <loc>https://www.mojo-king.com/services/hr-consulting</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://mojo-king.com/services/fractional-chro</loc>
+    <loc>https://www.mojo-king.com/services/fractional-chro</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://mojo-king.com/services/custom-training</loc>
+    <loc>https://www.mojo-king.com/services/custom-training</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.mojo-king.com/consultation</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
   </url>
 </urlset>

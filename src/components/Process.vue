@@ -282,7 +282,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <section ref="sectionRef" class="relative min-h-dvh overflow-hidden bg-[#F9F8F6] py-20 sm:py-28 lg:py-36">
+  <section ref="sectionRef" class="relative min-h-dvh overflow-hidden bg-white py-20 sm:py-28 lg:py-36">
 
 
     <div class="relative mx-auto w-full max-w-[1400px] px-5 sm:px-8">
@@ -331,7 +331,7 @@ onBeforeUnmount(() => {
                 : 'md:col-start-1 md:row-start-1 md:pr-4'
               " style="will-change: transform, opacity;">
               <span
-                class="inline-flex items-center rounded-md bg-[#B55F00]/10 px-3 py-1.5 text-xs font-medium text-[#B55F00] sm:text-sm">
+                class="inline-flex items-center rounded-[4px] bg-[#B55F00]/10 px-3 py-1.5 text-xs font-medium text-[#B55F00] sm:text-sm">
                 {{ step.label }}
               </span>
 

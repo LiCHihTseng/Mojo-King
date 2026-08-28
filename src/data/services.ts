@@ -1,3 +1,12 @@
+/*
+ * 服務照片。首頁 Service 區塊的場景圖與各服務詳情頁的 hero 都吃這裡，
+ * 換圖只要改這三行；Service.vue 的 backgroundImage 也是從 services[0]
+ * 取值，不必另外同步。
+ */
+import serviceImage1 from "../assets/Service_1.avif";
+import serviceImage2 from "../assets/Service_2.avif";
+import serviceImage3 from "../assets/Service_3.avif";
+
 export type ServiceSlug =
   | "hr-consulting"
   | "fractional-chro"
@@ -28,7 +37,6 @@ export interface ServiceDefinition {
   index: "01" | "02" | "03";
   tag: string;
   titleLine1: string;
-  titleLine2: string;
   summary: string;
   image: string;
   detailIntro: string;
@@ -40,19 +48,15 @@ export interface FiveDStep {
   chinese: string;
 }
 
-export const DEFAULT_SERVICE_HERO_IMAGE =
-  "https://images.unsplash.com/photo-1600880292203-757bb62b4baf?q=80&w=2000&auto=format&fit=crop";
-
 export const services: ServiceDefinition[] = [
   {
     slug: "hr-consulting",
     index: "01",
     tag: "人資顧問",
     titleLine1: "人資顧問",
-    titleLine2: "",
     summary:
       "聚焦關鍵管理議題與制度建置，從診斷問題、凝聚共識到陪伴導入，打造符合企業發展階段的人才管理方案。",
-    image: DEFAULT_SERVICE_HERO_IMAGE,
+    image: serviceImage1,
     detailIntro:
       "顧問不只是提供一套標準答案。我們從釐清經營問題開始，協助企業建立主管共識、設計適合組織現況的導入方式，並持續追蹤實際運作情形，讓制度不只存在於文件裡，而是真正成為支持決策與管理的工具。",
     sections: [
@@ -94,10 +98,9 @@ export const services: ServiceDefinition[] = [
     index: "02",
     tag: "共享人資長",
     titleLine1: "共享人資長",
-    titleLine2: "",
     summary:
       "定期參與經營與人資決策，從策略、組織與人才角度整合關鍵議題，成為經營團隊長期且可信賴的人資夥伴。",
-    image: "https://picsum.photos/seed/svc-2/1920/1280",
+    image: serviceImage2,
     detailIntro:
       "共享人資長是經營團隊的策略人資夥伴，定期參與重要決策，協助企業整合組織、制度與人才議題，持續推動關鍵制度，同時培育內部人資與主管團隊。",
     sections: [
@@ -133,10 +136,9 @@ export const services: ServiceDefinition[] = [
     index: "03",
     tag: "客製化課程設計",
     titleLine1: "客製化課程設計",
-    titleLine2: "",
     summary:
       "從企業情境、學員特性與管理痛點出發，客製案例、演練與工具，讓學習真正轉化為工作現場可運用的管理行為。",
-    image: "https://picsum.photos/seed/svc-3/1920/1280",
+    image: serviceImage3,
     detailIntro:
       "課程不從既有教材開始，而是從企業真正面對的管理問題開始。我們透過顧問式診斷、情境案例、互動引導、工具練習與課後應用，讓學習轉化為工作現場可以持續使用的管理行為。",
     sections: [

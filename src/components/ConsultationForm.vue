@@ -152,7 +152,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <section id="consultation-form" ref="sectionRef" class="grid lg:min-h-screen lg:grid-cols-2">
+  <section ref="sectionRef" class="grid lg:min-h-screen lg:grid-cols-2">
     <!-- 左側：圖片（固定吃滿一個螢幕高度，不會被圖片本身的長寬比撐開；
          桌機版用 sticky，如果右側表單內容比一個螢幕高，圖片會固定停在畫面上。
          圖片本身比容器高一截、絕對定位，讓 parallax 上下移動時不會露出空白邊） -->
@@ -170,7 +170,11 @@ onBeforeUnmount(() => {
     <div class="flex items-center bg-[#F9F8F6] px-8 py-20 sm:px-14 lg:px-20 lg:py-24">
       <div class="mx-auto w-full max-w-full">
         <!-- 標題 -->
-        <h2 class="text-3xl font-medium leading-tight text-[#252525] sm:text-4xl">
+        <h2
+          data-detail-heading
+          tabindex="-1"
+          class="text-3xl font-medium leading-tight text-[#252525] focus:outline-none sm:text-4xl"
+        >
           一次對話，不是一個承諾。<br />
           讓我們一起找到最適合你的方向。
         </h2>

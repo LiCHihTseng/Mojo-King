@@ -1,5 +1,6 @@
 import { createApp } from "vue";
 import App from "./App.vue";
+import { initAnalytics } from "./lib/analytics";
 import { router } from "./router";
 import "./style.css";
 import "./font.css";
@@ -21,6 +22,9 @@ import "./font.css";
 if ("scrollRestoration" in history) {
   history.scrollRestoration = "manual";
 }
+
+// 要在掛載之前初始化，router 的第一次 afterEach 才送得出 page_view
+initAnalytics();
 
 createApp(App).use(router).mount("#app");
 

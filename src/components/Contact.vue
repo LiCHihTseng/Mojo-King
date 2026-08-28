@@ -11,15 +11,17 @@
  *   - 白底被圓形裁切後，在深色卡片上直接讀成一個白色圓盤，
  *     不能用 mix-blend-multiply：在深色底上它會把人物本身也一起壓暗。
  */
-import { nextTick, onBeforeUnmount, onMounted, ref } from "vue";
+import { inject, nextTick, onBeforeUnmount, onMounted, ref } from "vue";
+import { useRouter } from "vue-router";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-// 註：CTA 目前被註解掉，要恢復下方的「預約諮詢」按鈕時，
-// 一併把這行 import 補回來：
-// import HeroCTA from "./Hero/HeroCTA.vue";
+import HeroCTA from "./Hero/HeroCTA.vue";
+import { routeTransitionKey } from "../lib/appShell";
 import contactImg from "../assets/Contact.avif";
 
 gsap.registerPlugin(ScrollTrigger);
+
+const CONSULTATION_PATH = "/consultation";
 
 interface Props {
   heading?: string;
@@ -46,13 +48,38 @@ const props = withDefaults(defineProps<Props>(), {
   phone: "+886 932 178 741",
   linkedinUrl: "",
   linkedinLabel: "Connect via LinkedIn",
-  ctaText: "預約諮詢",
+  ctaText: "填寫表單",
   image: contactImg,
   imageAlt: "慕玖執行長郁婷",
 });
 
 /** tel: 連結不能有空格 */
 const phoneHref = () => `tel:${props.phone.replace(/\s+/g, "")}`;
+
+/* ----------------------------------
+   「填寫表單」：走 App.vue 的覆蓋式轉場把 /consultation 由下往上推出來，
+   跟 Service 卡片進入服務詳情頁是同一套（含 cmd/ctrl 點擊開新分頁）。
+---------------------------------- */
+
+const router = useRouter();
+const routeTransition = inject(routeTransitionKey, null);
+
+const isPrimaryNavigationClick = (event: MouseEvent) =>
+  event.button === 0 &&
+  !event.metaKey &&
+  !event.ctrlKey &&
+  !event.shiftKey &&
+  !event.altKey;
+
+const handleConsultationClick = (event: MouseEvent) => {
+  if (!isPrimaryNavigationClick(event)) return;
+
+  event.preventDefault();
+  void (
+    routeTransition?.navigateToService(CONSULTATION_PATH) ??
+    router.push(CONSULTATION_PATH)
+  );
+};
 
 /* ----------------------------------
    Refs
@@ -183,7 +210,7 @@ onBeforeUnmount(() => {
 <template>
   <section
     ref="sectionRef"
-    class="flex min-h-screen w-full items-center bg-[#F9F8F6] px-5 py-12 sm:px-8 lg:px-10 lg:py-16"
+    class="flex min-h-screen w-full items-center bg-white px-5 py-12 sm:px-8 lg:px-10 lg:py-16"
   >
     <div
       class="mx-auto flex w-full max-w-[1600px] flex-col-reverse gap-8 rounded-[2rem] bg-[#252525] px-6 py-14 shadow-[0_30px_60px_-25px_rgba(0,0,0,0.45)] sm:px-10 sm:py-16 lg:flex-row lg:items-center lg:gap-20 lg:px-20 lg:py-20"
@@ -214,8 +241,8 @@ onBeforeUnmount(() => {
               class="flex w-fit items-center gap-3 transition-colors hover:text-[#FF891D]"
             >
               <svg viewBox="0 0 24 24" fill="none" class="h-[18px] w-[18px] shrink-0" aria-hidden="true">
-                <rect x="2.75" y="5.25" width="18.5" height="13.5" rx="2" stroke="currentColor" stroke-width="1.5" />
-                <path d="M3.5 7l8.5 6 8.5-6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                <rect x="2.75" y="5.25" width="18.5" height="13.5" rx="2" stroke="currentColor" stroke-width="1.65" />
+                <path d="M3.5 7l8.5 6 8.5-6" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" />
               </svg>
               {{ email }}
             </a>
@@ -226,7 +253,7 @@ onBeforeUnmount(() => {
               <svg viewBox="0 0 24 24" fill="none" class="h-[18px] w-[18px] shrink-0" aria-hidden="true">
                 <path
                   d="M6.5 3.5h3l1.5 4-2 1.5a12 12 0 0 0 6 6l1.5-2 4 1.5v3a2 2 0 0 1-2.2 2A17 17 0 0 1 4.5 5.7 2 2 0 0 1 6.5 3.5Z"
-                  stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
+                  stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round"
                 />
               </svg>
               {{ phone }}
@@ -239,24 +266,24 @@ onBeforeUnmount(() => {
               class="flex w-fit items-center gap-3 transition-colors hover:text-[#FF891D]"
             >
               <svg viewBox="0 0 24 24" fill="none" class="h-[18px] w-[18px] shrink-0" aria-hidden="true">
-                <circle cx="18" cy="5.5" r="2.5" stroke="currentColor" stroke-width="1.5" />
-                <circle cx="6" cy="12" r="2.5" stroke="currentColor" stroke-width="1.5" />
-                <circle cx="18" cy="18.5" r="2.5" stroke="currentColor" stroke-width="1.5" />
-                <path d="M8.3 10.8 15.7 6.8M8.3 13.2l7.4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+                <circle cx="18" cy="5.5" r="2.5" stroke="currentColor" stroke-width="1.65" />
+                <circle cx="6" cy="12" r="2.5" stroke="currentColor" stroke-width="1.65" />
+                <circle cx="18" cy="18.5" r="2.5" stroke="currentColor" stroke-width="1.65" />
+                <path d="M8.3 10.8 15.7 6.8M8.3 13.2l7.4 4" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" />
               </svg>
               {{ linkedinLabel }}
             </a>
           </div>
         </div>
 
-        <!-- <div ref="ctaRef" class="mt-10">
+        <div ref="ctaRef" class="mt-10">
           <HeroCTA
             :text="ctaText"
-            href="#consultation-form"
-            bg-color="#FF891D"
-            text-color="#1A1A1A"
+            :href="CONSULTATION_PATH"
+            variant="solid" bg-color="#ffffff" radius="4px" text-color="#252525"
+            @click="handleConsultationClick"
           />
-        </div> -->
+        </div>
       </div>
 
       <!-- 右：人像。照片本身是白底，圓形裁切後邊緣直接就是白色，

@@ -38,11 +38,11 @@ test("valid detail output exposes the hero, editorial sections, and one shared 5
   assert.match(html, /data-detail-hero/);
   assert.match(html, /data-parallax-image/);
   assert.match(html, /data-detail-heading/);
-  assert.match(html, /從經營問題出發，/);
+  assert.match(html, /我們從釐清經營問題開始/);
   assert.match(html, /六項顧問服務範疇/);
   assert.equal(html.match(/Define &amp; Agree/g)?.length, 1);
   assert.equal(html.match(/Disengage &amp; Review/g)?.length, 1);
-  assert.match(html, /href="\/#consultation-form"/);
+  assert.match(html, /href="\/#contact"/);
 });
 
 test("the server-rendered hero is edge-safe before client parallax initializes", async () => {
@@ -94,12 +94,16 @@ test("service detail stays single-column through tablet widths", async () => {
     await renderDetail("custom-training"),
   ].join("");
 
-  assert.match(html, /data-detail-section[^>]+class="[^"]*lg:grid-cols-12/);
-  assert.match(html, /data-detail-prose[^>]+class="[^"]*lg:grid-cols-2/);
+  // 區塊本身不再是分欄格線：標題直接堆在內容上方，
+  // 多欄只出現在「內容本身真的有兩個維度」的地方，而且一律等到 lg 才展開。
+  assert.doesNotMatch(html, /data-detail-section[^>]+class="[^"]*grid-cols-12/);
   assert.match(html, /data-detail-card-list[^>]+class="[^"]*lg:grid-cols-2/);
-  assert.doesNotMatch(html, /data-detail-section[^>]+class="[^"]*md:grid-cols-12/);
-  assert.doesNotMatch(html, /data-detail-prose[^>]+class="[^"]*md:grid-cols-2/);
+  assert.match(html, /data-detail-numbered-row[^>]+class="[^"]*lg:grid-cols-/);
+  // 連續內文是單欄並限制行長，不是被擠進半個版面的兩欄格線
+  assert.match(html, /data-detail-prose[^>]+class="[^"]*max-w-\[40em\]/);
+  assert.doesNotMatch(html, /data-detail-prose[^>]+class="[^"]*grid-cols-2/);
   assert.doesNotMatch(html, /data-detail-card-list[^>]+class="[^"]*md:grid-cols-2/);
+  assert.doesNotMatch(html, /data-detail-numbered-row[^>]+class="[^"]*md:grid-cols-\[/);
 });
 
 test("detail copy uses the shared near-full-width container", async () => {
@@ -129,7 +133,6 @@ test("detail layout defers wide title and numbered-row grids until large screens
     html,
     /data-detail-numbered-row[^>]+class="[^"]*lg:grid-cols-/,
   );
-  assert.match(html, /data-detail-nav-contrast/);
 });
 
 test("each approved slug renders its own service-specific editorial content", async () => {
@@ -150,5 +153,5 @@ test("unknown slugs render a stable not-found state without service fallback", a
   assert.match(html, /找不到這項服務/);
   assert.match(html, /href="\/#service"/);
   assert.doesNotMatch(html, /data-detail-hero/);
-  assert.doesNotMatch(html, /從經營問題出發，/);
+  assert.doesNotMatch(html, /我們從釐清經營問題開始/);
 });

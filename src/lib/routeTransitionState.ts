@@ -2,6 +2,14 @@ export type RouteTransitionDirection = "direct" | "forward" | "back";
 
 export const ROUTE_TRANSITION_MODE = "in-out" as const;
 
+/**
+ * 從首頁「往上推出來」的覆蓋型頁面。它們共用 App.vue 那套 forward/back
+ * 轉場（新頁 yPercent 100 → 0），也都把捲動位置交給 App.vue 管。
+ */
+export function isOverlayRoute(name: unknown) {
+  return name === "service-detail" || name === "consultation";
+}
+
 export function getPinnedPageTop(scrollY: number) {
   return scrollY > 0 ? -scrollY : 0;
 }
@@ -35,7 +43,7 @@ export function createRouteTransitionVisualPlan(
 }
 
 export function shouldAppOwnRouteScroll(toName: unknown, fromName: unknown) {
-  return toName === "service-detail" || fromName === "service-detail";
+  return isOverlayRoute(toName) || isOverlayRoute(fromName);
 }
 
 export function classifyHistoryDirection(
@@ -49,8 +57,8 @@ export function classifyHistoryDirection(
 }
 
 export function classifyRouteTransition(toName: unknown, fromName: unknown) {
-  if (toName === "service-detail" && fromName === "home") return "forward";
-  if (toName === "home" && fromName === "service-detail") return "back";
+  if (isOverlayRoute(toName) && fromName === "home") return "forward";
+  if (toName === "home" && isOverlayRoute(fromName)) return "back";
   return "direct";
 }
 
