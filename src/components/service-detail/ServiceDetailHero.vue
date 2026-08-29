@@ -246,14 +246,14 @@ onBeforeUnmount(() => {
     >
       <nav
         aria-label="服務詳情導覽"
-        class="flex items-center justify-between border-b border-white/35 pb-4 text-[11px] font-medium tracking-[0.16em] drop-shadow-md md:text-xs"
+        class="flex items-center justify-between border-b border-white/35 pb-4 text-eyebrow drop-shadow-md"
       >
         <span class="uppercase">
           MOJO KING
         </span>
         <button
           type="button"
-          class="inline-flex items-center gap-3 py-2 text-white transition-opacity hover:opacity-70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF891D] focus-visible:ring-offset-4 focus-visible:ring-offset-transparent"
+          class="inline-flex items-center gap-3 py-2 text-white transition-opacity hover:opacity-70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-4 focus-visible:ring-offset-transparent"
           @click="returnToServices"
         >
           <span aria-hidden="true">←</span>
@@ -270,12 +270,12 @@ onBeforeUnmount(() => {
             :id="`service-${service.slug}-title`"
             data-detail-heading
             tabindex="-1"
-            class="text-[clamp(2.1rem,3.35vw,3.75rem)] font-medium leading-[1.02] tracking-[-0.05em] text-balance focus:outline-none"
+            class="text-h1 text-balance focus:outline-none"
           >
             <span data-detail-title-line class="block lg:whitespace-nowrap">{{ service.titleLine1 }}</span>
           </h1>
           <p
-            class="mt-3 w-full text-sm leading-6 text-white/90 sm:mt-4 sm:text-base md:leading-7 lg:max-w-5xl"
+            class="mt-3 w-full text-body text-white/90 sm:mt-4 lg:max-w-5xl"
           >
             {{ service.summary }}
           </p>
@@ -284,7 +284,7 @@ onBeforeUnmount(() => {
         <a
           href="/#contact"
           data-detail-hero-cta
-          class="group inline-flex w-fit items-center justify-between gap-8 border-b border-white pb-3 text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF891D] focus-visible:ring-offset-4 focus-visible:ring-offset-transparent md:text-base lg:col-span-2 lg:justify-self-end"
+          class="group inline-flex w-fit items-center justify-between gap-8 border-b border-white pb-3 text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-4 focus-visible:ring-offset-transparent md:text-base lg:col-span-2 lg:justify-self-end"
         >
           預約諮詢
           <span aria-hidden="true" class="transition-transform duration-300 group-hover:translate-x-1">

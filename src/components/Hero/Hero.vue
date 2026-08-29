@@ -186,7 +186,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <section ref="sectionRef" class="relative h-full min-h-[100dvh] overflow-hidden">
+  <section ref="sectionRef" class="relative h-full min-h-[100svh] overflow-hidden">
     <!-- 群組容器：照片 + 所有遮罩，一起被 GSAP 縮放，永遠對齊 -->
     <div ref="visualGroupRef" class="absolute inset-0" style="transform-origin: center center;">
       <img
@@ -198,7 +198,7 @@ onBeforeUnmount(() => {
         fetchpriority="high"
       />
 
-      <div ref="dimOverlayRef" class="pointer-events-none absolute inset-0 z-[5] bg-[#1f1f1f] opacity-0"></div>
+      <div ref="dimOverlayRef" class="pointer-events-none absolute inset-0 z-[5] bg-ink opacity-0"></div>
       <!-- 桌機：左→右壓暗。文字在左、人像在右，兩邊互不干擾 -->
       <div class="pointer-events-none absolute inset-0 z-0 hidden bg-gradient-to-r from-black via-black/65 to-transparent lg:block"></div>
 
@@ -214,7 +214,7 @@ onBeforeUnmount(() => {
 
     <!--
       內容容器：標題、說明文字、CTA 共用同一組水平內距，
-      並用 max-w-[2000px] 對齊下方 About 的容器，捲動接縫才不會歪。
+      並用 max-w-wide 對齊下方 About 的容器，捲動接縫才不會歪。
 
       垂直定位分兩種：
       - lg 以上：justify-center，人像在右、文字在左，互不重疊。
@@ -225,7 +225,7 @@ onBeforeUnmount(() => {
     -->
     <div
       ref="contentRef"
-      class="relative z-20 mx-auto flex h-full min-h-[100dvh] w-full max-w-[2000px] flex-col justify-end px-8 pb-[5vh] sm:pb-[7vh] lg:justify-center lg:px-16 lg:pb-0"
+      class="relative z-20 mx-auto flex h-full min-h-[100svh] w-full max-w-wide flex-col justify-end px-8 pb-[5svh] sm:pb-[7svh] lg:justify-center lg:px-16 lg:pb-0"
       style="transform-origin: left center;"
     >
       <div class="flex w-full min-w-0 max-w-full flex-col">
@@ -238,7 +238,7 @@ onBeforeUnmount(() => {
             改由 max-w-[13ch] 控制每行字數，超過就換行；
             text-balance 讓換行後不會掉出一個孤字。
           -->
-          <h1 class="max-w-[13ch] text-balance text-5xl font-medium leading-[0.98] tracking-[-0.045em] text-white sm:text-6xl md:text-7xl xl:text-8xl">
+          <h1 class="max-w-[13ch] text-balance text-display text-white">
             <!-- <span :ref="(el) => setHeadingRef(el as Element | null, 0)" class="block">
               {{ headingLine1 }}
             </span> -->
@@ -256,7 +256,7 @@ onBeforeUnmount(() => {
 
           <p
             ref="descriptionRef"
-            class="max-w-[52ch] text-base leading-7 text-white/75 sm:text-lg sm:leading-8"
+            class="max-w-[52ch] text-body-lg text-white/75"
           >
             {{ description }}
           </p>
@@ -264,7 +264,7 @@ onBeforeUnmount(() => {
 
         <div ref="ctaWrapRef" class="mt-6 sm:mt-8">
           <HeroCTA :text="ctaText" href="#contact"  variant="solid" bg-color="#ffffff" radius="4px"
-                text-color="#252525"/>
+                text-color="#1c1b17"/>
         </div>
       </div>
     </div>

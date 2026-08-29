@@ -282,16 +282,16 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <section ref="sectionRef" class="relative min-h-dvh overflow-hidden bg-white py-20 sm:py-28 lg:py-36">
+  <section ref="sectionRef" class="relative min-h-svh overflow-hidden bg-white py-20 sm:py-28 lg:py-36">
 
 
-    <div class="relative mx-auto w-full max-w-[1400px] px-5 sm:px-8">
+    <div class="relative mx-auto w-full max-w-8xl px-5 sm:px-8">
       <!-- 標題區 -->
       <div ref="headRef" class="mb-14 text-left sm:mb-20 md:text-center lg:mb-28">
-        <p class="text-sm font-medium tracking-[0.2em] text-[#B55F00] sm:text-base">
+        <p class="text-eyebrow text-brand-ink">
           {{ eyebrow }}
         </p>
-        <h2 class="mt-4 text-[1.75rem] font-medium leading-[1.25] tracking-[-0.01em] text-[#1a1a1a] sm:text-3xl sm:tracking-normal md:text-4xl lg:text-5xl">
+        <h2 class="mt-4 text-h2 text-ink">
           {{ heading }}
         </h2>
       </div>
@@ -300,21 +300,21 @@ onBeforeUnmount(() => {
       <div ref="timelineWrapRef" class="relative">
         <!-- 底線（還沒走到的部分）：top / height 由 JS 量測後填入 -->
         <!-- 底線 -->
-        <div ref="trackLineRef" class="absolute left-2 w-px bg-[#D9873A]/20 md:left-[calc(50%-0.5px)]" aria-hidden="true">
+        <div ref="trackLineRef" class="absolute left-2 w-px bg-brand/20 md:left-[calc(50%-0.5px)]" aria-hidden="true">
         </div>
 
         <!-- 進度線 -->
         <div ref="progressLineRef"
-          class="absolute left-2 w-px bg-gradient-to-b from-[#B55F00] to-[#D9873A] md:left-[calc(50%-0.5px)]"
+          class="absolute left-2 w-px bg-gradient-to-b from-brand-ink to-brand md:left-[calc(50%-0.5px)]"
           style="transform: scaleY(0); transform-origin: top center;" aria-hidden="true">
         </div>
 
         <!-- 四顆球：一開始就全部在畫面上，各自停在自己步驟的起點 -->
         <div v-for="ballIndex in steps.length" :key="`ball-${ballIndex}`"
           :ref="(el) => setBallRef(el as Element | null, ballIndex - 1)"
-          class="pointer-events-none absolute left-2 top-0 z-20 flex h-4 w-4 items-center justify-center rounded-full bg-[#F9F8F6] ring-4 ring-[#F9F8F6] md:left-1/2"
+          class="pointer-events-none absolute left-2 top-0 z-20 flex h-4 w-4 items-center justify-center rounded-full bg-surface-alt ring-4 ring-surface-alt md:left-1/2"
           style="will-change: transform;" aria-hidden="true">
-          <span class="h-2.5 w-2.5 rounded-full bg-[#B55F00]"></span>
+          <span class="h-2.5 w-2.5 rounded-full bg-brand-ink"></span>
         </div>
 
         <ol class="relative space-y-16 sm:space-y-32 lg:space-y-48">
@@ -331,15 +331,15 @@ onBeforeUnmount(() => {
                 : 'md:col-start-1 md:row-start-1 md:pr-4'
               " style="will-change: transform, opacity;">
               <span
-                class="inline-flex items-center rounded-[4px] bg-[#B55F00]/10 px-3 py-1.5 text-xs font-medium text-[#B55F00] sm:text-sm">
+                class="inline-flex items-center rounded-[4px] bg-brand-ink/10 px-3 py-1.5 text-xs font-medium text-brand-ink sm:text-sm">
                 {{ step.label }}
               </span>
 
-              <h3 class="mt-4 text-xl font-medium leading-snug text-[#1a1a1a] sm:mt-5 sm:text-2xl lg:text-3xl">
+              <h3 class="mt-4 text-h3 text-ink sm:mt-5">
                 {{ step.title }}
               </h3>
 
-              <p class="mt-3 max-w-xl text-base leading-[1.75] text-[#1a1a1a]/70 sm:mt-4 lg:text-lg">
+              <p class="mt-3 max-w-xl text-body-lg text-ink/70 sm:mt-4">
                 {{ step.body }}
               </p>
             </div>

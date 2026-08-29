@@ -8,21 +8,21 @@
 </script>
 
 <template>
-  <section class="flex min-h-[50vh] items-center overflow-hidden bg-[#F9F8F6] px-5 py-16 sm:px-8 sm:py-20 lg:px-12">
+  <section class="flex min-h-[50vh] items-center overflow-hidden bg-surface-alt px-5 py-16 sm:px-8 sm:py-20 lg:px-12">
 
 
-    <div class="z-10 mx-auto grid w-full max-w-[2000px] gap-y-10 lg:grid-cols-12 lg:gap-x-10 items-start">
+    <div class="z-10 mx-auto grid w-full max-w-wide gap-y-10 lg:grid-cols-12 lg:gap-x-10 items-start">
       <!-- 左側：小標 + 裝飾圖示 -->
 
 
       <!-- 中間：標題 + 內文 -->
       <div class="lg:col-span-9">
-        <h2 class="text-2xl font-medium leading-tight text-[#252525] sm:text-3xl">
+        <h2 class="text-h2 text-ink">
           一次對話，不是一個承諾。<br />
           讓我們一起找到最適合你的方向。
         </h2>
 
-        <div class="mt-6 space-y-4 text-sm leading-relaxed text-[#555] sm:text-base">
+        <div class="mt-6 space-y-4 text-sm leading-relaxed text-ink-muted sm:text-base">
           <p>
             填寫下方表單，我們的團隊會與你聯繫，安排第一次的諮詢對談。如果你想直接聊聊，
           </p>
@@ -34,16 +34,16 @@
 
       <!-- 右側：短文案 + CTA -->
       <div class="flex flex-col justify-end lg:col-span-3">
-        <p class="text-sm leading-relaxed text-[#555] sm:text-base">
+        <p class="text-body text-ink-muted">
           慕玖的顧問可以幫你先看清楚問題出在哪裡，再決定下一步怎麼走。
         </p>
-        <p class="mt-4 text-sm leading-relaxed text-[#555] sm:text-base">
+        <p class="mt-4 text-body text-ink-muted">
           先填個表單，讓我們知道你的狀況。
         </p>
 
         <a
           href="#consultation-form"
-          class="mt-6 inline-flex w-fit items-center justify-center bg-[#252525] px-6 py-3 text-sm font-medium text-white transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#B55F00] focus-visible:ring-offset-2"
+          class="mt-6 inline-flex w-fit items-center justify-center bg-ink px-6 py-3 text-sm font-medium text-white transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-ink focus-visible:ring-offset-2"
         >
           填寫表單
         </a>

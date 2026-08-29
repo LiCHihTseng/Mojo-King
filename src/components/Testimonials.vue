@@ -361,20 +361,20 @@ onBeforeUnmount(() => {
     @focusout="resumeAutoplay"
   >
     <div
-      class="mx-auto grid w-full max-w-[1600px] gap-12 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)] lg:gap-20"
+      class="mx-auto grid w-full max-w-8xl gap-12 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)] lg:gap-20"
     >
       <!-- 左：標題與說明。按鈕全部收在右邊，這一欄只負責定調 -->
       <div>
         <h2
           id="case-highlights-heading"
           ref="headingRef"
-          class="text-[clamp(1.875rem,3.4vw,3.25rem)] font-bold leading-[1.15] tracking-tight text-[#1a1a1a]"
+          class="text-h2 text-ink"
         >
-          {{ heading }}<span class="text-[#FF891D]">.</span>
+          {{ heading }}<span class="text-brand">.</span>
         </h2>
         <p
           ref="introRef"
-          class="mt-5 max-w-md text-base leading-relaxed text-[#555] sm:text-lg"
+          class="mt-5 max-w-md text-body-lg text-ink-muted"
         >
           {{ intro }}
         </p>
@@ -384,7 +384,7 @@ onBeforeUnmount(() => {
       <div class="flex flex-col">
         <p
           ref="counterRef"
-          class="text-sm font-medium tracking-[0.16em] text-[#B55F00]"
+          class="text-eyebrow text-brand-ink"
         >
           {{ formatCounter(activeIndex, cases.length) }}
         </p>
@@ -395,7 +395,7 @@ onBeforeUnmount(() => {
         -->
         <p
           ref="outcomeRef"
-          class="mt-6 text-xl font-medium leading-snug text-[#1a1a1a] sm:text-2xl md:text-3xl lg:text-[2.125rem] lg:leading-[1.35]"
+          class="mt-6 text-h3 text-ink"
           @mouseenter="pauseAutoplay"
           @mouseleave="resumeAutoplay"
         >
@@ -403,14 +403,14 @@ onBeforeUnmount(() => {
         </p>
 
         <div
-          class="mt-10 flex items-end justify-between gap-6 border-t border-[#25252520] pt-6 sm:mt-14"
+          class="mt-10 flex items-end justify-between gap-6 border-t border-ink/12 pt-6 sm:mt-14"
         >
           <!-- items-end：讓左邊的產業圖示與右邊的箭頭按鈕落在同一條底線上 -->
           <div ref="attributionRef" class="flex items-end gap-4">
             <!-- 產業圖示：尺寸與右邊的箭頭按鈕一致，兩端才對得起來 -->
             <span
               v-if="cases[activeIndex].iconPath"
-              class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-[#25252520] text-[#B55F00]"
+              class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-ink/12 text-brand-ink"
               aria-hidden="true"
             >
               <svg
@@ -427,10 +427,10 @@ onBeforeUnmount(() => {
             </span>
 
             <div>
-              <p class="text-base font-bold text-[#1a1a1a]">
+              <p class="text-h4 text-ink">
                 {{ cases[activeIndex].industry }}｜{{ cases[activeIndex].topic }}
               </p>
-              <p class="mt-1 text-sm leading-relaxed text-[#666]">
+              <p class="mt-1 text-caption text-ink-muted">
                 {{ cases[activeIndex].challenge }}
               </p>
             </div>
@@ -439,7 +439,7 @@ onBeforeUnmount(() => {
           <div ref="btnGroupRef" class="flex shrink-0 gap-3">
             <button
               type="button"
-              class="flex h-11 w-11 items-center justify-center rounded-full border border-[#25252533] text-[#1a1a1a] transition-colors hover:border-[#B55F00] hover:text-[#B55F00] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#B55F00] focus-visible:ring-offset-2"
+              class="flex h-11 w-11 items-center justify-center rounded-full border border-ink/20 text-ink transition-colors hover:border-brand-ink hover:text-brand-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-ink focus-visible:ring-offset-2"
               aria-label="上一則案例"
               @click="handlePrev"
             >
@@ -480,7 +480,7 @@ onBeforeUnmount(() => {
               </svg>
               <button
                 type="button"
-                class="relative flex h-11 w-11 items-center justify-center rounded-full border border-[#25252533] text-[#1a1a1a] transition-colors hover:border-[#B55F00] hover:text-[#B55F00] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#B55F00] focus-visible:ring-offset-2"
+                class="relative flex h-11 w-11 items-center justify-center rounded-full border border-ink/20 text-ink transition-colors hover:border-brand-ink hover:text-brand-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-ink focus-visible:ring-offset-2"
                 aria-label="下一則案例"
                 @click="handleNext"
               >

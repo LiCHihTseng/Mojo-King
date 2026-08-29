@@ -2,7 +2,68 @@
 @import "./font.css";
 
 @theme {
+  /* 兩層版心：wide 給 Hero / About / Footer 這種滿版舞台，
+     8xl 給其他有內文的區塊。原本 1400/1440/1600/1800/2000 五種已合併。 */
   --container-8xl: 96rem;
+  --container-wide: 2000px;
+
+  /* ---- 顏色 ----------------------------------------------------------
+     中性只有一套暖灰。ink 同時是「淺底上的文字」和「深色區塊的底」，
+     所以深淺兩種版面永遠共用同一個色溫。
+     brand 在深底用，brand-ink 在淺底用（#FF891D 在白底只有 2.1:1，不夠）。 */
+  --color-ink: #1c1b17;
+  --color-ink-soft: #3f3d36;
+  --color-ink-muted: #56534b;
+  --color-surface-alt: #f9f8f6;
+  --color-line: #d6d3ce;
+  --color-brand: #ff891d;
+  --color-brand-ink: #b55f00;
+
+  /* ---- 字級角色 -------------------------------------------------------
+     size / line-height / letter-spacing / weight 綁在同一個名字上，
+     用 text-h2 就拿到整組，不會再出現同一層標題四種字重。 */
+  --text-display: clamp(2.5rem, 6.2vw, 6rem);
+  --text-display--line-height: 1;
+  --text-display--letter-spacing: -0.045em;
+  --text-display--font-weight: 500;
+
+  --text-h1: clamp(2.1rem, 4.2vw, 4rem);
+  --text-h1--line-height: 1.05;
+  --text-h1--letter-spacing: -0.04em;
+  --text-h1--font-weight: 500;
+
+  --text-h2: clamp(1.9rem, 3.9vw, 3.75rem);
+  --text-h2--line-height: 1.12;
+  --text-h2--letter-spacing: -0.03em;
+  --text-h2--font-weight: 500;
+
+  --text-h3: clamp(1.375rem, 2vw, 2rem);
+  --text-h3--line-height: 1.35;
+  --text-h3--letter-spacing: -0.01em;
+  --text-h3--font-weight: 500;
+
+  --text-h4: clamp(1rem, 1.2vw, 1.25rem);
+  --text-h4--line-height: 1.5;
+  --text-h4--font-weight: 600;
+
+  --text-body-lg: clamp(1.0625rem, 1.35vw, 1.3rem);
+  --text-body-lg--line-height: 1.7;
+
+  --text-body: clamp(0.95rem, 1.05vw, 1.0625rem);
+  --text-body--line-height: 1.75;
+
+  --text-stat: clamp(2rem, 3vw, 2.75rem);
+  --text-stat--line-height: 1;
+  --text-stat--letter-spacing: 0.02em;
+  --text-stat--font-weight: 700;
+
+  --text-caption: 0.875rem;
+  --text-caption--line-height: 1.6;
+
+  --text-eyebrow: 0.75rem;
+  --text-eyebrow--line-height: 1.2;
+  --text-eyebrow--letter-spacing: 0.16em;
+  --text-eyebrow--font-weight: 600;
 }
 
 html,

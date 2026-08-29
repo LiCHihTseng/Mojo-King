@@ -156,7 +156,7 @@ onBeforeUnmount(() => {
     <!-- 左側：圖片（固定吃滿一個螢幕高度，不會被圖片本身的長寬比撐開；
          桌機版用 sticky，如果右側表單內容比一個螢幕高，圖片會固定停在畫面上。
          圖片本身比容器高一截、絕對定位，讓 parallax 上下移動時不會露出空白邊） -->
-    <div class="relative h-[45vh] w-full overflow-hidden bg-[#2F2F2F] lg:sticky lg:top-0 lg:h-screen">
+    <div class="relative h-[45vh] w-full overflow-hidden bg-ink lg:sticky lg:top-0 lg:h-screen">
       <img
         ref="imageRef"
         :src="consultationImage"
@@ -167,35 +167,35 @@ onBeforeUnmount(() => {
     </div>
 
     <!-- 右側：表單 -->
-    <div class="flex items-center bg-[#F9F8F6] px-8 py-20 sm:px-14 lg:px-20 lg:py-24">
+    <div class="flex items-center bg-surface-alt px-8 py-20 sm:px-14 lg:px-20 lg:py-24">
       <div class="mx-auto w-full max-w-full">
         <!-- 標題 -->
         <h2
           data-detail-heading
           tabindex="-1"
-          class="text-3xl font-medium leading-tight text-[#252525] focus:outline-none sm:text-4xl"
+          class="text-h2 text-ink focus:outline-none"
         >
           一次對話，不是一個承諾。<br />
           讓我們一起找到最適合你的方向。
         </h2>
-        <p class="mt-6 text-sm leading-relaxed text-[#555] sm:text-base">
+        <p class="mt-6 text-body text-ink-muted">
           填寫下方表單，我們的團隊會與你聯繫，安排第一次的諮詢對談。如果你想直接聊聊，也歡迎直接聯絡我們——沒有壓力、也沒有推銷，我們的目標是幫助你在充分了解狀況後，做出清楚的決定。
         </p>
 
         <!-- 送出成功狀態 -->
         <div
           v-if="status === 'success'"
-          class="mt-10 border border-[#25252526] bg-white px-6 py-10 text-center sm:px-10"
+          class="mt-10 border border-ink/15 bg-white px-6 py-10 text-center sm:px-10"
         >
-          <p class="text-xl font-medium text-[#252525]">
+          <p class="text-h3 text-ink">
             收到了，謝謝你花時間填寫！
           </p>
-          <p class="mt-2 text-sm text-[#555] sm:text-base">
+          <p class="mt-2 text-body text-ink-muted">
             我們已經寄了一封確認信到 {{ form.email }}，並會盡快與你聯繫，安排適合的諮詢時間。
           </p>
           <button
             type="button"
-            class="mt-6 text-sm font-medium text-[#B55F00] underline underline-offset-4"
+            class="mt-6 text-sm font-medium text-brand-ink underline underline-offset-4"
             @click="resetForm"
           >
             填寫另一筆諮詢
@@ -206,8 +206,8 @@ onBeforeUnmount(() => {
         <form v-else class="mt-12 space-y-9" novalidate @submit.prevent="handleSubmit">
           <div class="grid gap-x-12 gap-y-9 sm:grid-cols-2">
             <div>
-              <label for="cf-name" class="block text-sm text-[#252525]">
-                姓名 <span class="text-[#FF891D]">*</span>
+              <label for="cf-name" class="block text-sm text-ink">
+                姓名 <span class="text-brand">*</span>
               </label>
               <input
                 id="cf-name"
@@ -217,13 +217,13 @@ onBeforeUnmount(() => {
                 autocomplete="name"
                 required
                 placeholder="請輸入你的姓名"
-                class="mt-3 w-full border-0 border-b border-[#25252533] bg-transparent pb-3 text-sm text-[#252525] placeholder:text-[#25252566] focus:border-[#FF891D] focus:outline-none focus:ring-0"
+                class="mt-3 w-full border-0 border-b border-ink/20 bg-transparent pb-3 text-sm text-ink placeholder:text-ink/40 focus:border-brand focus:outline-none focus:ring-0"
               />
             </div>
 
             <div>
-              <label for="cf-email" class="block text-sm text-[#252525]">
-                Email <span class="text-[#FF891D]">*</span>
+              <label for="cf-email" class="block text-sm text-ink">
+                Email <span class="text-brand">*</span>
               </label>
               <input
                 id="cf-email"
@@ -234,12 +234,12 @@ onBeforeUnmount(() => {
                 required
                 inputmode="email"
                 placeholder="我們會寄一封確認信到這個信箱"
-                class="mt-3 w-full border-0 border-b border-[#25252533] bg-transparent pb-3 text-sm text-[#252525] placeholder:text-[#25252566] focus:border-[#FF891D] focus:outline-none focus:ring-0"
+                class="mt-3 w-full border-0 border-b border-ink/20 bg-transparent pb-3 text-sm text-ink placeholder:text-ink/40 focus:border-brand focus:outline-none focus:ring-0"
               />
             </div>
 
             <div>
-              <label for="cf-title" class="block text-sm text-[#252525]">
+              <label for="cf-title" class="block text-sm text-ink">
                 職位
               </label>
               <input
@@ -249,12 +249,12 @@ onBeforeUnmount(() => {
                 name="title"
                 autocomplete="organization-title"
                 placeholder="例如：人資主管"
-                class="mt-3 w-full border-0 border-b border-[#25252533] bg-transparent pb-3 text-sm text-[#252525] placeholder:text-[#25252566] focus:border-[#FF891D] focus:outline-none focus:ring-0"
+                class="mt-3 w-full border-0 border-b border-ink/20 bg-transparent pb-3 text-sm text-ink placeholder:text-ink/40 focus:border-brand focus:outline-none focus:ring-0"
               />
             </div>
 
             <div>
-              <label for="cf-company-address" class="block text-sm text-[#252525]">
+              <label for="cf-company-address" class="block text-sm text-ink">
                 公司地址
               </label>
               <input
@@ -264,12 +264,12 @@ onBeforeUnmount(() => {
                 name="companyAddress"
                 autocomplete="street-address"
                 placeholder="請輸入公司地址"
-                class="mt-3 w-full border-0 border-b border-[#25252533] bg-transparent pb-3 text-sm text-[#252525] placeholder:text-[#25252566] focus:border-[#FF891D] focus:outline-none focus:ring-0"
+                class="mt-3 w-full border-0 border-b border-ink/20 bg-transparent pb-3 text-sm text-ink placeholder:text-ink/40 focus:border-brand focus:outline-none focus:ring-0"
               />
             </div>
 
             <div>
-              <label for="cf-referrer" class="block text-sm text-[#252525]">
+              <label for="cf-referrer" class="block text-sm text-ink">
                 是誰推薦你的？
               </label>
               <input
@@ -278,14 +278,14 @@ onBeforeUnmount(() => {
                 type="text"
                 name="referrer"
                 placeholder="朋友、客戶、網路搜尋⋯"
-                class="mt-3 w-full border-0 border-b border-[#25252533] bg-transparent pb-3 text-sm text-[#252525] placeholder:text-[#25252566] focus:border-[#FF891D] focus:outline-none focus:ring-0"
+                class="mt-3 w-full border-0 border-b border-ink/20 bg-transparent pb-3 text-sm text-ink placeholder:text-ink/40 focus:border-brand focus:outline-none focus:ring-0"
               />
             </div>
           </div>
 
           <div>
-            <label for="cf-inquiry" class="block text-sm text-[#252525]">
-              想詢問的事情 <span class="text-[#FF891D]">*</span>
+            <label for="cf-inquiry" class="block text-sm text-ink">
+              想詢問的事情 <span class="text-brand">*</span>
             </label>
             <textarea
               id="cf-inquiry"
@@ -294,12 +294,12 @@ onBeforeUnmount(() => {
               rows="1"
               required
               placeholder="想了解哪方面的協助？例如招募、留才、主管培力⋯"
-              class="mt-3 w-full resize-none border-0 border-b border-[#25252533] bg-transparent pb-3 text-sm text-[#252525] placeholder:text-[#25252566] focus:border-[#FF891D] focus:outline-none focus:ring-0"
+              class="mt-3 w-full resize-none border-0 border-b border-ink/20 bg-transparent pb-3 text-sm text-ink placeholder:text-ink/40 focus:border-brand focus:outline-none focus:ring-0"
             ></textarea>
           </div>
 
           <div>
-            <label for="cf-reason" class="block text-sm text-[#252525]">
+            <label for="cf-reason" class="block text-sm text-ink">
               想預約諮詢的原因
             </label>
             <textarea
@@ -308,17 +308,17 @@ onBeforeUnmount(() => {
               name="reason"
               rows="1"
               placeholder="目前遇到的狀況或想解決的問題"
-              class="mt-3 w-full resize-none border-0 border-b border-[#25252533] bg-transparent pb-3 text-sm text-[#252525] placeholder:text-[#25252566] focus:border-[#FF891D] focus:outline-none focus:ring-0"
+              class="mt-3 w-full resize-none border-0 border-b border-ink/20 bg-transparent pb-3 text-sm text-ink placeholder:text-ink/40 focus:border-brand focus:outline-none focus:ring-0"
             ></textarea>
           </div>
 
           <div class="space-y-4 pt-4">
-            <label class="flex cursor-pointer items-start gap-3 text-xs leading-relaxed text-[#555] sm:text-sm">
+            <label class="flex cursor-pointer items-start gap-3 text-xs leading-relaxed text-ink-muted sm:text-sm">
               <input
                 v-model="form.agreeContact"
                 type="checkbox"
                 name="agreeContact"
-                class="mt-0.5 h-4 w-4 shrink-0 border-[#25252566] text-[#FF891D] focus:ring-[#FF891D]"
+                class="mt-0.5 h-4 w-4 shrink-0 border-ink/40 text-brand focus:ring-brand"
               />
               <span>我同意讓慕玖團隊透過電話或 email 與我聯繫，安排諮詢時間。</span>
             </label>
@@ -331,7 +331,7 @@ onBeforeUnmount(() => {
           <button
             type="submit"
             :disabled="status === 'submitting'"
-            class="mt-6 w-full bg-[#252525] px-6 py-4 text-sm font-medium tracking-wide text-white transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#B55F00] focus-visible:ring-offset-2 disabled:opacity-60"
+            class="mt-6 w-full bg-ink px-6 py-4 text-sm font-medium tracking-wide text-white transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-ink focus-visible:ring-offset-2 disabled:opacity-60"
           >
             {{ status === "submitting" ? "送出中⋯" : "送出預約" }}
           </button>

@@ -6,17 +6,17 @@ import { fiveDSteps } from "../../data/services";
   <section
     data-detail-section
     data-five-d-method
-    class="mx-auto w-full max-w-8xl border-t border-[#1c1b17]/20 px-5 py-16 sm:px-8 sm:py-20 md:px-12 md:py-24 lg:px-16 lg:py-32"
+    class="mx-auto w-full max-w-8xl border-t border-ink/20 px-5 py-16 sm:px-8 sm:py-20 md:px-12 md:py-24 lg:px-16 lg:py-32"
   >
     <div>
       <h2
-        class="max-w-[24ch] text-[clamp(2rem,4.2vw,4.6rem)] font-medium leading-[1.08] tracking-[-0.045em] text-[#1c1b17] text-balance"
+        class="max-w-[24ch] text-h2 text-ink text-balance"
       >
         從需求定義到能力移轉，讓每一項方案真正落地並持續運作。
       </h2>
 
       <ol
-        class="relative mt-14 grid border-l border-[#1c1b17]/30 pl-7 lg:mt-20 lg:grid-cols-5 lg:border-l-0 lg:border-t lg:pl-0"
+        class="relative mt-14 grid border-l border-ink/30 pl-7 lg:mt-20 lg:grid-cols-5 lg:border-l-0 lg:border-t lg:pl-0"
       >
         <li
           v-for="(step, index) in fiveDSteps"
@@ -25,15 +25,15 @@ import { fiveDSteps } from "../../data/services";
         >
           <span
             aria-hidden="true"
-            class="absolute -left-[1.95rem] top-1.5 h-2.5 w-2.5 border-2 border-white bg-[#FF891D] lg:-top-[0.36rem] lg:left-4 lg:first:left-0"
+            class="absolute -left-[1.95rem] top-1.5 h-2.5 w-2.5 border-2 border-white bg-brand lg:-top-[0.36rem] lg:left-4 lg:first:left-0"
           />
-          <span class="font-mono text-[10px] tracking-[0.14em] text-[#B55F00]">
+          <span class="text-eyebrow text-brand-ink">
             {{ String(index + 1).padStart(2, "0") }}
           </span>
-          <h3 class="mt-4 text-base font-semibold leading-6 text-[#1c1b17]">
+          <h3 class="mt-4 text-h4 text-ink">
             {{ step.english }}
           </h3>
-          <p class="mt-2 text-sm leading-6 text-[#56534b]">
+          <p class="mt-2 text-body text-ink-muted">
             {{ step.chinese }}
           </p>
         </li>

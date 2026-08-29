@@ -22,10 +22,10 @@ const zeroPad = (index: number) => String(index + 1).padStart(2, "0");
 <template>
   <section
     data-detail-section
-    class="mx-auto w-full max-w-8xl border-t border-[#1c1b17]/20 px-5 py-16 sm:px-8 sm:py-20 md:px-12 md:py-24 lg:px-16 lg:py-32"
+    class="mx-auto w-full max-w-8xl border-t border-ink/20 px-5 py-16 sm:px-8 sm:py-20 md:px-12 md:py-24 lg:px-16 lg:py-32"
   >
     <h2
-      class="max-w-[19ch] text-[clamp(2rem,4.2vw,4.6rem)] font-medium leading-[1.08] tracking-[-0.045em] text-[#1c1b17] text-balance"
+      class="max-w-[19ch] text-h2 text-ink text-balance"
     >
       {{ section.title }}
     </h2>
@@ -39,7 +39,7 @@ const zeroPad = (index: number) => String(index + 1).padStart(2, "0");
     <div
       v-if="section.type === 'prose'"
       data-detail-prose
-      class="mt-10 flex max-w-[40em] flex-col gap-6 text-base leading-8 text-[#3f3d36] md:mt-12 lg:mt-14"
+      class="mt-10 flex max-w-[40em] flex-col gap-6 text-base leading-8 text-ink-soft md:mt-12 lg:mt-14"
     >
       <p v-for="(column, index) in section.columns" :key="`${index}-${column}`">
         {{ column }}
@@ -53,23 +53,23 @@ const zeroPad = (index: number) => String(index + 1).padStart(2, "0");
     -->
     <ol
       v-else-if="section.type === 'numbered-list'"
-      class="mt-10 border-b border-[#1c1b17]/10 md:mt-12 lg:mt-14"
+      class="mt-10 border-b border-ink/10 md:mt-12 lg:mt-14"
     >
       <li
         v-for="(item, index) in section.items"
         :key="item.title"
         data-detail-numbered-row
-        class="grid gap-x-8 gap-y-3 border-t border-[#1c1b17]/10 py-6 sm:grid-cols-[3.5rem_minmax(0,1fr)] md:py-8 lg:grid-cols-[3.5rem_minmax(0,0.85fr)_minmax(0,1.15fr)] lg:items-baseline"
+        class="grid gap-x-8 gap-y-3 border-t border-ink/10 py-6 sm:grid-cols-[3.5rem_minmax(0,1fr)] md:py-8 lg:grid-cols-[3.5rem_minmax(0,0.85fr)_minmax(0,1.15fr)] lg:items-baseline"
       >
-        <span class="font-mono text-xs tracking-[0.12em] text-[#B55F00]">
+        <span class="text-eyebrow text-brand-ink">
           {{ zeroPad(index) }}
         </span>
-        <h3 class="text-xl font-medium leading-snug text-[#1c1b17] md:text-2xl">
+        <h3 class="text-h3 text-ink">
           {{ item.title }}
         </h3>
         <p
           v-if="item.description"
-          class="max-w-[34em] text-sm leading-7 text-[#56534b] sm:col-start-2 md:text-base md:leading-8 lg:col-start-auto"
+          class="max-w-[34em] text-body text-ink-muted sm:col-start-2 lg:col-start-auto"
         >
           {{ item.description }}
         </p>
@@ -79,21 +79,21 @@ const zeroPad = (index: number) => String(index + 1).padStart(2, "0");
     <ul
       v-else
       data-detail-card-list
-      class="mt-10 grid border-t border-[#1c1b17]/10 md:mt-12 lg:mt-14 lg:grid-cols-2"
+      class="mt-10 grid border-t border-ink/10 md:mt-12 lg:mt-14 lg:grid-cols-2"
     >
       <li
         v-for="item in section.items"
         :key="item.title"
-        class="flex items-start gap-5 border-b border-[#1c1b17]/10 py-6 md:py-8 lg:px-10 lg:odd:border-r lg:odd:pl-0"
+        class="flex items-start gap-5 border-b border-ink/10 py-6 md:py-8 lg:px-10 lg:odd:border-r lg:odd:pl-0"
       >
-        <span aria-hidden="true" class="mt-2.5 h-1.5 w-1.5 shrink-0 bg-[#FF891D]" />
+        <span aria-hidden="true" class="mt-2.5 h-1.5 w-1.5 shrink-0 bg-brand" />
         <div>
-          <h3 class="text-lg font-medium leading-8 text-[#1c1b17] md:text-xl">
+          <h3 class="text-h4 text-ink">
             {{ item.title }}
           </h3>
           <p
             v-if="item.description"
-            class="mt-2 max-w-[34em] text-sm leading-7 text-[#56534b] md:text-base"
+            class="mt-2 max-w-[34em] text-body text-ink-muted"
           >
             {{ item.description }}
           </p>

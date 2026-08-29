@@ -210,35 +210,35 @@ onBeforeUnmount(() => {
 <template>
   <section
     ref="sectionRef"
-    class="flex min-h-screen w-full items-center bg-white px-5 py-12 sm:px-8 lg:px-10 lg:py-16"
+    class="flex min-h-screen w-full items-center bg-white px-0 py-0 sm:px-8 sm:py-12 lg:px-10 lg:py-16"
   >
     <div
-      class="mx-auto flex w-full max-w-[1600px] flex-col-reverse gap-8 rounded-[2rem] bg-[#252525] px-6 py-14 shadow-[0_30px_60px_-25px_rgba(0,0,0,0.45)] sm:px-10 sm:py-16 lg:flex-row lg:items-center lg:gap-20 lg:px-20 lg:py-20"
+      class="mx-auto flex w-full max-w-8xl flex-col-reverse gap-8 bg-ink px-6 py-14 sm:rounded-[2rem] sm:px-10 sm:py-16 sm:shadow-[0_30px_60px_-25px_rgba(0,0,0,0.45)] lg:flex-row lg:items-center lg:gap-20 lg:px-20 lg:py-20"
     >
       <!-- 左：標題 + 邀請 + 聯絡資訊 -->
       <div class="lg:flex-1">
         <h2
           ref="headingRef"
-          class="max-w-xl text-[clamp(1.875rem,3.4vw,3.25rem)] font-bold leading-[1.15] tracking-tight text-white"
+          class="max-w-xl text-h2 text-white"
         >
-          {{ heading }}<span class="text-[#FF891D]">.</span>
+          {{ heading }}<span class="text-brand">.</span>
         </h2>
 
         <p
           ref="introRef"
-          class="mt-5 max-w-md text-base leading-relaxed text-white/60 sm:text-lg"
+          class="mt-5 max-w-md text-body-lg text-white/60"
         >
           {{ intro }}
         </p>
 
         <div ref="detailsRef" class="mt-10 border-t border-white/10 pt-8">
-          <p class="text-lg font-bold text-white">{{ personName }}</p>
-          <p class="mt-1 text-white/55">{{ personRole }}</p>
+          <p class="text-h4 text-white">{{ personName }}</p>
+          <p class="mt-1 text-body text-white/55">{{ personRole }}</p>
 
-          <div class="mt-6 flex flex-col gap-3 text-white/70">
+          <div class="mt-6 flex flex-col gap-3 text-body text-white/70">
             <a
               :href="`mailto:${email}`"
-              class="flex w-fit items-center gap-3 transition-colors hover:text-[#FF891D]"
+              class="flex w-fit items-center gap-3 transition-colors hover:text-brand"
             >
               <svg viewBox="0 0 24 24" fill="none" class="h-[18px] w-[18px] shrink-0" aria-hidden="true">
                 <rect x="2.75" y="5.25" width="18.5" height="13.5" rx="2" stroke="currentColor" stroke-width="1.65" />
@@ -248,7 +248,7 @@ onBeforeUnmount(() => {
             </a>
             <a
               :href="phoneHref()"
-              class="flex w-fit items-center gap-3 transition-colors hover:text-[#FF891D]"
+              class="flex w-fit items-center gap-3 transition-colors hover:text-brand"
             >
               <svg viewBox="0 0 24 24" fill="none" class="h-[18px] w-[18px] shrink-0" aria-hidden="true">
                 <path
@@ -263,7 +263,7 @@ onBeforeUnmount(() => {
               :href="linkedinUrl"
               target="_blank"
               rel="noopener noreferrer"
-              class="flex w-fit items-center gap-3 transition-colors hover:text-[#FF891D]"
+              class="flex w-fit items-center gap-3 transition-colors hover:text-brand"
             >
               <svg viewBox="0 0 24 24" fill="none" class="h-[18px] w-[18px] shrink-0" aria-hidden="true">
                 <circle cx="18" cy="5.5" r="2.5" stroke="currentColor" stroke-width="1.65" />
@@ -280,7 +280,7 @@ onBeforeUnmount(() => {
           <HeroCTA
             :text="ctaText"
             :href="CONSULTATION_PATH"
-            variant="solid" bg-color="#ffffff" radius="4px" text-color="#252525"
+            variant="solid" bg-color="#ffffff" radius="4px" text-color="#1c1b17"
             @click="handleConsultationClick"
           />
         </div>

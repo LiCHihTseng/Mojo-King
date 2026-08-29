@@ -31,10 +31,10 @@ const returnHome = () => {
   <main
     data-route-page
     data-route-kind="consultation"
-    class="min-h-screen overflow-x-clip bg-[#F9F8F6]"
+    class="min-h-screen overflow-x-clip bg-surface-alt"
   >
     <header
-      class="bg-[#252525] px-5 text-[11px] font-medium tracking-[0.16em] text-white sm:px-8 md:text-xs lg:px-16"
+      class="bg-ink px-5 text-eyebrow text-white sm:px-8 lg:px-16"
     >
       <nav
         aria-label="表單頁導覽"
@@ -43,7 +43,7 @@ const returnHome = () => {
         <span class="uppercase">MOJO KING</span>
         <button
           type="button"
-          class="inline-flex items-center gap-3 py-2 transition-opacity hover:opacity-70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF891D] focus-visible:ring-offset-4 focus-visible:ring-offset-[#252525]"
+          class="inline-flex items-center gap-3 py-2 transition-opacity hover:opacity-70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-4 focus-visible:ring-offset-ink"
           @click="returnHome"
         >
           <span aria-hidden="true">←</span>

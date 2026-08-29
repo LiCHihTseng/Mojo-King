@@ -454,7 +454,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <section ref="sectionRef" class="service-story relative isolate w-full bg-[#11110f]"
+  <section ref="sectionRef" class="service-story relative isolate w-full bg-ink"
     aria-labelledby="service-section-title">
     <h2 id="service-section-title" class="sr-only">專業人資顧問服務</h2>
 
@@ -477,27 +477,23 @@ onBeforeUnmount(() => {
           class="service-intro__scene-copy absolute inset-0 z-30 flex items-center px-6 py-16 sm:px-10 lg:px-[clamp(3rem,7vw,8.5rem)]"
           aria-hidden="true" inert>
           <div
-            class="service-copy-grid mx-auto grid w-full max-w-[90rem] items-center gap-8 lg:grid-cols-[minmax(0,1.15fr)_minmax(18rem,0.7fr)] lg:gap-[clamp(4rem,10vw,12rem)] ">
+            class="service-copy-grid mx-auto grid w-full max-w-8xl items-center gap-8 lg:grid-cols-[minmax(0,1.15fr)_minmax(18rem,0.7fr)] lg:gap-[clamp(4rem,10vw,12rem)] ">
             <div>
-              <div
-                class="mb-5 flex items-center gap-3 text-sm font-medium tracking-[0.16em] text-[#ff9a3d] lg:mb-7 lg:text-base">
-
-              </div>
 
               <h3
-                class="max-w-[15ch] text-balance text-[clamp(2.15rem,8.4vw,3.35rem)] font-semibold leading-[1.08] tracking-[-0.055em] text-white lg:text-[clamp(3.35rem,5.2vw,6rem)]">
+                class="max-w-[15ch] text-balance text-display text-white">
                 {{ firstCard.titleLine1 }}
               </h3>
 
               <p
-                class="mt-5 max-w-[34rem] text-pretty text-[clamp(1rem,2.4vw,1.25rem)] leading-[1.75] text-white lg:mt-7 lg:text-[clamp(1.25rem,1.3vw,1.3rem)]">
+                class="mt-5 max-w-[34rem] text-pretty text-body-lg text-white lg:mt-7">
                 {{ firstCard.summary }}
               </p>
             </div>
 
             <div class="lg:pt-14">
               <HeroCTA text="深入了解" :href="getServiceHref(firstCard.slug)" variant="solid" bg-color="#ffffff" radius="4px"
-                text-color="#252525" @click="handleServiceCtaClick($event, getServiceHref(firstCard.slug))"
+                text-color="#1c1b17" @click="handleServiceCtaClick($event, getServiceHref(firstCard.slug))"
                 @focus="preloadServiceHero(props.backgroundImage)"
                 @pointerenter="preloadServiceHero(props.backgroundImage)" />
             </div>
@@ -508,7 +504,7 @@ onBeforeUnmount(() => {
       <div class="service-scenes relative flex w-full flex-col lg:absolute lg:inset-0 lg:block">
         <article v-for="(card, index) in props.cards" :key="`${card.tag}-${index}`"
           :ref="(el) => setSceneRef(el as Element | null, index)"
-          class="service-scene relative isolate flex min-h-[100svh] w-full items-center overflow-hidden lg:absolute lg:inset-0 lg:min-h-0"
+          class="service-scene relative isolate flex min-h-[100lvh] w-full items-center overflow-hidden lg:absolute lg:inset-0 lg:min-h-0"
           :aria-labelledby="`service-scene-title-${index}`">
           <img :src="index === 0 ? props.backgroundImage : card.image" alt=""
             class="service-scene__image absolute inset-0 h-full w-full object-cover"
@@ -516,20 +512,17 @@ onBeforeUnmount(() => {
 
           <div :ref="(el) => setSceneCopyRef(el as Element | null, index)"
             class="service-scene__content relative z-10 w-full px-6 py-16 sm:px-10 lg:px-[clamp(3rem,7vw,8.5rem)]">
-            <div class="service-copy-grid mx-auto grid w-full max-w-[90rem] items-center gap-8 md:grid-cols-[minmax(0,1.15fr)_minmax(18rem,0.7fr)] md:gap-[clamp(4rem,10vw,12rem)]">
+            <div class="service-copy-grid mx-auto grid w-full max-w-8xl items-center gap-8 md:grid-cols-[minmax(0,1.15fr)_minmax(18rem,0.7fr)] md:gap-[clamp(4rem,10vw,12rem)]">
               <div>
-                <div class="mb-5 flex items-center gap-3 text-sm font-medium tracking-[0.16em] text-[#ff9a3d] md:mb-7 md:text-base">
-
-                </div>
 
                 <h3
                   :id="`service-scene-title-${index}`"
-                  class="max-w-[15ch] text-balance text-[clamp(2.15rem,8.4vw,4.5rem)] font-semibold leading-[1.08] tracking-[-0.055em] text-white md:text-[clamp(3rem,5.2vw,6rem)]"
+                  class="max-w-[15ch] text-balance text-display text-white"
                 >
                   {{ card.titleLine1 }}
                 </h3>
 
-                <p class="mt-5 max-w-[34rem] text-pretty text-[clamp(1rem,2.4vw,1.25rem)] leading-[1.75] text-white md:mt-7 md:text-[clamp(1rem,1.3vw,1.3rem)]">
+                <p class="mt-5 max-w-[34rem] text-pretty text-body-lg text-white md:mt-7">
                   {{ card.summary }}
                 </p>
               </div>
@@ -539,7 +532,7 @@ onBeforeUnmount(() => {
                   text="深入了解"
                   :href="getServiceHref(card.slug)"
                   variant="solid" bg-color="#ffffff" radius="4px"
-                text-color="#252525"
+                text-color="#1c1b17"
                   @click="handleServiceCtaClick($event, getServiceHref(card.slug))"
                   @focus="preloadServiceHero(index === 0 ? props.backgroundImage : card.image)"
                   @pointerenter="preloadServiceHero(index === 0 ? props.backgroundImage : card.image)"
@@ -556,7 +549,7 @@ onBeforeUnmount(() => {
 <style scoped>
 .service-intro {
   display: none;
-  background: #252525;
+  background: var(--color-ink);
   isolation: isolate;
 }
 
@@ -585,7 +578,7 @@ onBeforeUnmount(() => {
 
 .service-intro__lead {
   display: inline-block;
-  color: #ff891d;
+  color: var(--color-brand);
   font-size: 1.08em;
   font-weight: 500;
   letter-spacing: 0.08em;
@@ -653,7 +646,9 @@ onBeforeUnmount(() => {
 .service-story--static .service-scene {
   position: relative;
   inset: auto;
-  min-height: 100svh;
+  /* lvh：網址列收起時的視窗高度。用 svh 的話網址列一收，
+     場景會比視窗矮一截，下一張圖從底部露出來就不是滿版了。 */
+  min-height: 100lvh;
   transform: none;
   will-change: auto;
 }

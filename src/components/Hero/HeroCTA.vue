@@ -40,8 +40,8 @@ const props = withDefaults(defineProps<Props>(), {
   text: "Book a Consultation",
   href: "#contact",
   variant: "solid",
-  bgColor: "#F2F2EF",
-  textColor: "#171717",
+  bgColor: "#F9F8F6",
+  textColor: "#1c1b17",
   shadow: true,
   radius: "2px",
   blur: 0,
@@ -188,7 +188,7 @@ onBeforeUnmount(() => {
   <a
     ref="linkRef"
     :href="props.href"
-    class="inline-flex origin-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#B55F00] focus-visible:ring-offset-2"
+    class="inline-flex origin-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-ink focus-visible:ring-offset-2"
     @click="handleClick"
     @mouseenter="handleEnter"
     @mouseleave="handleLeave"
@@ -208,7 +208,7 @@ onBeforeUnmount(() => {
       <!-- 波浪文字 -->
       <span
         aria-hidden="true"
-        class="inline-flex h-[1em] items-start overflow-hidden whitespace-nowrap text-[14px] font-medium leading-none"
+        class="inline-flex h-[1em] items-start overflow-hidden whitespace-nowrap text-sm font-medium leading-none"
       >
         <span
           v-for="(character, index) in characters"

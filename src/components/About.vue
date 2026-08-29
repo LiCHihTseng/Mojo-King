@@ -223,16 +223,16 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <section class="w-full bg-white text-[#1a1a1a]">
+  <section class="w-full bg-white text-ink">
     <!-- ================= Desktop ：sticky scroll story ================= -->
     <div
       ref="wrapperRef"
       class="relative hidden min-h-[340vh] lg:block"
     >
       <div
-        class="sticky top-0 flex h-[100dvh] w-full items-center overflow-hidden px-8 lg:px-16"
+        class="sticky top-0 flex h-[100svh] w-full items-center overflow-hidden px-8 lg:px-16"
       >
-        <div class="mx-auto w-full max-w-[2000px]">
+        <div class="mx-auto w-full max-w-wide">
           <!-- 區塊標籤：固定顯示，不參與場景切換 -->
 
 
@@ -257,9 +257,9 @@ onBeforeUnmount(() => {
             <!-- Content Stage：三組文字疊在完全相同的位置 -->
             <div class="relative h-[76vh]">
               <p
-            class="mb-8 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-[#B55F00]"
+            class="mb-8 flex items-center gap-2 text-eyebrow uppercase text-brand-ink"
           >
-            <span class="inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-[#FF891D]"></span>
+            <span class="inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-brand"></span>
             關於慕玖
           </p>
               <article
@@ -269,7 +269,7 @@ onBeforeUnmount(() => {
                 class="absolute inset-0 flex flex-col justify-center opacity-0 will-change-[opacity]"
               >
                 <h2
-                  class="text-[clamp(1.5rem,2.2vw,2.25rem)] font-semibold leading-tight tracking-tight"
+                  class="text-h3"
                 >
                   {{ scene.title }}
                 </h2>
@@ -278,8 +278,8 @@ onBeforeUnmount(() => {
                   <p
                     v-for="(paragraph, pi) in scene.description"
                     :key="pi"
-                    class="text-[clamp(.95rem,1.05vw,1.1rem)] leading-[1.85]"
-                    :class="pi === 0 ? 'font-semibold text-[#1a1a1a]' : 'text-[#1a1a1a]/65'"
+                    class="text-body"
+                    :class="pi === 0 ? 'font-semibold text-ink' : 'text-ink/65'"
                   >
                     {{ paragraph }}
                   </p>
@@ -294,7 +294,7 @@ onBeforeUnmount(() => {
                     <svg
                       viewBox="0 0 24 24"
                       fill="none"
-                      class="mt-0.5 h-5 w-5 shrink-0 text-[#FF891D]"
+                      class="mt-0.5 h-5 w-5 shrink-0 text-brand"
                       aria-hidden="true"
                     >
                       <circle cx="12" cy="12" r="10" fill="currentColor" />
@@ -306,7 +306,7 @@ onBeforeUnmount(() => {
                         stroke-linejoin="round"
                       />
                     </svg>
-                    <span class="text-[clamp(.9rem,1vw,1rem)] leading-relaxed text-[#1a1a1a]/70">
+                    <span class="text-body text-ink/70">
                       {{ bullet }}
                     </span>
                   </li>
@@ -314,11 +314,11 @@ onBeforeUnmount(() => {
 
                 <div class="mt-8 flex items-baseline gap-3">
                   <span
-                    class="text-[clamp(2rem,3vw,2.75rem)] font-bold leading-none tracking-wide text-[#FF891D]"
+                    class="text-stat text-brand"
                   >
                     {{ scene.stat.value }}
                   </span>
-                  <span class="text-sm text-[#1a1a1a]/50">{{ scene.stat.label }}</span>
+                  <span class="text-sm text-ink/50">{{ scene.stat.label }}</span>
                 </div>
 
                 <!-- 捲動進度：釘在 article 底部、水平置中。
@@ -326,19 +326,19 @@ onBeforeUnmount(() => {
                      三幕各有一份，但隱藏的那幾層是 visibility:hidden，
                      不會被螢幕閱讀器讀到，也不會互相干擾。 -->
                 <div
-                  class="absolute bottom-0 left-1/2 flex w-fit -translate-x-1/2 items-center gap-2.5 rounded-full bg-[#F1F0EE] px-4 py-3"
+                  class="absolute bottom-0 left-1/2 flex w-fit -translate-x-1/2 items-center gap-2.5 rounded-full bg-surface-alt px-4 py-3"
                   role="status"
                   :aria-label="`關於慕玖：第 ${activeScene + 1} 幕，共 ${scenes.length} 幕`"
                 >
                   <span
                     v-for="(dot, di) in scenes"
                     :key="dot.id"
-                    class="block h-2 overflow-hidden rounded-full bg-[#D6D3CE] transition-[width] duration-500 ease-out"
+                    class="block h-2 overflow-hidden rounded-full bg-line transition-[width] duration-500 ease-out"
                     :class="di === activeScene ? 'w-8' : 'w-2'"
                   >
                     <span
                       :data-progress-fill="di"
-                      class="block h-full rounded-full bg-[#1a1a1a]"
+                      class="block h-full rounded-full bg-ink"
                       style="width: 0%"
                     ></span>
                   </span>
@@ -353,9 +353,9 @@ onBeforeUnmount(() => {
     <!-- ================= Mobile：純 document flow，零動畫 ================= -->
     <div class="px-5 py-16 lg:hidden">
       <p
-        class="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-[#B55F00]"
+        class="flex items-center gap-2 text-eyebrow uppercase text-brand-ink"
       >
-        <span class="inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-[#FF891D]"></span>
+        <span class="inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-brand"></span>
         關於慕玖
       </p>
 
@@ -372,7 +372,7 @@ onBeforeUnmount(() => {
           decoding="async"
         />
 
-        <h2 class="text-[1.5rem] font-semibold leading-tight tracking-tight">
+        <h2 class="text-h3">
           {{ scene.title }}
         </h2>
 
@@ -380,8 +380,8 @@ onBeforeUnmount(() => {
           <p
             v-for="(paragraph, pi) in scene.description"
             :key="pi"
-            class="text-base leading-[1.85]"
-            :class="pi === 0 ? 'font-semibold text-[#1a1a1a]' : 'text-[#1a1a1a]/65'"
+            class="text-body"
+            :class="pi === 0 ? 'font-semibold text-ink' : 'text-ink/65'"
           >
             {{ paragraph }}
           </p>
@@ -396,7 +396,7 @@ onBeforeUnmount(() => {
             <svg
               viewBox="0 0 24 24"
               fill="none"
-              class="mt-0.5 h-5 w-5 shrink-0 text-[#FF891D]"
+              class="mt-0.5 h-5 w-5 shrink-0 text-brand"
               aria-hidden="true"
             >
               <circle cx="12" cy="12" r="10" fill="currentColor" />
@@ -408,17 +408,17 @@ onBeforeUnmount(() => {
                 stroke-linejoin="round"
               />
             </svg>
-            <span class="text-[.95rem] leading-relaxed text-[#1a1a1a]/70">
+            <span class="text-body text-ink/70">
               {{ bullet }}
             </span>
           </li>
         </ul>
 
         <div class="flex items-baseline gap-3">
-          <span class="text-[2rem] font-bold leading-none tracking-wide text-[#FF891D]">
+          <span class="text-stat text-brand">
             {{ scene.stat.value }}
           </span>
-          <span class="text-sm text-[#1a1a1a]/50">{{ scene.stat.label }}</span>
+          <span class="text-sm text-ink/50">{{ scene.stat.label }}</span>
         </div>
       </article>
     </div>

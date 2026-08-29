@@ -154,7 +154,7 @@ onBeforeUnmount(() => {
     ref="detailPageRoot"
     data-route-page
     data-route-kind="detail"
-    class="min-h-screen overflow-x-clip bg-white text-[#1c1b17]"
+    class="min-h-screen overflow-x-clip bg-white text-ink"
   >
     <ServiceDetailHero :service="service" />
 
@@ -170,21 +170,21 @@ onBeforeUnmount(() => {
 
     <section
       data-detail-section
-      class="bg-[#1c1b17] px-5 py-20 text-white sm:px-8 md:px-12 md:py-28 lg:px-16"
+      class="bg-ink px-5 py-20 text-white sm:px-8 md:px-12 md:py-28 lg:px-16"
       aria-labelledby="detail-consultation-title"
     >
       <div class="mx-auto grid w-full max-w-8xl items-end gap-10 lg:grid-cols-12 lg:gap-8">
         <div class="lg:col-span-8">
           <h2
             id="detail-consultation-title"
-            class="max-w-[12ch] text-[clamp(2.5rem,5.6vw,6.2rem)] font-medium leading-[1.02] tracking-[-0.05em]"
+            class="max-w-[12ch] text-display"
           >
             讓下一步，更貼近企業真正的需要。
           </h2>
         </div>
         <a
           href="/#contact"
-          class="group inline-flex w-full items-center justify-between border-b border-white pb-4 text-base font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF891D] focus-visible:ring-offset-4 focus-visible:ring-offset-[#1c1b17] lg:col-span-4 lg:w-auto lg:min-w-64 lg:justify-self-end"
+          class="group inline-flex w-full items-center justify-between border-b border-white pb-4 text-base font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-4 focus-visible:ring-offset-ink lg:col-span-4 lg:w-auto lg:min-w-64 lg:justify-self-end"
         >
           預約諮詢
           <span aria-hidden="true" class="transition-transform duration-300 group-hover:translate-x-1">
@@ -199,23 +199,23 @@ onBeforeUnmount(() => {
     v-else
     data-route-page
     data-route-kind="detail"
-    class="flex min-h-screen items-center bg-white px-5 py-20 text-[#1c1b17] sm:px-8 md:px-12 lg:px-16"
+    class="flex min-h-screen items-center bg-white px-5 py-20 text-ink sm:px-8 md:px-12 lg:px-16"
   >
     <section
-      class="mx-auto w-full max-w-8xl border-t border-[#1c1b17]/25 pt-10"
+      class="mx-auto w-full max-w-8xl border-t border-ink/25 pt-10"
       aria-labelledby="service-not-found-title"
     >
       <h1
         id="service-not-found-title"
         data-detail-heading
         tabindex="-1"
-        class="text-[clamp(2.75rem,7vw,7.5rem)] font-medium leading-none tracking-[-0.055em] focus:outline-none"
+        class="text-h1 focus:outline-none"
       >
         找不到這項服務
       </h1>
       <a
         href="/#service"
-        class="mt-12 inline-flex border-b border-[#1c1b17] pb-2 text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#B55F00] focus-visible:ring-offset-4 focus-visible:ring-offset-white"
+        class="mt-12 inline-flex border-b border-ink pb-2 text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-ink focus-visible:ring-offset-4 focus-visible:ring-offset-white"
       >
         返回服務列表
       </a>

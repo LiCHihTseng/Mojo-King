@@ -70,7 +70,7 @@ onBeforeUnmount(() => {
   >
     <div ref="textRef">
       <slot>
-        <h2 class="text-3xl font-medium text-[#1a1a1a] sm:text-5xl">標題文字</h2>
+        <h2 class="text-h2 text-ink">標題文字</h2>
       </slot>
     </div>
   </div>

@@ -29,7 +29,7 @@ const DEFAULT_SHADOW =
   "2px 2px 16px 0 #25252533, .75px 0 1px 0 #f8f4ee2e inset, 0 .75px 1px 0 #f8f4ee2e inset, -.25px 0 1px 0 #f8f4ee14 inset, 0 -.25px 1px 0 #f8f4ee14 inset";
 
 const menuButtonStyle = {
-  backgroundColor: "#252525",
+  backgroundColor: "#1c1b17",
   color: "#FFFFFF",
   boxShadow: DEFAULT_SHADOW,
 };
@@ -72,7 +72,7 @@ const hasReachedAbout = ref(false);
 const logoFill = computed(() =>
   // Nav 沒有底色了，深色 logo 只在背景已經變亮（捲到 About 之後）時才用，
   // 否則在深色 Hero 上會看不見。
-  hasReachedAbout.value ? "#171717" : "#ffffff",
+  hasReachedAbout.value ? "#1c1b17" : "#ffffff",
 );
 
 const shouldShowHamburger = computed(() => {
@@ -441,7 +441,7 @@ onBeforeUnmount(() => {
         <div ref="brandRef" class="group flex items-center gap-3">
           <a
             href="/"
-            class="flex shrink-0 items-center justify-center rounded-[4px] transition-opacity hover:opacity-70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#B55F00] focus-visible:ring-offset-2"
+            class="flex shrink-0 items-center justify-center rounded-[4px] transition-opacity hover:opacity-70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-ink focus-visible:ring-offset-2"
             aria-label="回到首頁最上方"
             @click="handleBrandClick"
           >
@@ -469,7 +469,7 @@ onBeforeUnmount(() => {
                   <span class="nav-label whitespace-nowrap text-lg font-medium tracking-[0.08em] text-white">
                     {{ aboutText }}
                   </span>
-                  <span class="nav-dot mt-2 h-1.5 w-1.5 scale-0 rounded-full bg-[#B55F00] opacity-0"></span>
+                  <span class="nav-dot mt-2 h-1.5 w-1.5 scale-0 rounded-full bg-brand-ink opacity-0"></span>
                 </span>
               </a>
 
@@ -480,7 +480,7 @@ onBeforeUnmount(() => {
                   <span class="nav-label whitespace-nowrap text-lg font-medium tracking-[0.08em] text-white">
                     {{ serviceText }}
                   </span>
-                  <span class="nav-dot mt-2 h-1.5 w-1.5 scale-0 rounded-full bg-[#B55F00] opacity-0"></span>
+                  <span class="nav-dot mt-2 h-1.5 w-1.5 scale-0 rounded-full bg-brand-ink opacity-0"></span>
                 </span>
               </a>
 
@@ -491,7 +491,7 @@ onBeforeUnmount(() => {
                   <span class="nav-label whitespace-nowrap text-lg font-medium tracking-[0.08em] text-white">
                     {{ contactText }}
                   </span>
-                  <span class="nav-dot mt-2 h-1.5 w-1.5 scale-0 rounded-full bg-[#B55F00] opacity-0"></span>
+                  <span class="nav-dot mt-2 h-1.5 w-1.5 scale-0 rounded-full bg-brand-ink opacity-0"></span>
                 </span>
               </a>
             </div>
@@ -505,12 +505,12 @@ onBeforeUnmount(() => {
         <div ref="rightControlsRef" class="grid place-items-center">
           <!-- CTA：尚未捲到 About 時顯示 -->
           <div ref="ctaRef" class="col-start-1 row-start-1 justify-self-end">
-            <HeroCTA :text="ctaText" href="#contact"    variant="solid" bg-color="#ffffff" radius="4px" text-color="#252525" />
+            <HeroCTA :text="ctaText" href="#contact"    variant="solid" bg-color="#ffffff" radius="4px" text-color="#1c1b17" />
           </div>
 
           <!-- Menu 按鈕：捲到 About 之後（手機版則一律）顯示 -->
           <button ref="hamburgerRef" type="button" :style="menuButtonStyle"
-            class="col-start-1 row-start-1 flex h-11 w-11 items-center justify-center rounded-[4px] p-0 outline-none justify-self-end focus-visible:ring-2 focus-visible:ring-[#B55F00] focus-visible:ring-offset-2 lg:w-[200px] lg:justify-between lg:px-4"
+            class="col-start-1 row-start-1 flex h-11 w-11 items-center justify-center rounded-[4px] p-0 outline-none justify-self-end focus-visible:ring-2 focus-visible:ring-brand-ink focus-visible:ring-offset-2 lg:w-[200px] lg:justify-between lg:px-4"
             :aria-expanded="isDrawerOpen" aria-controls="navigation-drawer"
             :aria-label="isDrawerOpen ? '關閉選單' : '開啟選單'" @click="toggleDrawer">
             <!-- Menu icon ↔ X -->
@@ -544,9 +544,9 @@ onBeforeUnmount(() => {
 
     <!-- 抽屜 -->
     <aside id="navigation-drawer" ref="drawerRef"
-      class="fixed inset-y-0 right-0 z-[80] flex w-[min(88vw,380px)] flex-col justify-center overflow-hidden bg-[#262626] px-8 shadow-2xl sm:px-10"
+      class="fixed inset-y-0 right-0 z-[80] flex w-[min(88vw,380px)] flex-col justify-center overflow-hidden bg-ink px-8 shadow-2xl sm:px-10"
       aria-label="網站選單">
-      <div class="pointer-events-none absolute -right-24 top-20 h-72 w-72 rounded-full bg-[#D4A574]/10 blur-3xl"></div>
+      <div class="pointer-events-none absolute -right-24 top-20 h-72 w-72 rounded-full bg-brand/10 blur-3xl"></div>
 
       <button ref="closeBtnRef" type="button"
         class="absolute right-6 top-6 flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
@@ -559,19 +559,19 @@ onBeforeUnmount(() => {
 
       <div class="relative z-10 flex flex-col gap-8">
         <a href="#about"
-          class="drawer-link text-2xl font-semibold tracking-wide text-white transition-colors hover:text-[#B55F00] sm:text-3xl"
+          class="drawer-link text-2xl font-semibold tracking-wide text-white transition-colors hover:text-brand sm:text-3xl"
           @click="handleNavLinkClick($event, '#about')">
           {{ aboutText }}
         </a>
 
         <a href="#service"
-          class="drawer-link text-2xl font-semibold tracking-wide text-white transition-colors hover:text-[#B55F00] sm:text-3xl"
+          class="drawer-link text-2xl font-semibold tracking-wide text-white transition-colors hover:text-brand sm:text-3xl"
           @click="handleNavLinkClick($event, '#service')">
           {{ serviceText }}
         </a>
 
         <a href="#contact"
-          class="drawer-link text-2xl font-semibold tracking-wide text-white transition-colors hover:text-[#B55F00] sm:text-3xl"
+          class="drawer-link text-2xl font-semibold tracking-wide text-white transition-colors hover:text-brand sm:text-3xl"
           @click="handleNavLinkClick($event, '#contact')">
           {{ contactText }}
         </a>
