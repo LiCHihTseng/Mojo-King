@@ -464,7 +464,7 @@ onBeforeUnmount(() => {
               <svg
                 v-if="autoplayEnabled"
                 viewBox="0 0 46 46"
-                class="pointer-events-none absolute -inset-px h-[46px] w-[46px] -rotate-90"
+                class="pointer-events-none absolute -inset-px h-[46px] w-[46px] -rotate-90 text-brand"
                 aria-hidden="true"
               >
                 <circle
@@ -473,7 +473,7 @@ onBeforeUnmount(() => {
                   cy="23"
                   r="22"
                   fill="none"
-                  stroke="#FF891D"
+                  stroke="currentColor"
                   stroke-width="1.5"
                   stroke-linecap="round"
                 />

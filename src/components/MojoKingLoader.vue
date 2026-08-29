@@ -16,7 +16,7 @@ let crawlTween: gsap.core.Tween | null = null
 const visible = ref(true)
 
 // 背景色：B55F00 的降飽和版本，直接改這個變數
-const BG_COLOR = '#FF891D'
+const BG_COLOR = '#b95e09'
 
 const CRAWL_TARGET = 0.85     // loading 期間先「假爬」到 85% 就停住
 const CRAWL_DURATION = 3.2    // 爬到 85% 的時間 (秒)
