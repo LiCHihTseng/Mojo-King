@@ -23,7 +23,12 @@ if (!entranceReady) throw new Error("HomePage requires entranceReady");
         <Hero :entrance-ready="entranceReady" />
       </section>
 
-      <section id="about" class="relative z-10 rounded-t-[2rem] bg-white">
+      <!-- data-nav-light-surface：導覽列從這裡開始要換成深色 logo -->
+      <section
+        id="about"
+        data-nav-light-surface
+        class="relative z-10 rounded-t-[2rem] bg-white"
+      >
         <div
           class="pointer-events-none absolute inset-x-0 top-0 h-px shadow-[0_-30px_60px_15px_rgba(0,0,0,0.25)]"
         ></div>

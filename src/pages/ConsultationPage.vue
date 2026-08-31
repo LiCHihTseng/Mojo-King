@@ -2,55 +2,29 @@
 /**
  * ConsultationPage.vue
  *
- * 「預約諮詢」表單的獨立頁面。從 Contact 區塊的「填寫表單」按鈕進來，
- * 走 App.vue 那套覆蓋式轉場（頁面由下往上推出來），跟服務詳情頁同一套。
+ * 「預約諮詢」表單的獨立頁面。走 App.vue 那套覆蓋式轉場（頁面由下往上
+ * 推出來），跟服務詳情頁同一套。
  *
- * 返回鍵沿用 routeTransition.returnToServices()：回到首頁最頂端，
- * 並播放對稱的退場動畫。沒有 provider 時（例如單元測試直接掛載）
- * 退回一般的 router.push。
+ * 導覽用全站的 Navigation：原本那條「MOJO KING ／ ← 返回首頁」已經
+ * 併進去，logo 就是返回鍵（走反向轉場退回首頁）。
  */
-import { inject } from "vue";
-import { useRouter } from "vue-router";
 import ConsultationForm from "../components/ConsultationForm.vue";
-import { routeTransitionKey } from "../lib/appShell";
-
-const router = useRouter();
-const transition = inject(routeTransitionKey, null);
-
-const returnHome = () => {
-  if (transition) {
-    void transition.returnToServices();
-    return;
-  }
-
-  void router.push("/");
-};
+import Navigation from "../components/Navigation.vue";
 </script>
 
 <template>
   <main
     data-route-page
     data-route-kind="consultation"
-    class="min-h-screen overflow-x-clip bg-surface-alt"
+    data-nav-light-surface
+    class="min-h-screen overflow-x-clip bg-surface-alt pt-[76px] sm:pt-[88px] lg:pt-[108px]"
   >
-    <header
-      class="bg-ink px-5 text-eyebrow text-white sm:px-8 lg:px-16"
-    >
-      <nav
-        aria-label="表單頁導覽"
-        class="mx-auto flex w-full max-w-8xl items-center justify-between py-4"
-      >
-        <span class="uppercase">MOJO KING</span>
-        <button
-          type="button"
-          class="inline-flex items-center gap-3 py-2 transition-opacity hover:opacity-70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-4 focus-visible:ring-offset-ink"
-          @click="returnHome"
-        >
-          <span aria-hidden="true">←</span>
-          返回首頁
-        </button>
-      </nav>
-    </header>
+    <!--
+      這一頁整片是淺色底（左邊那張深色圖從導覽列下緣才開始，見
+      ConsultationForm 的 lg:top），所以導覽列一進來就是深色 logo
+      ＋ 深色 Menu 的狀態。上方的 pt 是留給浮在上面的導覽列的位置。
+    -->
+    <Navigation entrance-ready />
 
     <ConsultationForm />
   </main>

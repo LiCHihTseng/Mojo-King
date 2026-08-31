@@ -3,23 +3,53 @@
  * ConsultationForm.vue
  * 「預約諮詢」表單區塊 —— 左圖右表單的分割版面。
  *
- * 欄位：姓名、職位、公司地址、想詢問的事情、想預約的原因、推薦人。
+ * 欄位：姓名、Email、職位、公司名稱、推薦人、想詢問的事情、想預約的原因、同意聯繫。
+ *
+ * 網址帶 ?from=<service slug> 時（服務詳情頁的 CTA 會帶），表單知道使用者
+ * 剛剛在讀哪一項服務：標題下方顯示來源、「想詢問的事情」先幫他填好，
+ * 送出的信裡也會標明。使用者不必把剛讀完的東西再打一次。
  *
  * 送出後會打 /api/consultation（見 api/consultation.ts），
  * 由 Resend 寄一封信到 Vercel 環境變數 CONSULTATION_TO_EMAIL 指定的信箱。
  */
-import { nextTick, onBeforeUnmount, onMounted, reactive, ref } from "vue";
+import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref } from "vue";
+import { useRoute } from "vue-router";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { getServiceBySlug } from "../data/services";
+import { useOverlayNav } from "../lib/overlayNav";
 import consultationImage from "../assets/Consulting_img.png";
 
 gsap.registerPlugin(ScrollTrigger);
+
+interface Props {
+  /**
+   * 送出後承諾的回覆時間。這是對外的服務承諾，不是技術設定 ——
+   * 慕玖實際能做到幾天就改幾天，別讓它變成做不到的字。
+   */
+  responseTime?: string;
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  responseTime: "2 個工作天",
+});
+
+const route = useRoute();
+const { returnHome } = useOverlayNav();
+
+/** 使用者是從哪個服務頁按「預約諮詢」進來的（沒有就是直接進表單） */
+const sourceService = computed(() =>
+  getServiceBySlug(String(route.query.from ?? "")),
+);
+
+const defaultInquiry = () =>
+  sourceService.value ? `我想了解「${sourceService.value.tag}」這項服務。` : "";
 
 interface ConsultationFormState {
   name: string;
   email: string;
   title: string;
-  companyAddress: string;
+  company: string;
   referrer: string;
   inquiry: string;
   reason: string;
@@ -30,9 +60,9 @@ const form = reactive<ConsultationFormState>({
   name: "",
   email: "",
   title: "",
-  companyAddress: "",
+  company: "",
   referrer: "",
-  inquiry: "",
+  inquiry: defaultInquiry(),
   reason: "",
   agreeContact: false,
 });
@@ -40,6 +70,7 @@ const form = reactive<ConsultationFormState>({
 type SubmitStatus = "idle" | "submitting" | "success" | "error";
 const status = ref<SubmitStatus>("idle");
 const errorMessage = ref("");
+const successRef = ref<HTMLElement | null>(null);
 
 /** 只擋明顯打錯的格式，真正的驗證交給後端 */
 const isValidEmail = (value: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
@@ -53,6 +84,14 @@ async function handleSubmit() {
     return;
   }
 
+  // 同意聯繫是真的閘門，不是裝飾。沒勾就不該有資料被送出去。
+  if (!form.agreeContact) {
+    errorMessage.value =
+      "需要你同意讓我們與你聯繫，才能安排諮詢時間。請勾選下方的同意項目。";
+    status.value = "error";
+    return;
+  }
+
   errorMessage.value = "";
   status.value = "submitting";
 
@@ -60,7 +99,11 @@ async function handleSubmit() {
     const response = await fetch("/api/consultation", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(form),
+      body: JSON.stringify({
+        ...form,
+        // 讓收信的人一眼知道這筆詢問是從哪個服務頁來的
+        service: sourceService.value?.tag ?? "",
+      }),
     });
 
     if (!response.ok) {
@@ -69,6 +112,10 @@ async function handleSubmit() {
     }
 
     status.value = "success";
+    // 表單整個被成功訊息取代，焦點得跟著搬過去，
+    // 否則使用鍵盤或讀螢幕軟體的人不知道剛剛發生了什麼事。
+    await nextTick();
+    successRef.value?.focus();
   } catch (error) {
     console.error("送出預約表單失敗", error);
     errorMessage.value =
@@ -83,9 +130,9 @@ function resetForm() {
   form.name = "";
   form.email = "";
   form.title = "";
-  form.companyAddress = "";
+  form.company = "";
   form.referrer = "";
-  form.inquiry = "";
+  form.inquiry = defaultInquiry();
   form.reason = "";
   form.agreeContact = false;
   errorMessage.value = "";
@@ -156,7 +203,12 @@ onBeforeUnmount(() => {
     <!-- 左側：圖片（固定吃滿一個螢幕高度，不會被圖片本身的長寬比撐開；
          桌機版用 sticky，如果右側表單內容比一個螢幕高，圖片會固定停在畫面上。
          圖片本身比容器高一截、絕對定位，讓 parallax 上下移動時不會露出空白邊） -->
-    <div class="relative h-[45vh] w-full overflow-hidden bg-ink lg:sticky lg:top-0 lg:h-screen">
+    <!--
+      桌機的 sticky 從導覽列下緣開始（lg:top-[108px]），不是視窗頂端。
+      釘在 top-0 的話這張深色圖會捲到浮動導覽列底下，深色 logo 壓在
+      深色照片上就消失了 —— 而右半邊的淺色表單又需要深色 logo。
+    -->
+    <div class="relative h-[45vh] w-full overflow-hidden bg-ink lg:sticky lg:top-[108px] lg:h-[calc(100svh-108px)]">
       <img
         ref="imageRef"
         :src="consultationImage"
@@ -182,24 +234,50 @@ onBeforeUnmount(() => {
           填寫下方表單，我們的團隊會與你聯繫，安排第一次的諮詢對談。如果你想直接聊聊，也歡迎直接聯絡我們——沒有壓力、也沒有推銷，我們的目標是幫助你在充分了解狀況後，做出清楚的決定。
         </p>
 
+        <!-- 從服務詳情頁進來時，讓使用者看見系統已經記住他在讀哪一項 -->
+        <p
+          v-if="sourceService"
+          class="mt-6 inline-flex items-center gap-2 border border-ink/15 bg-white px-4 py-2 text-caption text-ink-muted"
+        >
+          <span aria-hidden="true" class="h-1.5 w-1.5 shrink-0 rounded-full bg-brand"></span>
+          你正在詢問：<span class="text-ink">{{ sourceService.tag }}</span>
+        </p>
+
         <!-- 送出成功狀態 -->
         <div
           v-if="status === 'success'"
-          class="mt-10 border border-ink/15 bg-white px-6 py-10 text-center sm:px-10"
+          ref="successRef"
+          role="status"
+          tabindex="-1"
+          class="mt-10 border border-ink/15 bg-white px-6 py-10 text-center focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-ink sm:px-10"
         >
           <p class="text-h3 text-ink">
             收到了，謝謝你花時間填寫！
           </p>
-          <p class="mt-2 text-body text-ink-muted">
-            我們已經寄了一封確認信到 {{ form.email }}，並會盡快與你聯繫，安排適合的諮詢時間。
+          <p class="mt-3 text-body text-ink-muted">
+            我們已經寄了一封確認信到 {{ form.email }}。
           </p>
-          <button
-            type="button"
-            class="mt-6 text-sm font-medium text-brand-ink underline underline-offset-4"
-            @click="resetForm"
-          >
-            填寫另一筆諮詢
-          </button>
+          <!-- 送出後的空白期是焦慮最高的時候，說清楚多久、由誰回覆 -->
+          <p class="mt-2 text-body text-ink">
+            郁婷會在 {{ props.responseTime }}內親自與你聯繫，安排第一次的諮詢對談。
+          </p>
+
+          <div class="mt-8 flex flex-col items-center gap-4">
+            <button
+              type="button"
+              class="w-full bg-ink px-6 py-4 text-sm font-medium tracking-wide text-white transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-ink focus-visible:ring-offset-2 sm:w-auto"
+              @click="returnHome"
+            >
+              返回首頁
+            </button>
+            <button
+              type="button"
+              class="text-sm font-medium text-brand-ink underline underline-offset-4"
+              @click="resetForm"
+            >
+              填寫另一筆諮詢
+            </button>
+          </div>
         </div>
 
         <!-- 表單 -->
@@ -253,17 +331,21 @@ onBeforeUnmount(() => {
               />
             </div>
 
+            <!--
+              原本這格是「公司地址」。第一次接觸就要地址，摩擦高但對顧問
+              沒用 —— 要判斷這筆詢問值不值得回，看的是公司名與規模。
+            -->
             <div>
-              <label for="cf-company-address" class="block text-sm text-ink">
-                公司地址
+              <label for="cf-company" class="block text-sm text-ink">
+                公司名稱
               </label>
               <input
-                id="cf-company-address"
-                v-model="form.companyAddress"
+                id="cf-company"
+                v-model="form.company"
                 type="text"
-                name="companyAddress"
-                autocomplete="street-address"
-                placeholder="請輸入公司地址"
+                name="company"
+                autocomplete="organization"
+                placeholder="例如：慕玖股份有限公司"
                 class="mt-3 w-full border-0 border-b border-ink/20 bg-transparent pb-3 text-sm text-ink placeholder:text-ink/40 focus:border-brand focus:outline-none focus:ring-0"
               />
             </div>
@@ -318,9 +400,13 @@ onBeforeUnmount(() => {
                 v-model="form.agreeContact"
                 type="checkbox"
                 name="agreeContact"
-                class="mt-0.5 h-4 w-4 shrink-0 border-ink/40 text-brand focus:ring-brand"
+                required
+                class="mt-0.5 h-4 w-4 shrink-0 border-ink/40 text-brand focus:ring-brand focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-ink"
               />
-              <span>我同意讓慕玖團隊透過電話或 email 與我聯繫，安排諮詢時間。</span>
+              <span>
+                我同意讓慕玖團隊透過電話或 email 與我聯繫，安排諮詢時間。
+                <span class="text-brand">*</span>
+              </span>
             </label>
           </div>
 

@@ -72,10 +72,12 @@ export default async function handler(req: any, res: any) {
     name,
     email,
     title,
-    companyAddress,
+    company,
     referrer,
     inquiry,
     reason,
+    service,
+    agreeContact,
   } = req.body ?? {};
 
   if (!name || !inquiry) {
@@ -85,6 +87,12 @@ export default async function handler(req: any, res: any) {
 
   if (!isValidEmail(email)) {
     res.status(400).json({ error: "請填寫正確的 email" });
+    return;
+  }
+
+  // 同意聯繫是法律上的閘門，不能只擋在前端。
+  if (!agreeContact) {
+    res.status(400).json({ error: "需要同意讓慕玖與你聯繫，才能送出預約" });
     return;
   }
 
@@ -102,8 +110,10 @@ export default async function handler(req: any, res: any) {
     `姓名：${name}`,
     `Email：${email}`,
     `職位：${title || "未填寫"}`,
-    `公司地址：${companyAddress || "未填寫"}`,
+    `公司名稱：${company || "未填寫"}`,
     `是誰推薦：${referrer || "未填寫"}`,
+    // 表單頁的 ?from= 帶進來的，代表他是讀完哪一頁才決定聯繫
+    `從哪個服務頁來：${service || "直接進入表單"}`,
     `想詢問的事情：${inquiry}`,
     `想預約諮詢的原因：${reason || "未填寫"}`,
   ].join("\n");

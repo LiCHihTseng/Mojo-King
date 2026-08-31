@@ -11,17 +11,14 @@
  *   - 白底被圓形裁切後，在深色卡片上直接讀成一個白色圓盤，
  *     不能用 mix-blend-multiply：在深色底上它會把人物本身也一起壓暗。
  */
-import { inject, nextTick, onBeforeUnmount, onMounted, ref } from "vue";
-import { useRouter } from "vue-router";
+import { nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import HeroCTA from "./Hero/HeroCTA.vue";
-import { routeTransitionKey } from "../lib/appShell";
+import { CONSULTATION_PATH, useOverlayNav } from "../lib/overlayNav";
 import contactImg from "../assets/Contact.avif";
 
 gsap.registerPlugin(ScrollTrigger);
-
-const CONSULTATION_PATH = "/consultation";
 
 interface Props {
   heading?: string;
@@ -61,25 +58,7 @@ const phoneHref = () => `tel:${props.phone.replace(/\s+/g, "")}`;
    跟 Service 卡片進入服務詳情頁是同一套（含 cmd/ctrl 點擊開新分頁）。
 ---------------------------------- */
 
-const router = useRouter();
-const routeTransition = inject(routeTransitionKey, null);
-
-const isPrimaryNavigationClick = (event: MouseEvent) =>
-  event.button === 0 &&
-  !event.metaKey &&
-  !event.ctrlKey &&
-  !event.shiftKey &&
-  !event.altKey;
-
-const handleConsultationClick = (event: MouseEvent) => {
-  if (!isPrimaryNavigationClick(event)) return;
-
-  event.preventDefault();
-  void (
-    routeTransition?.navigateToService(CONSULTATION_PATH) ??
-    router.push(CONSULTATION_PATH)
-  );
-};
+const { openConsultation } = useOverlayNav();
 
 /* ----------------------------------
    Refs
@@ -281,7 +260,7 @@ onBeforeUnmount(() => {
             :text="ctaText"
             :href="CONSULTATION_PATH"
             variant="solid" bg-color="#ffffff" radius="4px" text-color="#1c1b17"
-            @click="handleConsultationClick"
+            @click="openConsultation"
           />
         </div>
       </div>

@@ -11,6 +11,9 @@ import {
 } from "vue";
 import type { ServiceDetailSection as ServiceDetailSectionDefinition } from "../data/services";
 import { getServiceBySlug } from "../data/services";
+import { consultationHref, useOverlayNav } from "../lib/overlayNav";
+import HeroCTA from "../components/Hero/HeroCTA.vue";
+import Navigation from "../components/Navigation.vue";
 import FiveDMethod from "../components/service-detail/FiveDMethod.vue";
 import ServiceDetailHero from "../components/service-detail/ServiceDetailHero.vue";
 import ServiceDetailSection from "../components/service-detail/ServiceDetailSection.vue";
@@ -19,6 +22,12 @@ gsap.registerPlugin(ScrollTrigger);
 
 const props = defineProps<{ slug: string }>();
 const service = computed(() => getServiceBySlug(props.slug));
+
+/*
+ * 頁尾 CTA 直接開表單，並把目前的服務 slug 帶過去。
+ * 原本指向 /#contact —— 讀完整頁、意願最高的那一刻反而被送回首頁再點一次。
+ */
+const { openConsultation } = useOverlayNav();
 const detailPageRoot = ref<HTMLElement | null>(null);
 
 let mounted = false;
@@ -156,9 +165,17 @@ onBeforeUnmount(() => {
     data-route-kind="detail"
     class="min-h-screen overflow-x-clip bg-white text-ink"
   >
+    <!--
+      全站導覽列。這一頁沒有 loader 擋在前面，所以進場動畫直接放行。
+      原本 hero 裡那條「MOJO KING ／ ← 返回服務」已經併進這裡：
+      logo 就是返回鍵（走 App.vue 的反向轉場），服務內容的 hover 選單
+      讓人不必回首頁就能切到另外兩個服務。
+    -->
+    <Navigation entrance-ready />
+
     <ServiceDetailHero :service="service" />
 
-    <div>
+    <div data-nav-light-surface>
       <ServiceDetailSection :section="introSection" />
       <ServiceDetailSection
         v-for="section in service.sections"
@@ -182,15 +199,17 @@ onBeforeUnmount(() => {
             讓下一步，更貼近企業真正的需要。
           </h2>
         </div>
-        <a
-          href="/#contact"
-          class="group inline-flex w-full items-center justify-between border-b border-white pb-4 text-base font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-4 focus-visible:ring-offset-ink lg:col-span-4 lg:w-auto lg:min-w-64 lg:justify-self-end"
-        >
-          預約諮詢
-          <span aria-hidden="true" class="transition-transform duration-300 group-hover:translate-x-1">
-            →
-          </span>
-        </a>
+        <!-- 跟 hero 那顆同一個元件；這裡原本也是手抄的死箭頭 markup -->
+        <HeroCTA
+          text="預約諮詢"
+          :href="consultationHref(service.slug)"
+          variant="solid"
+          bg-color="#ffffff"
+          text-color="#1c1b17"
+          radius="4px"
+          class="w-fit lg:col-span-4 lg:justify-self-end"
+          @click="openConsultation($event, service.slug)"
+        />
       </div>
     </section>
   </main>
@@ -201,7 +220,10 @@ onBeforeUnmount(() => {
     data-route-kind="detail"
     class="flex min-h-screen items-center bg-white px-5 py-20 text-ink sm:px-8 md:px-12 lg:px-16"
   >
+    <Navigation entrance-ready />
+
     <section
+      data-nav-light-surface
       class="mx-auto w-full max-w-8xl border-t border-ink/25 pt-10"
       aria-labelledby="service-not-found-title"
     >

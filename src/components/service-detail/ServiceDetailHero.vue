@@ -2,16 +2,19 @@
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { inject, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue";
-import { useRouter } from "vue-router";
 import type { ServiceDefinition } from "../../data/services";
+import HeroCTA from "../Hero/HeroCTA.vue";
 import { routeTransitionKey } from "../../lib/appShell";
+import { consultationHref, useOverlayNav } from "../../lib/overlayNav";
 
 gsap.registerPlugin(ScrollTrigger);
 
 const props = defineProps<{ service: ServiceDefinition }>();
 
-const router = useRouter();
 const transition = inject(routeTransitionKey, null);
+
+/** hero 的「預約諮詢」跟頁尾那顆一樣直接開表單，並帶上這一頁的服務 slug */
+const { openConsultation } = useOverlayNav();
 const heroRoot = ref<HTMLElement | null>(null);
 const parallaxImage = ref<HTMLImageElement | null>(null);
 
@@ -171,15 +174,6 @@ const rebuildParallax = async () => {
   });
 };
 
-const returnToServices = () => {
-  if (transition) {
-    void transition.returnToServices();
-    return;
-  }
-
-  void router.push("/#service");
-};
-
 onMounted(() => {
   mounted = true;
   setStableParallaxStart();
@@ -242,25 +236,8 @@ onBeforeUnmount(() => {
 
     <div
       data-detail-hero-content
-      class="mx-auto flex h-full w-full max-w-8xl flex-col px-5 pb-6 pt-5 sm:px-8 md:px-12 md:pb-7 md:pt-6 lg:px-16"
+      class="mx-auto flex h-full w-full max-w-8xl flex-col justify-end px-5 pb-6 pt-[76px] sm:px-8 sm:pt-[88px] md:px-12 md:pb-7 lg:px-16 lg:pt-[108px]"
     >
-      <nav
-        aria-label="服務詳情導覽"
-        class="flex items-center justify-between border-b border-white/35 pb-4 text-eyebrow drop-shadow-md"
-      >
-        <span class="uppercase">
-          MOJO KING
-        </span>
-        <button
-          type="button"
-          class="inline-flex items-center gap-3 py-2 text-white transition-opacity hover:opacity-70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-4 focus-visible:ring-offset-transparent"
-          @click="returnToServices"
-        >
-          <span aria-hidden="true">←</span>
-          返回服務
-        </button>
-      </nav>
-
       <div
         data-detail-title-layout
         class="mt-auto grid items-end gap-5 pt-6 lg:grid-cols-12 lg:gap-8"
@@ -281,16 +258,23 @@ onBeforeUnmount(() => {
           </p>
         </div>
 
-        <a
-          href="/#contact"
+        <!--
+          用共用的 HeroCTA，跟首頁 Hero、導覽列、Contact 是同一顆按鈕。
+          原本這裡是手抄一份 HeroCTA 的箭頭 markup，連 ref="arrowCurrentRef"
+          都照抄了 —— 但這支元件的 script 根本沒有那兩個 ref，等於兩張
+          SVG 疊著、沒有任何動畫在跑。
+        -->
+        <HeroCTA
+          text="預約諮詢"
+          :href="consultationHref(service.slug)"
+          variant="solid"
+          bg-color="#ffffff"
+          text-color="#1c1b17"
+          radius="4px"
           data-detail-hero-cta
-          class="group inline-flex w-fit items-center justify-between gap-8 border-b border-white pb-3 text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-4 focus-visible:ring-offset-transparent md:text-base lg:col-span-2 lg:justify-self-end"
-        >
-          預約諮詢
-          <span aria-hidden="true" class="transition-transform duration-300 group-hover:translate-x-1">
-            →
-          </span>
-        </a>
+          class="w-fit lg:col-span-2 lg:justify-self-end"
+          @click="openConsultation($event, service.slug)"
+        />
       </div>
     </div>
   </header>

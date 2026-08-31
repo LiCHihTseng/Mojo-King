@@ -309,6 +309,14 @@ const navigateToService = async (href: string) => {
 
   if (router.currentRoute.value.name === "home") {
     routeState.rememberHomeScroll(window.scrollY);
+  } else {
+    /*
+     * 從服務詳情頁再往表單頁推（overlay → overlay）時，記住的 home 捲動
+     * 位置已經不是「上一頁」了。留著它會讓表單頁的返回鍵走 history.back()
+     * 退回詳情頁、被守衛判定沒回到首頁、再補推一次首頁 —— 畫面會閃一下
+     * 詳情頁才跳回首頁。清掉之後返回鍵改走乾淨的 push("/")。
+     */
+    routeState.clearHomeScroll();
   }
 
   const plan = createRouteTransitionVisualPlan("forward", isReducedMotion());

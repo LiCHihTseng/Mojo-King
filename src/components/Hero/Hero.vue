@@ -4,9 +4,13 @@ import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 import HeroCTA from "./HeroCTA.vue";
+import { CONSULTATION_PATH, useOverlayNav } from "../../lib/overlayNav";
 import Portrait from "../../assets/Test.png";
 
 gsap.registerPlugin(ScrollTrigger);
+
+/** 「預約諮詢」直接開表單頁，不再只是捲到 #contact */
+const { openConsultation } = useOverlayNav();
 
 interface Props {
   entranceReady?: boolean;
@@ -15,6 +19,7 @@ interface Props {
   headingLine3?: string;
   description?: string;
   ctaText?: string;
+  contactCtaText?: string;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -25,6 +30,7 @@ const props = withDefaults(defineProps<Props>(), {
   description:
     "我與企業主、主管與團隊合作，帶來清楚的方向與實際可行的策略，讓組織能穩健成長，不再對人才管理感到困惑。",
   ctaText: "預約諮詢",
+  contactCtaText: "聯絡我們",
 });
 
 /* ----------------------------------
@@ -262,9 +268,24 @@ onBeforeUnmount(() => {
           </p>
         </div>
 
-        <div ref="ctaWrapRef" class="mt-6 sm:mt-8">
-          <HeroCTA :text="ctaText" href="#contact"  variant="solid" bg-color="#ffffff" radius="4px"
-                text-color="#1c1b17"/>
+        <!--
+          兩顆 CTA 共用同一個進場容器（GSAP 是對 ctaWrapRef 整塊播的），
+          所以加第二顆不必動動畫。左邊「聯絡我們」是次要動作，用 ghost
+          讓「預約諮詢」還是視覺上唯一的主要動作；HeroCTA 自己會把 #
+          錨點交給 Lenis 平滑捲過去。min-h-12 是給手機的點擊區。
+        -->
+        <div ref="ctaWrapRef" class="mt-6 flex flex-wrap items-center gap-x-7 gap-y-3 sm:mt-8">
+          <HeroCTA
+            :text="contactCtaText"
+            href="#contact"
+            variant="ghost"
+            text-color="#ffffff"
+            
+            class="min-h-12 items-center rounded-lg"
+          />
+
+          <HeroCTA :text="ctaText" :href="CONSULTATION_PATH"  variant="solid" bg-color="#ffffff" radius="4px"
+                text-color="#1c1b17" @click="openConsultation"/>
         </div>
       </div>
     </div>

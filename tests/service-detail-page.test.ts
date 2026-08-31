@@ -42,7 +42,26 @@ test("valid detail output exposes the hero, editorial sections, and one shared 5
   assert.match(html, /六項顧問服務範疇/);
   assert.equal(html.match(/Define &amp; Agree/g)?.length, 1);
   assert.equal(html.match(/Disengage &amp; Review/g)?.length, 1);
-  assert.match(html, /href="\/#contact"/);
+  // 頁首與頁尾兩顆「預約諮詢」都直接開表單，並帶著這一頁的服務 slug。
+  // 原本指向 /#contact —— 讀完整頁的人反而被送回首頁再點一次才碰得到表單。
+  assert.equal(
+    html.match(/href="\/consultation\?from=hr-consulting"/g)?.length,
+    2,
+  );
+  // 全站導覽列取代了 hero 裡那條自製的「MOJO KING ／ ← 返回服務」。
+  // 它的「聯絡我們」在非首頁上會是 /#contact，所以不能再用整頁比對來
+  // 檢查舊的 CTA —— 改成確認兩顆 CTA 都指向表單（上面那條）＋導覽列有掛上。
+  assert.match(html, /id="navigation-drawer"/);
+  assert.ok(!html.includes("返回服務 "), "hero 裡的自製返回鍵沒清乾淨");
+
+  // 站內錨點在非首頁上必須帶路徑。少了那個 /，點下去只會在這一頁找
+  // 一個不存在的 #about，等於三個連結全是死的。
+  for (const hash of ["#about", "#service", "#contact"]) {
+    assert.ok(
+      html.includes(`href="/${hash}"`),
+      `導覽列的 ${hash} 沒有帶回首頁的路徑`,
+    );
+  }
 });
 
 test("the server-rendered hero is edge-safe before client parallax initializes", async () => {
@@ -125,10 +144,11 @@ test("detail layout defers wide title and numbered-row grids until large screens
     html,
     /data-detail-title-line[^>]+class="[^"]*lg:whitespace-nowrap/,
   );
-  assert.match(
-    html,
-    /data-detail-hero-cta[^>]+class="[^"]*lg:col-span-2/,
-  );
+  // hero CTA 現在是共用的 HeroCTA，版面 class 靠 fallthrough 合併到它的
+  // 根 <a> 上 —— 屬性順序由 Vue 決定，所以比對整個標籤而不是固定順序。
+  const heroCta = html.match(/<a[^>]*data-detail-hero-cta[^>]*>/)?.[0];
+  assert.ok(heroCta, "hero CTA 不見了");
+  assert.match(heroCta, /lg:col-span-2/);
   assert.match(
     html,
     /data-detail-numbered-row[^>]+class="[^"]*lg:grid-cols-/,

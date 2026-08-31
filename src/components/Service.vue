@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import {
   computed,
-  inject,
   nextTick,
   onBeforeUnmount,
   onMounted,
@@ -9,10 +8,9 @@ import {
 } from "vue";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { useRouter } from "vue-router";
 import HeroCTA from "../components/Hero/HeroCTA.vue";
 import { getServiceHref, services, type ServiceSlug } from "../data/services";
-import { routeTransitionKey } from "../lib/appShell";
+import { useOverlayNav } from "../lib/overlayNav";
 import {
   createIntroCopyAccessibilityPlan,
   createServiceAccessibilityPlan,
@@ -48,8 +46,7 @@ const props = withDefaults(defineProps<Props>(), {
 });
 
 const firstCard = computed(() => props.cards[0] ?? null);
-const router = useRouter();
-const routeTransition = inject(routeTransitionKey, null);
+const { openOverlay, preloadImage: preloadServiceHero } = useOverlayNav();
 
 const sectionRef = ref<HTMLElement | null>(null);
 const sceneRefs = ref<HTMLElement[]>([]);
@@ -72,23 +69,6 @@ const setSceneCopyRef = (el: Element | null, index: number) => {
   }
 };
 
-const isPrimaryNavigationClick = (event: MouseEvent) =>
-  event.button === 0 &&
-  !event.metaKey &&
-  !event.ctrlKey &&
-  !event.shiftKey &&
-  !event.altKey;
-
-const handleServiceCtaClick = (event: MouseEvent, href: string) => {
-  if (!isPrimaryNavigationClick(event)) return;
-
-  event.preventDefault();
-  void (routeTransition?.navigateToService(href) ?? router.push(href));
-};
-
-const preloadServiceHero = (source: string) => {
-  routeTransition?.preloadImage(source);
-};
 
 let serviceMedia: gsap.MatchMedia | null = null;
 let refreshFrameId: number | null = null;
@@ -493,7 +473,7 @@ onBeforeUnmount(() => {
 
             <div class="lg:pt-14">
               <HeroCTA text="深入了解" :href="getServiceHref(firstCard.slug)" variant="solid" bg-color="#ffffff" radius="4px"
-                text-color="#1c1b17" @click="handleServiceCtaClick($event, getServiceHref(firstCard.slug))"
+                text-color="#1c1b17" @click="openOverlay($event, getServiceHref(firstCard.slug))"
                 @focus="preloadServiceHero(props.backgroundImage)"
                 @pointerenter="preloadServiceHero(props.backgroundImage)" />
             </div>
@@ -533,7 +513,7 @@ onBeforeUnmount(() => {
                   :href="getServiceHref(card.slug)"
                   variant="solid" bg-color="#ffffff" radius="4px"
                 text-color="#1c1b17"
-                  @click="handleServiceCtaClick($event, getServiceHref(card.slug))"
+                  @click="openOverlay($event, getServiceHref(card.slug))"
                   @focus="preloadServiceHero(index === 0 ? props.backgroundImage : card.image)"
                   @pointerenter="preloadServiceHero(index === 0 ? props.backgroundImage : card.image)"
                 />

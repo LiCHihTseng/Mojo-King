@@ -1,7 +1,10 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue";
+import { useRoute } from "vue-router";
 import gsap from "gsap";
 import HeroCTA from "../components/Hero/HeroCTA.vue";
+import { getServiceHref, services, type ServiceSlug } from "../data/services";
+import { CONSULTATION_PATH, useOverlayNav } from "../lib/overlayNav";
 import { scrollToSection, scrollToTop } from "../lib/scrollToSection";
 
 interface Props {
@@ -28,11 +31,16 @@ const props = withDefaults(defineProps<Props>(), {
 const DEFAULT_SHADOW =
   "2px 2px 16px 0 #25252533, .75px 0 1px 0 #f8f4ee2e inset, 0 .75px 1px 0 #f8f4ee2e inset, -.25px 0 1px 0 #f8f4ee14 inset, 0 -.25px 1px 0 #f8f4ee14 inset";
 
-const menuButtonStyle = {
-  backgroundColor: "#1c1b17",
-  color: "#FFFFFF",
-  boxShadow: DEFAULT_SHADOW,
-};
+/*
+ * Menu 按鈕的配色跟著底色翻。以前它只在捲過淺色底之後才出現，所以
+ * 固定深色就夠了；現在服務詳情頁與表單頁一進來就是它，而那兩頁的
+ * 頂端是深的 —— 深色按鈕壓在深色底上等於消失。
+ */
+const menuButtonStyle = computed(() =>
+  hasReachedLightSurface.value
+    ? { backgroundColor: "#1c1b17", color: "#FFFFFF", boxShadow: DEFAULT_SHADOW }
+    : { backgroundColor: "#ffffff", color: "#1c1b17", boxShadow: DEFAULT_SHADOW },
+);
 
 /* ----------------------------------
    Refs
@@ -58,6 +66,68 @@ const isDrawerOpen = ref(false);
 type NavLink = "about" | "service" | "contact";
 const hoveredLink = ref<NavLink | null>(null);
 
+/* ----------------------------------
+   「服務內容」的 hover 選單
+
+   三個服務頁原本只有一個入口：捲到 Service 區塊、等 sticky 場景切到
+   要的那一個、再點「深入了解」。想比較 01 跟 02 得整段重來一次。
+   這裡把三個服務直接掛在導覽列下，滑過就能換。
+
+   開關同時綁 hover 與 focus：滑鼠使用者用 hover，鍵盤使用者 Tab 到
+   「服務內容」時一樣會展開，接著 Tab 就能走進面板。關閉的那一半交給
+   focusout（焦點移到面板內不算離開）與 Escape。
+---------------------------------- */
+
+const { openOverlay, openConsultation, preloadImage, returnHome } = useOverlayNav();
+
+/*
+ * 同一支導覽列現在也掛在服務詳情頁與表單頁上。那兩頁沒有 #about /
+ * #service / #contact 這些區塊，站內錨點得先回首頁；logo 也不再是
+ * 「捲到最上面」而是「離開這個覆蓋頁」。
+ *
+ * navigation-mobile 的單元測試不帶 router 直接掛載這支元件，
+ * 所以沒有 route 時一律當成首頁，維持原本的行為。
+ */
+const route = useRoute();
+const isHome = computed(() => !route || route.name === "home");
+
+/** 首頁用純錨點；其他頁得帶上路徑，讓瀏覽器自己導回首頁的該區塊 */
+const sectionHref = (hash: string) => (isHome.value ? hash : `/${hash}`);
+
+const isServiceMenuOpen = ref(false);
+const serviceMenuRef = ref<HTMLElement | null>(null);
+
+const openServiceMenu = () => {
+  isServiceMenuOpen.value = true;
+};
+
+const closeServiceMenu = () => {
+  isServiceMenuOpen.value = false;
+};
+
+const handleServiceMenuFocusOut = (event: FocusEvent) => {
+  const next = event.relatedTarget;
+  if (next instanceof Node && serviceMenuRef.value?.contains(next)) return;
+
+  closeServiceMenu();
+};
+
+const handleServiceMenuSelect = (event: MouseEvent, slug: ServiceSlug) => {
+  closeServiceMenu();
+  openOverlay(event, getServiceHref(slug));
+};
+
+const handleDrawerServiceSelect = (event: MouseEvent, slug: ServiceSlug) => {
+  closeDrawer();
+  openOverlay(event, getServiceHref(slug));
+};
+
+/** 抽屜裡的 CTA：先關抽屜，body 的捲動鎖才不會被帶到下一頁 */
+const handleDrawerConsultationClick = (event: MouseEvent) => {
+  closeDrawer();
+  openConsultation(event);
+};
+
 let gsapContext: gsap.Context | null = null;
 let entranceTimeline: gsap.core.Timeline | null = null;
 let entranceHasPlayed = false;
@@ -67,18 +137,20 @@ let prefersReducedMotion = false;
 
 
 const navRef = ref<HTMLElement | null>(null);
-const hasReachedAbout = ref(false);
+const hasReachedLightSurface = ref(false);
 
 const logoFill = computed(() =>
   // Nav 沒有底色了，深色 logo 只在背景已經變亮（捲到 About 之後）時才用，
   // 否則在深色 Hero 上會看不見。
-  hasReachedAbout.value ? "#1c1b17" : "#ffffff",
+  hasReachedLightSurface.value ? "#1c1b17" : "#ffffff",
 );
 
 const shouldShowHamburger = computed(() => {
   // 手機版：永遠顯示
-  // 桌面版：到達 About 才顯示
-  return isCompactScreen.value || hasReachedAbout.value;
+  // 服務詳情頁 / 表單頁：永遠顯示 —— 那兩頁只要 logo 與 Menu，
+  //   中間的區塊連結與 CTA 都收進抽屜裡
+  // 首頁桌機版：捲到淺色底才顯示
+  return isCompactScreen.value || !isHome.value || hasReachedLightSurface.value;
 });
 /* ----------------------------------
    Nav 連結 hover：文字下移 + 底下的點
@@ -181,20 +253,32 @@ const closeDrawer = () => {
   isDrawerOpen.value = false;
 };
 
-/** Logo：回到首頁最上方。抽屜開著就先關起來再捲。 */
+/**
+ * Logo：首頁上是「回到最上方」，服務詳情頁與表單頁上是「離開這一頁」——
+ * 走 App.vue 那套反向轉場退回首頁（原本兩頁各自的「← 返回」鍵已經
+ * 併進這裡）。抽屜開著就先關起來再動作。
+ */
 const handleBrandClick = (event: MouseEvent) => {
   event.preventDefault();
 
   const needsUnlock = isDrawerOpen.value;
   if (needsUnlock) closeDrawer();
 
+  const leaveOrScroll = () => {
+    if (isHome.value) {
+      scrollToTop();
+      return;
+    }
+    returnHome();
+  };
+
   if (!needsUnlock) {
-    scrollToTop();
+    leaveOrScroll();
     return;
   }
 
   requestAnimationFrame(() => {
-    requestAnimationFrame(() => scrollToTop());
+    requestAnimationFrame(leaveOrScroll);
   });
 };
 
@@ -208,6 +292,10 @@ const handleBrandClick = (event: MouseEvent) => {
  * 因此改成攔截點擊、先關抽屜、等解鎖生效後再用 Lenis 捲。
  */
 const handleNavLinkClick = (event: MouseEvent, hash: string) => {
+  // 不在首頁時，href 已經是 /#xxx，交給瀏覽器導回首頁的該區塊即可。
+  // Lenis 只存在於首頁，這裡攔下來也沒有東西可以捲。
+  if (!isHome.value) return;
+
   event.preventDefault();
 
   const needsUnlock = isDrawerOpen.value;
@@ -291,28 +379,40 @@ const updateScreenMode = (event?: MediaQueryListEvent) => {
 ---------------------------------- */
 
 const updateScrollState = () => {
-  const aboutSection =
-    document.querySelector<HTMLElement>("#about");
+  /*
+   * 導覽列沒有底色，白色 logo 與白色連結只有在背景還是深的時候才看得見。
+   * 每一頁自己標出「從這裡開始是淺色底」的那個元素（首頁是 About、
+   * 服務詳情頁是 hero 之後的內文），碰到導覽列底部就換成深色 logo。
+   *
+   * 原本這裡寫死查 #about —— 那是首頁才有的 id，掛到其他頁上就永遠
+   * 是 false，白色 logo 會直接消失在白色內文上。
+   */
+  const lightSurface = document.querySelector<HTMLElement>(
+    "[data-nav-light-surface]",
+  );
 
-  if (aboutSection) {
+  if (lightSurface) {
     const navBottom =
       navRef.value?.getBoundingClientRect().bottom ?? 96;
 
     /*
-     * About 頂端碰到 Nav 底部時為 true。
-     * 繼續往 Service、Contact 捲動也會保持 true。
+     * 淺色區塊頂端碰到 Nav 底部時為 true。
+     * 繼續往下捲也會保持 true。
      */
-    hasReachedAbout.value =
-      aboutSection.getBoundingClientRect().top <= navBottom;
+    hasReachedLightSurface.value =
+      lightSurface.getBoundingClientRect().top <= navBottom;
   } else {
-    hasReachedAbout.value = false;
+    hasReachedLightSurface.value = false;
   }
 
-  if (
-    !isCompactScreen.value &&
-    !hasReachedAbout.value &&
-    isDrawerOpen.value
-  ) {
+  /*
+   * Menu 按鈕消失時（首頁桌機捲回深色 Hero）順手把抽屜收掉，
+   * 否則會留下一個沒有開關的抽屜。
+   *
+   * 原本這裡直接判斷 !hasReachedLightSurface —— 在服務詳情頁桌機版
+   * 一進來就成立，抽屜會在下一個 scroll 事件被立刻關掉，等於打不開。
+   */
+  if (!shouldShowHamburger.value && isDrawerOpen.value) {
     isDrawerOpen.value = false;
   }
 
@@ -329,16 +429,21 @@ const handleScroll = () => {
 ---------------------------------- */
 
 const handleKeydown = (event: KeyboardEvent) => {
-  if (event.key === "Escape" && isDrawerOpen.value) {
-    closeDrawer();
-  }
+  if (event.key !== "Escape") return;
+
+  if (isDrawerOpen.value) closeDrawer();
+  if (isServiceMenuOpen.value) closeServiceMenu();
 };
 
 /* ----------------------------------
    Lifecycle
 ---------------------------------- */
 
-watch(shouldShowHamburger, () => updateNavVisibility());
+watch(shouldShowHamburger, (showHamburger) => {
+  // 中央連結淡出時選單還開著的話，它會孤零零地留在畫面上
+  if (showHamburger) closeServiceMenu();
+  updateNavVisibility();
+});
 watch(() => props.entranceReady, playEntrance);
 
 onMounted(async () => {
@@ -462,7 +567,7 @@ onBeforeUnmount(() => {
         <div class="pointer-events-none absolute left-1/2 top-1/2 hidden -translate-x-1/2 -translate-y-1/2 lg:flex">
           <div ref="centerEntranceRef">
             <div ref="centerLinksRef" class="flex items-center gap-1">
-              <a href="#about" class="relative inline-flex min-h-12 items-center justify-center px-4 py-2"
+              <a :href="sectionHref('#about')" class="relative inline-flex min-h-12 items-center justify-center px-4 py-2"
                 @click="handleNavLinkClick($event, '#about')"
                 @mouseenter="handleLinkEnter('about', $event)" @mouseleave="handleLinkLeave">
                 <span class="nav-group inline-flex flex-col items-center">
@@ -473,18 +578,47 @@ onBeforeUnmount(() => {
                 </span>
               </a>
 
-              <a href="#service" class="relative inline-flex min-h-12 items-center justify-center px-4 py-2"
-                @click="handleNavLinkClick($event, '#service')"
-                @mouseenter="handleLinkEnter('service', $event)" @mouseleave="handleLinkLeave">
-                <span class="nav-group inline-flex flex-col items-center">
-                  <span class="nav-label whitespace-nowrap text-lg font-medium tracking-[0.08em] text-white">
-                    {{ serviceText }}
+              <!--
+                服務內容：hover / focus 展開三個服務，可以直接跳頁切換。
+                外層 div 同時是 hover 區與定位參考點；面板用 pt-4 當作
+                連結與面板之間的「橋」，滑鼠移過去時不會先離開 hover 區。
+              -->
+              <div ref="serviceMenuRef" class="relative" @mouseenter="openServiceMenu"
+                @mouseleave="closeServiceMenu" @focusin="openServiceMenu" @focusout="handleServiceMenuFocusOut">
+                <a :href="sectionHref('#service')" class="relative inline-flex min-h-12 items-center justify-center px-4 py-2"
+                  :aria-expanded="isServiceMenuOpen" aria-controls="nav-service-menu"
+                  @click="handleNavLinkClick($event, '#service')"
+                  @mouseenter="handleLinkEnter('service', $event)" @mouseleave="handleLinkLeave">
+                  <span class="nav-group inline-flex flex-col items-center">
+                    <span class="nav-label whitespace-nowrap text-lg font-medium tracking-[0.08em] text-white">
+                      {{ serviceText }}
+                    </span>
+                    <span class="nav-dot mt-2 h-1.5 w-1.5 scale-0 rounded-full bg-brand-ink opacity-0"></span>
                   </span>
-                  <span class="nav-dot mt-2 h-1.5 w-1.5 scale-0 rounded-full bg-brand-ink opacity-0"></span>
-                </span>
-              </a>
+                </a>
 
-              <a href="#contact" class="relative inline-flex min-h-12 items-center justify-center px-4 py-2"
+                <div id="nav-service-menu" class="absolute left-1/2 top-full z-10 -translate-x-1/2 pt-4"
+                  :inert="!isServiceMenuOpen">
+                  <div
+                    class="w-[min(88vw,30rem)] rounded-[4px] bg-white p-2 shadow-[0_24px_48px_-16px_rgba(28,27,23,0.35)] transition duration-200 ease-out motion-reduce:transition-none"
+                    :class="isServiceMenuOpen ? 'translate-y-0 opacity-100' : '-translate-y-1 opacity-0'">
+                    <a v-for="service in services" :key="service.slug" :href="getServiceHref(service.slug)"
+                      class="group flex items-start gap-4 rounded-[3px] px-4 py-3 transition-colors hover:bg-surface-alt focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-ink"
+                      @click="handleServiceMenuSelect($event, service.slug)"
+                      @focus="preloadImage(service.image)" @pointerenter="preloadImage(service.image)">
+                      <span class="mt-1 text-eyebrow text-brand-ink">{{ service.index }}</span>
+                      <span class="min-w-0">
+                        <span class="block text-base font-medium text-ink">{{ service.tag }}</span>
+                        <span class="mt-1 block line-clamp-2 text-caption text-ink-muted">
+                          {{ service.summary }}
+                        </span>
+                      </span>
+                    </a>
+                  </div>
+                </div>
+              </div>
+
+              <a :href="sectionHref('#contact')" class="relative inline-flex min-h-12 items-center justify-center px-4 py-2"
                 @click="handleNavLinkClick($event, '#contact')"
                 @mouseenter="handleLinkEnter('contact', $event)" @mouseleave="handleLinkLeave">
                 <span class="nav-group inline-flex flex-col items-center">
@@ -505,7 +639,8 @@ onBeforeUnmount(() => {
         <div ref="rightControlsRef" class="grid place-items-center">
           <!-- CTA：尚未捲到 About 時顯示 -->
           <div ref="ctaRef" class="col-start-1 row-start-1 justify-self-end">
-            <HeroCTA :text="ctaText" href="#contact"    variant="solid" bg-color="#ffffff" radius="4px" text-color="#1c1b17" />
+            <HeroCTA :text="ctaText" :href="CONSULTATION_PATH" variant="solid" bg-color="#ffffff" radius="4px"
+              text-color="#1c1b17" @click="openConsultation" />
           </div>
 
           <!-- Menu 按鈕：捲到 About 之後（手機版則一律）顯示 -->
@@ -558,26 +693,37 @@ onBeforeUnmount(() => {
       </button>
 
       <div class="relative z-10 flex flex-col gap-8">
-        <a href="#about"
+        <a :href="sectionHref('#about')"
           class="drawer-link text-2xl font-semibold tracking-wide text-white transition-colors hover:text-brand sm:text-3xl"
           @click="handleNavLinkClick($event, '#about')">
           {{ aboutText }}
         </a>
 
-        <a href="#service"
-          class="drawer-link text-2xl font-semibold tracking-wide text-white transition-colors hover:text-brand sm:text-3xl"
-          @click="handleNavLinkClick($event, '#service')">
-          {{ serviceText }}
-        </a>
+        <div class="drawer-link">
+          <a :href="sectionHref('#service')"
+            class="text-2xl font-semibold tracking-wide text-white transition-colors hover:text-brand sm:text-3xl"
+            @click="handleNavLinkClick($event, '#service')">
+            {{ serviceText }}
+          </a>
 
-        <a href="#contact"
+          <!-- 捲過 About 之後桌機也只剩這個抽屜，三個服務在這裡一樣要進得去 -->
+          <div class="mt-4 flex flex-col gap-3 border-l border-white/15 pl-4">
+            <a v-for="service in services" :key="service.slug" :href="getServiceHref(service.slug)"
+              class="text-base text-white/70 transition-colors hover:text-brand"
+              @click="handleDrawerServiceSelect($event, service.slug)">
+              {{ service.tag }}
+            </a>
+          </div>
+        </div>
+
+        <a :href="sectionHref('#contact')"
           class="drawer-link text-2xl font-semibold tracking-wide text-white transition-colors hover:text-brand sm:text-3xl"
           @click="handleNavLinkClick($event, '#contact')">
           {{ contactText }}
         </a>
 
         <div class="drawer-cta">
-          <HeroCTA :text="ctaText" href="#contact" />
+          <HeroCTA :text="ctaText" :href="CONSULTATION_PATH" @click="handleDrawerConsultationClick" />
         </div>
       </div>
     </aside>
