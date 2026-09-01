@@ -34,14 +34,19 @@ interface Props {
   introLead?: string;
   introMiddle?: string;
   introEnd?: string;
+  /** 英文釋義（mojo 的字典定義）：跟中文主標一樣切在中線，左右各一半 */
+  introGlossLeft?: string;
+  introGlossRight?: string;
 }
 
 const props = withDefaults(defineProps<Props>(), {
   // intro 的圖會展開成第一個場景，所以必須跟 services[0] 是同一張
   backgroundImage: services[0]?.image ?? "",
-  introLead: "人才",
-  introMiddle: "有策略。",
-  introEnd: "組織有未來。",
+  introLead: "吸引",
+  introMiddle: "人才、",
+  introEnd: "成就彼此",
+  introGlossLeft: "A quality that attracts people to you",
+  introGlossRight: "and makes you successful and full of energy",
   cards: () => services,
 });
 
@@ -55,6 +60,8 @@ const introLayerRef = ref<HTMLElement | null>(null);
 const introImageRef = ref<HTMLElement | null>(null);
 const introLeftRef = ref<HTMLElement | null>(null);
 const introRightRef = ref<HTMLElement | null>(null);
+const introGlossLeftRef = ref<HTMLElement | null>(null);
+const introGlossRightRef = ref<HTMLElement | null>(null);
 const firstIntroCopyRef = ref<HTMLElement | null>(null);
 
 const setSceneRef = (el: Element | null, index: number) => {
@@ -92,6 +99,8 @@ onMounted(async () => {
   const introImage = introImageRef.value;
   const introLeft = introLeftRef.value;
   const introRight = introRightRef.value;
+  const introGlossLeft = introGlossLeftRef.value;
+  const introGlossRight = introGlossRightRef.value;
   const firstIntroCopy = firstIntroCopyRef.value;
   const scenes = sceneRefs.value;
   const sceneCopies = sceneCopyRefs.value;
@@ -102,6 +111,8 @@ onMounted(async () => {
     !introImage ||
     !introLeft ||
     !introRight ||
+    !introGlossLeft ||
+    !introGlossRight ||
     !firstIntroCopy ||
     scenes.length === 0 ||
     sceneCopies.length !== scenes.length
@@ -159,7 +170,6 @@ onMounted(async () => {
       isWideViewport: "(min-width: 1024px)",
       canHover: "(hover: hover)",
       hasFinePointer: "(pointer: fine)",
-      hasCoarsePointer: "(any-pointer: coarse)",
       introEnabled:
         "(min-width: 1024px) and (hover: hover) and (pointer: fine)",
       reduceMotion: "(prefers-reduced-motion: reduce)",
@@ -169,7 +179,6 @@ onMounted(async () => {
         isWideViewport,
         canHover,
         hasFinePointer,
-        hasCoarsePointer,
         introEnabled,
         reduceMotion,
       } =
@@ -177,7 +186,6 @@ onMounted(async () => {
           isWideViewport: boolean;
           canHover: boolean;
           hasFinePointer: boolean;
-          hasCoarsePointer: boolean;
           introEnabled: boolean;
           reduceMotion: boolean;
         };
@@ -185,7 +193,6 @@ onMounted(async () => {
         isWideViewport,
         canHover,
         hasFinePointer,
-        hasCoarsePointer,
       });
       const useDesktopStory = motionMode === "desktop" && !reduceMotion;
       const motionPlan = createServiceMotionPlan(
@@ -251,11 +258,37 @@ onMounted(async () => {
           `${Math.round(window.innerHeight + scrollDistance)}px`;
       };
 
+      /*
+       * 中文和英文都切在畫面正中線，但兩邊各自的左右半不一樣寬
+       * （中文左半比右半寬 83px，英文反過來右半比左半寬 62px），
+       * 所以兩塊的「視覺中心」會往相反方向偏，看起來就沒對齊。
+       *
+       * 這裡量出兩塊中心的差，寫成 --gloss-shift，讓釋義整塊
+       * （含中線那道縫）平移到跟主標同一條軸上。用 offsetWidth 量，
+       * 不受 GSAP 寫在 transform 上的位移影響。
+       */
+      const alignGloss = () => {
+        const shift =
+          (introRight.offsetWidth -
+            introLeft.offsetWidth -
+            (introGlossRight.offsetWidth - introGlossLeft.offsetWidth)) /
+          2;
+        introLayer.style.setProperty("--gloss-shift", `${shift}px`);
+      };
+
       syncTrackHeight();
+      alignGloss();
+      // Rubik 晚一步載入時字寬會變，字體就緒後再量一次
+      void document.fonts?.ready.then(() => {
+        if (introLayer.isConnected) alignGloss();
+      });
 
       if (introEnabled) {
         gsap.set(introLayer, { display: "flex", autoAlpha: 1 });
-        gsap.set([introLeft, introRight], { x: 0, autoAlpha: 1 });
+        gsap.set([introLeft, introRight, introGlossLeft, introGlossRight], {
+          x: 0,
+          autoAlpha: 1,
+        });
         gsap.set(introImage, {
           autoAlpha: 1,
           scale: 0,
@@ -309,6 +342,7 @@ onMounted(async () => {
           onRefreshInit: () => {
             isRefreshing = true;
             syncTrackHeight();
+            alignGloss();
           },
           // refresh 完成後，依播放頭實際位置把 intro 文案的狀態重新對齊，
           // 而不是沿用 refresh 途中被誤觸的結果。
@@ -328,8 +362,10 @@ onMounted(async () => {
             scale: 1.04,
             duration: INTRO_EXPAND_DURATION,
           })
+          // 中文和英文釋義是同一個平面：兩層一起往同一邊、同一段距離走，
+          // 讓中線像被拉開的縫，而不是四個各自跑的元素。
           .to(
-            introLeft,
+            [introLeft, introGlossLeft],
             {
               x: () => -window.innerWidth * 0.62,
               duration: INTRO_EXPAND_DURATION * 0.86,
@@ -337,7 +373,7 @@ onMounted(async () => {
             "imageExpand",
           )
           .to(
-            introRight,
+            [introRight, introGlossRight],
             {
               x: () => window.innerWidth * 0.62,
               duration: INTRO_EXPAND_DURATION * 0.86,
@@ -345,7 +381,7 @@ onMounted(async () => {
             "imageExpand",
           )
           .to(
-            [introLeft, introRight],
+            [introLeft, introRight, introGlossLeft, introGlossRight],
             {
               autoAlpha: 0,
               duration: INTRO_EXPAND_DURATION * 0.42,
@@ -453,6 +489,14 @@ onBeforeUnmount(() => {
           {{ props.introEnd }}
         </div>
 
+        <p ref="introGlossLeftRef" class="service-intro__gloss service-intro__gloss--left" aria-hidden="true">
+          {{ props.introGlossLeft }}
+        </p>
+
+        <p ref="introGlossRightRef" class="service-intro__gloss service-intro__gloss--right" aria-hidden="true">
+          {{ props.introGlossRight }}
+        </p>
+
         <div v-if="firstCard" ref="firstIntroCopyRef"
           class="service-intro__scene-copy absolute inset-0 z-30 flex items-center px-6 py-16 sm:px-10 lg:px-[clamp(3rem,7vw,8.5rem)]"
           aria-hidden="true" inert>
@@ -528,6 +572,8 @@ onBeforeUnmount(() => {
 
 <style scoped>
 .service-intro {
+  /* 主標和釋義共用這個字級，釋義才能用它算出自己離中線多遠 */
+  --intro-type: clamp(2.5rem, 4.15vw, 5rem);
   display: none;
   background: var(--color-ink);
   isolation: isolate;
@@ -538,7 +584,7 @@ onBeforeUnmount(() => {
   top: 50%;
   z-index: 1;
   color: #ffffff;
-  font-size: clamp(2.5rem, 4.15vw, 5rem);
+  font-size: var(--intro-type);
   font-weight: 800;
   line-height: 0.9;
   letter-spacing: -0.075em;
@@ -554,6 +600,41 @@ onBeforeUnmount(() => {
 
 .service-intro__copy--right {
   left: calc(50% + clamp(0.18rem, 0.4vw, 0.5rem));
+}
+
+/*
+ * 英文釋義：整個站唯一的拉丁文字塊。Rubik 早就掛在 index.html 卻沒被用過，
+ * 這裡剛好給它一個 Noto Sans TC 的拉丁字形做不到的角色 —— 小級數、細字重、
+ * 全小寫的一句定義。深底上的淺字，行高和字距都比亮底多給一點。
+ */
+.service-intro__gloss {
+  /* 定位全靠 top/left/right，不寫 transform：transform 整條由 GSAP 掌管，
+     CSS 再寫一次會在 gsap.set() 的第一幀被蓋掉 */
+  position: absolute;
+  top: calc(50% + var(--intro-type) * 0.98);
+  z-index: 1;
+  margin: 0;
+  white-space: nowrap;
+  color: rgb(255 255 255 / 0.62);
+  font-family: "Rubik", "Noto Sans TC", system-ui, sans-serif;
+  /* 綁在主標字級上，比例才會跨解析度一致（獨立的 vw clamp 在 1024px
+     會讓釋義相對主標爆掉） */
+  font-size: clamp(0.9375rem, calc(var(--intro-type) * 0.3), 1.375rem);
+  font-weight: 300;
+  line-height: 1.65;
+  letter-spacing: 0.015em;
+  will-change: transform, opacity;
+}
+
+/* 中線兩側各留 0.2em，合起來剛好是一個字距，讀起來還是一句話。
+   --gloss-shift 由 JS 量出來，把整塊釋義推到跟主標同一條中軸。 */
+.service-intro__gloss--left {
+  right: calc(50% + 0.2em - var(--gloss-shift, 0px));
+  text-align: right;
+}
+
+.service-intro__gloss--right {
+  left: calc(50% + 0.2em + var(--gloss-shift, 0px));
 }
 
 .service-intro__lead {

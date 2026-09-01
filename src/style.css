@@ -56,7 +56,7 @@
   --text-body: clamp(0.95rem, 1.05vw, 1.0625rem);
   --text-body--line-height: 1.75;
 
-  --text-stat: clamp(2rem, 3vw, 2.75rem);
+  --text-stat: clamp(1rem, 2vw, 1.75rem);
   --text-stat--line-height: 1;
   --text-stat--letter-spacing: 0.02em;
   --text-stat--font-weight: 700;

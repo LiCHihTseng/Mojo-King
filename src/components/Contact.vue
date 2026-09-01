@@ -37,7 +37,7 @@ interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  heading: "我們期待與你展開長期的合作",
+  heading: "期待與您合作",
   intro: "先聊聊也好，喝杯咖啡也可以。",
   personName: "郁婷",
   personRole: "慕玖執行長｜人資顧問",
@@ -192,7 +192,7 @@ onBeforeUnmount(() => {
     class="flex min-h-screen w-full items-center bg-white px-0 py-0 sm:px-8 sm:py-12 lg:px-10 lg:py-16"
   >
     <div
-      class="mx-auto flex w-full max-w-8xl flex-col-reverse gap-8 bg-ink px-6 py-14 sm:rounded-[2rem] sm:px-10 sm:py-16 sm:shadow-[0_30px_60px_-25px_rgba(0,0,0,0.45)] lg:flex-row lg:items-center lg:gap-20 lg:px-20 lg:py-20"
+      class="mx-auto flex w-full max-w-[1600px] flex-col-reverse gap-8 bg-ink px-6 py-14 sm:rounded-[2rem] sm:px-10 sm:py-16 sm:shadow-[0_30px_60px_-25px_rgba(0,0,0,0.45)] lg:flex-row lg:items-center lg:gap-20 lg:px-20 lg:py-20"
     >
       <!-- 左：標題 + 邀請 + 聯絡資訊 -->
       <div class="lg:flex-1">

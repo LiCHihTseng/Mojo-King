@@ -13,9 +13,10 @@ interface Scene {
   id: string;
   title: string;
   /** 每段獨立一個 <p>，第一段會以較深的顏色作為 lead */
-  description: string[];
-  bullets: string[];
-  stat: { value: string; label: string };
+  description?: string[];
+  /** title 連分隔線一起粗體；sep 不給就用「｜」，沒有 text 就不出現分隔線 */
+  bullets?: { title: string; sep?: string; text?: string }[];
+  stats?: { value: string; label: string }[];
   image: string;
 }
 
@@ -25,49 +26,53 @@ const scenes: Scene[] = [
     title: "20+ 年經驗，讓我看見企業真正的人資問題",
     description: [
       "我是人資顧問郁婷，慕玖股份有限公司執行長，外號「HR 女神」。",
-      "擁有超過 20 年上市櫃企業人資經驗，從人資管理到人資長的歷練，讓我深刻體會：人資不只是制度與行政，而是影響人才、組織與企業長期發展的重要力量。",
-      "也因為看見許多企業在成長過程中，缺乏成熟的人資策略與經驗支持，我創立了慕玖，希望把多年企業實戰經驗帶進更多組織。",
+      "20+ 年人資管理到人資長的經驗，讓我深刻體會：",
+      "人資不只是制度與行政，而是影響人才、組織與企業長期發展的重要力量。",
     ],
-    bullets: [
-      "20+ 年企業人資實戰經驗",
-      "上市櫃科技、半導體、製造與傳統產業歷練",
-      "參與企業整併、組織轉型與制度重建",
-      "從經營視角思考人才與組織問題",
+    stats: [
+      { value: "100+", label: "企業合作案例" },
+      { value: "跨領域", label: "上市櫃科技、半導體、製造與傳統產業歷練" },
+      { value: "經營高度", label: "經營視角思考人才與組織問題" },
     ],
-    stat: { value: "100+", label: "企業合作案例" },
     image: about1,
   },
   {
     id: "company",
     title: "讓人資，成為企業成長的策略力量",
     description: [
-      "慕玖股份有限公司（MoJo King）專注於人力資源管理與組織發展。",
-      "我們透過策略型人資顧問與管理培訓，協助企業從人才發展、領導力到組織文化，建立真正符合企業發展階段的管理系統。",
-      "我們不只是解決眼前的人資問題，更希望協助企業建立一套未來能夠自己持續運作的管理能力。",
+      "不只解決表面痛點，更協助企業建立具備自我運作能力的組織系統。",
     ],
     bullets: [
-      "人才發展｜建立符合企業成長階段的人才策略",
-      "領導力培育｜提升主管帶人、溝通與決策能力",
-      "組織文化｜建立支持企業長期發展的制度與文化",
-      "管理培訓｜讓制度真正被主管理解與運用",
+      { title: "人才發展", text: "建立符合企業成長階段的人才策略" },
+      { title: "領導力培育", text: "提升主管帶人、溝通與決策能力" },
+      { title: "組織文化", text: "建立支持企業長期發展的制度與文化" },
+      { title: "管理培訓", text: "讓制度真正被主管理解與運用" },
     ],
-    stat: { value: "150+", label: "一對一深度諮詢" },
+    stats: [{ value: "150+", label: "一對一深度諮詢" }],
     image: about2,
   },
   {
     id: "why-us",
     title: "我們留下的不只是一套制度",
-    description: [
-      "慕玖結合企業人資長的實戰經驗、組織顧問能力與管理培訓方法，從問題診斷、制度設計到實際導入，陪企業把改變真正落實。",
-    ],
     bullets: [
-      "具備經營視角的人資專業",
-      "從制度設計到真正落地",
-      "顧問 × 培訓雙重能力",
-      "跨產業實戰經驗",
-      "國際專業認證",
+      { title: "經營者視角", sep: " | ", text: "緊扣商業目標設計人資制度。" },
+      {
+        title: "顧問 × 培訓雙軌導入",
+        sep: " | ",
+        text: "兼顧制度建構與主管心態賦能。",
+      },
+      {
+        title: "全流程教練陪跑",
+        sep: " | ",
+        text: "陪伴企業面對轉型陣痛直至機制成型。",
+      },
+      { title: "多項國際專業認證" },
+      {
+        title: "制度設計到推動落地",
+        sep: ":",
+        text: "重視主管共識、導入溝通、實際運作及後續成效。",
+      },
     ],
-    stat: { value: "100%", label: "教練顧問陪跑" },
     image: about3,
   },
 ];
@@ -274,7 +279,7 @@ onBeforeUnmount(() => {
                   {{ scene.title }}
                 </h2>
 
-                <div class="mt-5 flex flex-col gap-3">
+                <div v-if="scene.description" class="mt-5 flex flex-col gap-3">
                   <p
                     v-for="(paragraph, pi) in scene.description"
                     :key="pi"
@@ -285,10 +290,10 @@ onBeforeUnmount(() => {
                   </p>
                 </div>
 
-                <ul class="mt-7 flex flex-col gap-3">
+                <ul v-if="scene.bullets" class="mt-7 flex flex-col gap-6">
                   <li
-                    v-for="(bullet, bi) in scene.bullets"
-                    :key="bi"
+                    v-for="bullet in scene.bullets"
+                    :key="bullet.title"
                     class="flex gap-3"
                   >
                     <svg
@@ -307,18 +312,23 @@ onBeforeUnmount(() => {
                       />
                     </svg>
                     <span class="text-body text-ink/70">
-                      {{ bullet }}
+                      <strong class="font-semibold text-ink">{{ bullet.title }}<template v-if="bullet.text">{{ bullet.sep ?? "｜" }}</template></strong>
+                      <template v-if="bullet.text">{{ bullet.text }}</template>
                     </span>
                   </li>
                 </ul>
 
-                <div class="mt-8 flex items-baseline gap-3">
-                  <span
-                    class="text-stat text-brand"
+                <div v-if="scene.stats" class="mt-8 flex flex-col gap-6">
+                  <div
+                    v-for="(stat, si) in scene.stats"
+                    :key="si"
+                    class="flex items-baseline gap-3"
                   >
-                    {{ scene.stat.value }}
-                  </span>
-                  <span class="text-sm text-ink/50">{{ scene.stat.label }}</span>
+                    <span class="text-stat text-brand">
+                      {{ stat.value }}
+                    </span>
+                    <span class="text-sm text-ink/50">{{ stat.label }}</span>
+                  </div>
                 </div>
 
                 <!-- 捲動進度：釘在 article 底部、水平置中。
@@ -376,7 +386,7 @@ onBeforeUnmount(() => {
           {{ scene.title }}
         </h2>
 
-        <div class="flex flex-col gap-3">
+        <div v-if="scene.description" class="flex flex-col gap-3">
           <p
             v-for="(paragraph, pi) in scene.description"
             :key="pi"
@@ -387,10 +397,10 @@ onBeforeUnmount(() => {
           </p>
         </div>
 
-        <ul class="flex flex-col gap-3">
+        <ul v-if="scene.bullets" class="flex flex-col gap-3">
           <li
-            v-for="(bullet, bi) in scene.bullets"
-            :key="bi"
+            v-for="bullet in scene.bullets"
+            :key="bullet.title"
             class="flex gap-3"
           >
             <svg
@@ -409,16 +419,23 @@ onBeforeUnmount(() => {
               />
             </svg>
             <span class="text-body text-ink/70">
-              {{ bullet }}
+              <strong class="font-semibold text-ink">{{ bullet.title }}<template v-if="bullet.text">{{ bullet.sep ?? "｜" }}</template></strong>
+              <template v-if="bullet.text">{{ bullet.text }}</template>
             </span>
           </li>
         </ul>
 
-        <div class="flex items-baseline gap-3">
-          <span class="text-stat text-brand">
-            {{ scene.stat.value }}
-          </span>
-          <span class="text-sm text-ink/50">{{ scene.stat.label }}</span>
+        <div v-if="scene.stats" class="flex flex-col gap-6">
+          <div
+            v-for="(stat, si) in scene.stats"
+            :key="si"
+            class="flex items-baseline gap-3"
+          >
+            <span class="text-stat text-brand">
+              {{ stat.value }}
+            </span>
+            <span class="text-sm text-ink/50">{{ stat.label }}</span>
+          </div>
         </div>
       </article>
     </div>

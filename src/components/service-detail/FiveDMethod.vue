@@ -12,7 +12,7 @@ import { fiveDSteps } from "../../data/services";
       <h2
         class="max-w-[24ch] text-h2 text-ink text-balance"
       >
-        從需求定義到能力移轉，讓每一項方案真正落地並持續運作。
+        陪伴企業建立可持續運作的組織能力。
       </h2>
 
       <ol

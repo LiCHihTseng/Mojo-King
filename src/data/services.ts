@@ -63,7 +63,7 @@ export const services: ServiceDefinition[] = [
       {
         type: "numbered-list",
         label: "CONSULTING AREAS",
-        title: "六項顧問服務範疇",
+        title: "服務領域",
         items: [
           {
             title: "組織治理與組織設計",
@@ -107,7 +107,7 @@ export const services: ServiceDefinition[] = [
       {
         type: "bullet-list",
         label: "SUITABLE COMPANIES",
-        title: "適合合作的企業",
+        title: "推薦企業",
         items: [
           { title: "正在快速成長、轉型或進行接班。" },
           { title: "尚未設置資深人資主管，但已有多項議題需要整合。" },

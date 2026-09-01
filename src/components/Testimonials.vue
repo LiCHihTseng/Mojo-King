@@ -372,12 +372,12 @@ onBeforeUnmount(() => {
         >
           {{ heading }}<span class="text-brand">.</span>
         </h2>
-        <p
+        <!-- <p
           ref="introRef"
           class="mt-5 max-w-md text-body-lg text-ink-muted"
         >
           {{ intro }}
-        </p>
+        </p> -->
       </div>
 
       <!-- 右：案例本身 -->

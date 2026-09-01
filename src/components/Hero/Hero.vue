@@ -214,6 +214,14 @@ onBeforeUnmount(() => {
       -->
       <div class="pointer-events-none absolute inset-x-0 bottom-0 z-0 h-[72%] bg-gradient-to-t from-black via-black/80 to-transparent lg:hidden"></div>
 
+      <!--
+        手機／平板：上方也要壓一段。桌機的左→右遮罩本來就把左上角壓成
+        全黑，白色 logo 站得住；手機只有下→上那層，畫面上方是亮的照片，
+        Nav 的白 logo 會直接消失。這層只蓋到 160px（Nav 底部約 68px），
+        再往下就透明，人臉仍留在乾淨區。
+      -->
+      <div class="pointer-events-none absolute inset-x-0 top-0 z-0 h-40 bg-gradient-to-b from-black/80 via-black/40 to-transparent lg:hidden"></div>
+
       <!-- 桌機底部收邊，接住下方 About 的圓角 -->
       <div class="pointer-events-none absolute inset-x-0 bottom-0 z-0 hidden h-60 bg-gradient-to-t from-black/70 to-transparent lg:block"></div>
     </div>

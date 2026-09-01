@@ -53,7 +53,6 @@ test("wide touch devices stay in the mobile static mode", async () => {
     isWideViewport: true,
     canHover: false,
     hasFinePointer: false,
-    hasCoarsePointer: true,
   });
 
   assert.equal(mode, "mobile");
@@ -68,13 +67,13 @@ test("wide devices with a precise pointer use the desktop story", async () => {
     isWideViewport: true,
     canHover: true,
     hasFinePointer: true,
-    hasCoarsePointer: false,
   });
 
   assert.equal(mode, "desktop");
 });
 
-test("hybrid touch devices stay in the mobile static mode", async () => {
+// 觸控筆電（Surface Laptop 這類）：主要輸入還是觸控板，該看桌機版翻頁
+test("touchscreen laptops still get the desktop story", async () => {
   const { resolveServiceMotionMode } = await import(
     "../src/components/serviceMotion.ts"
   );
@@ -83,7 +82,21 @@ test("hybrid touch devices stay in the mobile static mode", async () => {
     isWideViewport: true,
     canHover: true,
     hasFinePointer: true,
-    hasCoarsePointer: true,
+  });
+
+  assert.equal(mode, "desktop");
+});
+
+// 平板／手機：主要輸入是手指，hover 與 pointer 都過不了
+test("touch-primary devices stay in the mobile static mode", async () => {
+  const { resolveServiceMotionMode } = await import(
+    "../src/components/serviceMotion.ts"
+  );
+
+  const mode = resolveServiceMotionMode({
+    isWideViewport: true,
+    canHover: false,
+    hasFinePointer: false,
   });
 
   assert.equal(mode, "mobile");

@@ -461,7 +461,7 @@ onMounted(async () => {
   gsapContext = gsap.context(() => {
     updateNavVisibility(true);
     gsap.set(backdropRef.value, { opacity: 0, pointerEvents: "none" });
-    gsap.set(drawerRef.value, { xPercent: 100 });
+    gsap.set(drawerRef.value, { xPercent: 100, visibility: "visible" });
 
     if (!prefersReducedMotion) {
       /*
@@ -645,7 +645,7 @@ onBeforeUnmount(() => {
 
           <!-- Menu 按鈕：捲到 About 之後（手機版則一律）顯示 -->
           <button ref="hamburgerRef" type="button" :style="menuButtonStyle"
-            class="col-start-1 row-start-1 flex h-11 w-11 items-center justify-center rounded-[4px] p-0 outline-none justify-self-end focus-visible:ring-2 focus-visible:ring-brand-ink focus-visible:ring-offset-2 lg:w-[200px] lg:justify-between lg:px-4"
+            class="col-start-1 row-start-1 flex h-11 items-center justify-center gap-2 rounded-[4px] px-3 outline-none justify-self-end focus-visible:ring-2 focus-visible:ring-brand-ink focus-visible:ring-offset-2 lg:w-[200px] lg:justify-between lg:px-4"
             :aria-expanded="isDrawerOpen" aria-controls="navigation-drawer"
             :aria-label="isDrawerOpen ? '關閉選單' : '開啟選單'" @click="toggleDrawer">
             <!-- Menu icon ↔ X -->
@@ -664,8 +664,8 @@ onBeforeUnmount(() => {
               </svg>
             </span>
 
-            <!-- 桌機保留文字，手機與平板只顯示 icon -->
-            <span data-menu-label class="hidden text-sm font-medium tracking-wide lg:inline">
+            <!-- 文字所有尺寸都留著：只有 icon 的方塊看不出是選單 -->
+            <span data-menu-label class="text-sm font-medium tracking-wide">
               {{ menuText }}
             </span>
           </button>
@@ -674,10 +674,11 @@ onBeforeUnmount(() => {
     </nav>
 
     <!-- 背景遮罩 -->
-    <button ref="backdropRef" type="button" class="fixed inset-0 z-[75] cursor-default bg-black/45" aria-label="關閉選單"
+    <button ref="backdropRef" type="button"
+      class="pointer-events-none fixed inset-0 z-[75] cursor-default bg-black/45 opacity-0" aria-label="關閉選單"
       @click="closeDrawer"></button>
 
-    <!-- 抽屜 -->
+    <!-- 抽屜（收起狀態見下方 style 的 #navigation-drawer） -->
     <aside id="navigation-drawer" ref="drawerRef"
       class="fixed inset-y-0 right-0 z-[80] flex w-[min(88vw,380px)] flex-col justify-center overflow-hidden bg-ink px-8 shadow-2xl sm:px-10"
       aria-label="網站選單">
@@ -731,6 +732,21 @@ onBeforeUnmount(() => {
 </template>
 
 <style scoped>
+/*
+ * 抽屜與遮罩的收起狀態必須寫在樣式裡，不能只靠 onMounted 的 gsap.set。
+ * 每個路由頁各自掛一份 Navigation（key 是 route.fullPath），所以從服務詳情頁
+ * 返回首頁是一次全新掛載；gsap.set 前面還 await 了一個 nextTick，量到的空窗
+ * 大約 20ms —— 足夠畫出一格「抽屜整個展開＋遮罩全黑」的畫面，看起來就像它
+ * 自己打開了。
+ *
+ * 用 visibility 而不是 transform / translate：GSAP 會把元素既有的位移疊進自己
+ * 的基準值（實測變成 translate(100%) translate(380px)），抽屜就再也推不開。
+ * visibility 沒有人碰，onMounted 那次 gsap.set 直接用 inline 蓋掉。
+ */
+#navigation-drawer {
+  visibility: hidden;
+}
+
 nav,
 nav * {
   -webkit-font-smoothing: antialiased;

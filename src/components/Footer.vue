@@ -28,15 +28,15 @@ onMounted(async () => {
   mm = gsap.matchMedia();
 
   /*
-   * 這段位移只在桌機執行。
+   * 這段位移只在桌機（>=1024px）執行。
    *
    * 它的範圍結束在 "bottom bottom"，也就是整頁的最底部 —— 正好是手機
-   * 網址列收合／展開的地方。捲到底時視窗高度反覆變化，scrub 補間就會
-   * 跟著來回跳，看起來像畫面在抽動。手機本來就沒有這個裝飾的必要，
-   * 直接不註冊，跟 About 的做法一致。
+   * 和平板網址列收合／展開的地方。捲到底時視窗高度反覆變化，scrub 補間
+   * 就會跟著來回跳，看起來像畫面在抽動。觸控裝置本來就沒有這個裝飾的
+   * 必要，直接不註冊，斷點跟 About 的桌機分支一致。
    */
   mm.add(
-    "(min-width: 768px) and (prefers-reduced-motion: no-preference)",
+    "(min-width: 1024px) and (prefers-reduced-motion: no-preference)",
     () => {
       const wrap = footerWrapRef.value;
       const footer = footerRef.value;
@@ -80,10 +80,10 @@ const handleFooterLinkClick = (event: MouseEvent, hash: string) => {
 
 <template>
   <div ref="footerWrapRef" class="relative overflow-hidden">
-    <!-- will-change 只在有動畫的桌機才給，手機掛著等於白白多一層合成層 -->
+    <!-- will-change 只在有動畫的桌機才給，手機／平板掛著等於白白多一層合成層 -->
     <footer
       ref="footerRef"
-      class="w-full bg-ink px-6 py-16 text-white sm:py-20 md:[will-change:transform]"
+      class="w-full bg-ink px-6 py-16 text-white sm:py-20 lg:[will-change:transform]"
     >
       <div class="mx-auto max-w-wide">
         <div class="flex flex-col gap-10 sm:flex-row sm:items-start sm:justify-between">

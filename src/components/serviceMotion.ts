@@ -22,18 +22,21 @@ interface ServiceDeviceCapabilities {
   isWideViewport: boolean;
   canHover: boolean;
   hasFinePointer: boolean;
-  hasCoarsePointer: boolean;
 }
 
+/*
+ * hover 與 pointer 問的是「主要」輸入裝置，手機與平板本來就過不了這兩關，
+ * 所以這裡不再多看 (any-pointer: coarse)。那條件問的是「有沒有任何一種粗
+ * 指標」，觸控筆電（Surface Laptop 這類，現在 Windows 筆電多半有觸控螢幕）
+ * 即使實際上是用觸控板操作也會命中，等於把一整類真正的桌機使用者踢去看
+ * 靜態版，看不到釘住捲動的翻頁。
+ */
 export function resolveServiceMotionMode({
   isWideViewport,
   canHover,
   hasFinePointer,
-  hasCoarsePointer,
 }: ServiceDeviceCapabilities): ServiceMotionMode {
-  return isWideViewport && canHover && hasFinePointer && !hasCoarsePointer
-    ? "desktop"
-    : "mobile";
+  return isWideViewport && canHover && hasFinePointer ? "desktop" : "mobile";
 }
 
 export function createServiceMotionPlan(
