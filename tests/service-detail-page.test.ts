@@ -39,7 +39,7 @@ test("valid detail output exposes the hero, editorial sections, and one shared 5
   assert.match(html, /data-parallax-image/);
   assert.match(html, /data-detail-heading/);
   assert.match(html, /我們從釐清經營問題開始/);
-  assert.match(html, /六項顧問服務範疇/);
+  assert.match(html, /服務領域/);
   assert.equal(html.match(/Define &amp; Agree/g)?.length, 1);
   assert.equal(html.match(/Disengage &amp; Review/g)?.length, 1);
   // 頁首與頁尾兩顆「預約諮詢」都直接開表單，並帶著這一頁的服務 slug。
@@ -159,12 +159,12 @@ test("each approved slug renders its own service-specific editorial content", as
   const fractional = await renderDetail("fractional-chro");
   const training = await renderDetail("custom-training");
 
-  assert.match(fractional, /適合合作的企業/);
+  assert.match(fractional, /推薦企業/);
   assert.match(fractional, /支持範疇/);
   assert.doesNotMatch(fractional, /課程設計流程/);
   assert.match(training, /課程設計流程/);
   assert.match(training, /課程主題/);
-  assert.doesNotMatch(training, /適合合作的企業/);
+  assert.doesNotMatch(training, /推薦企業/);
 });
 
 test("unknown slugs render a stable not-found state without service fallback", async () => {

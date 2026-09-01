@@ -11,7 +11,7 @@ const settleDecode = (image: DecodableImage) =>
  */
 export async function waitForCriticalImages(
   images: Iterable<DecodableImage>,
-  timeoutMs = 2400,
+  timeoutMs = 5000,
 ) {
   const decoding = Promise.all(Array.from(images, settleDecode));
   let timeoutId: ReturnType<typeof setTimeout> | undefined;

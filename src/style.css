@@ -1,5 +1,4 @@
 @import "tailwindcss";
-@import "./font.css";
 
 @theme {
   /* 兩層版心：wide 給 Hero / About / Footer 這種滿版舞台，

@@ -43,6 +43,7 @@ let refreshFrame = 0;
 let focusFrame = 0;
 let mounted = false;
 let backNavigationTimer: number | null = null;
+let loaderWatchdog: number | null = null;
 let removeBackNavigationGuard: (() => void) | null = null;
 let backPopstateAcknowledgement: (() => void) | null = null;
 let backNavigationWatchState: ReturnType<
@@ -73,6 +74,16 @@ const readHistoryPosition = (state: unknown) => {
 let currentHistoryPosition = readHistoryPosition(window.history.state);
 
 // loader 顯示狀態 & 你實際的資料/資源是否還在載入
+/*
+ * 保險絲時限：loader 的放行與離場全靠 rAF / GSAP 推進，而被遮蔽或切到背景
+ * 的分頁會停掉 rAF。實測即使 document.visibilityState 還是 "visible"
+ * （視窗被其他視窗完全遮住時 Chrome 就是這樣），畫面仍會卡在 loader、
+ * overflow 一直是 hidden，使用者切回來只看到一片橘色。
+ * setTimeout 在背景分頁只會被節流、不會停擺，用它兜底保證畫面一定解得開。
+ * 正常路徑最慢約 6.8 秒（圖片 5 秒上限 + 1.75 秒離場動畫），10 秒安全。
+ */
+const LOADER_WATCHDOG_MS = 10000;
+
 const showLoader = ref(true);
 const isLoading = ref(true);
 const entranceReady = ref(false);
@@ -138,6 +149,13 @@ const resetTransitionPages = () => {
   activeEnteringPage = null;
   activeOutgoingPage = null;
   activeOutgoingSnapshot = null;
+};
+
+const clearLoaderWatchdog = () => {
+  if (loaderWatchdog !== null) {
+    window.clearTimeout(loaderWatchdog);
+    loaderWatchdog = null;
+  }
 };
 
 const clearBackNoPopstateWatchdog = () => {
@@ -443,6 +461,11 @@ onMounted(async () => {
   // loading 期間鎖住背景捲動，避免使用者在 loader 蓋著時偷滑到底層內容
   document.documentElement.style.overflow = "hidden";
 
+  // 見 LOADER_WATCHDOG_MS：rAF 停擺時，這是唯一還會動的東西
+  loaderWatchdog = window.setTimeout(() => {
+    if (showLoader.value) void handleLoaderDone();
+  }, LOADER_WATCHDOG_MS);
+
   // 只等待首屏關鍵圖片，並保留短暫的品牌動畫時間。字型與折下內容
   // 不再阻塞 Loader；它們完成後會由上方的 fonts.ready 再 refresh。
   await Promise.all([
@@ -453,8 +476,10 @@ onMounted(async () => {
   ]);
 
   // 讓各區塊的 onMounted / ScrollTrigger 註冊先完成，再開始 Loader 離場。
+  // 對賭一個 setTimeout：rAF 在被遮蔽的分頁不會觸發，只靠它會永遠等不到。
   await new Promise<void>((resolve) => {
     requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+    setTimeout(resolve, 150);
   });
 
   // 通知 loader：資料/資源準備好了，可以開始 complete → reveal → swipe
@@ -463,7 +488,10 @@ onMounted(async () => {
 
 // MojoKingLoader 的 curve swipe 動畫「完全結束」後才會 emit 這個事件
 async function handleLoaderDone() {
+  // 保險絲跟正常的 done 事件可能都送到，重入會建立第二個 Lenis 實例
+  if (!showLoader.value) return;
   showLoader.value = false;
+  clearLoaderWatchdog();
   await nextTick();
 
   // Loader 已經完全離場後，才允許 Hero 與 Navigation 播放進場。
@@ -730,6 +758,7 @@ onBeforeUnmount(() => {
   removeTransitionGuard();
   removeRouterErrorHandler();
   clearBackNavigationWatch();
+  clearLoaderWatchdog();
   cancelAnimationFrame(refreshFrame);
   cancelAnimationFrame(focusFrame);
   routeTimeline?.kill();

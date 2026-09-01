@@ -3,7 +3,6 @@ import App from "./App.vue";
 import { initAnalytics } from "./lib/analytics";
 import { router } from "./router";
 import "./style.css";
-import "./font.css";
 
 /*
  * 關掉瀏覽器的捲動位置還原。

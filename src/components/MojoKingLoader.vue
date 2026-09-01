@@ -19,7 +19,7 @@ const visible = ref(true)
 const BG_COLOR = '#e95f26'
 
 const CRAWL_TARGET = 0.85     // loading 期間先「假爬」到 85% 就停住
-const CRAWL_DURATION = 3.2    // 爬到 85% 的時間 (秒)
+const CRAWL_DURATION = 5.0    // 爬到 85% 的時間 (秒)
 const FINISH_DURATION = 0.6   // loading 結束後，補滿到 100% 的時間 (秒)
 const HOLD_AFTER_FINISH = 0.3 // 補滿之後，停留看清楚的時間 (秒)
 const EXIT_DURATION = 0.85    // 整體往上收走的時間 (秒)
