@@ -28,7 +28,7 @@ const props = withDefaults(defineProps<Props>(), {
   // headingLine1: "為你的企業",
   eyebrow: "20+ 年上市櫃企業人資長實戰經驗",
   headingLine2: "讓人才管理不再困惑",
-  headingLine3: "讓企業成長更有方向",
+  headingLine3: "使企業成長更有方向",
   description:
     "從組織與人才問題診斷、制度設定到陪伴導入，慕玖以經營者視角，協助成長與轉型中的企業，建立真正能洛帝的人才管理系統。",
   ctaText: "預約諮詢",
