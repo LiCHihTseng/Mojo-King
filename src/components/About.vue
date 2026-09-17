@@ -69,7 +69,7 @@ const scenes: Scene[] = [
       { title: "多項國際專業認證" },
       {
         title: "制度設計到推動落地",
-        sep: ":",
+        sep: " | ",
         text: "重視主管共識、導入溝通、實際運作及後續成效。",
       },
     ],
@@ -262,7 +262,7 @@ onBeforeUnmount(() => {
             <!-- Content Stage：三組文字疊在完全相同的位置 -->
             <div class="relative h-[76vh]">
               <p
-            class="mb-8 flex items-center gap-2 text-eyebrow uppercase text-brand-ink"
+            class="mb-8 flex items-center gap-2 text-eyebrow uppercase text-brand-ink text-lg"
           >
             <span class="inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-brand"></span>
             關於慕玖

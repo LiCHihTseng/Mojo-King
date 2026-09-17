@@ -43,7 +43,7 @@ interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  heading: "我們一起解決過的問題",
+  heading: "慕玖一起解決過的問題",
   intro:
     "基於保密，以下案例不具名呈現。只說明產業、當時遇到的狀況，以及最後真正改變了什麼。",
   autoplaySeconds: 7,

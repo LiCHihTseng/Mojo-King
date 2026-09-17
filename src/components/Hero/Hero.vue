@@ -15,6 +15,7 @@ const { openConsultation } = useOverlayNav();
 interface Props {
   entranceReady?: boolean;
   // headingLine1?: string;
+  eyebrow?: string;
   headingLine2?: string;
   headingLine3?: string;
   description?: string;
@@ -25,10 +26,11 @@ interface Props {
 const props = withDefaults(defineProps<Props>(), {
   entranceReady: false,
   // headingLine1: "為你的企業",
-  headingLine2: "打造清晰的",
-  headingLine3: "人才策略",
+  eyebrow: "20+ 年上市櫃企業人資長實戰經驗",
+  headingLine2: "讓人才管理不再困惑",
+  headingLine3: "讓企業成長更有方向",
   description:
-    "我與企業主、主管與團隊合作，帶來清楚的方向與實際可行的策略，讓組織能穩健成長，不再對人才管理感到困惑。",
+    "從組織與人才問題診斷、制度設定到陪伴導入，慕玖以經營者視角，協助成長與轉型中的企業，建立真正能洛帝的人才管理系統。",
   ctaText: "預約諮詢",
   contactCtaText: "聯絡我們",
 });
@@ -43,6 +45,7 @@ const dimOverlayRef = ref<HTMLElement | null>(null);
 const contentRef = ref<HTMLElement | null>(null);
 
 const headingWrapRef = ref<HTMLElement | null>(null);
+const eyebrowRef = ref<HTMLElement | null>(null);
 const headingRefs = ref<HTMLElement[]>([]);
 const descriptionRef = ref<HTMLElement | null>(null);
 const ctaWrapRef = ref<HTMLElement | null>(null);
@@ -93,7 +96,7 @@ const playIntro = () => {
 
   if (prefersReducedMotion) {
     gsap.set(
-      [visualGroupRef.value, ...headingRefs.value, descriptionRef.value, ctaWrapRef.value],
+      [visualGroupRef.value, eyebrowRef.value, ...headingRefs.value, descriptionRef.value, ctaWrapRef.value],
       { clearProps: "all" },
     );
     return;
@@ -130,7 +133,7 @@ onMounted(async () => {
         transformOrigin: "left bottom",
         willChange: "transform,opacity",
       });
-      gsap.set([descriptionRef.value, ctaWrapRef.value], {
+      gsap.set([eyebrowRef.value, descriptionRef.value, ctaWrapRef.value], {
         autoAlpha: 0,
         y: 22,
         willChange: "transform,opacity",
@@ -141,7 +144,7 @@ onMounted(async () => {
         defaults: { overwrite: "auto" },
         onComplete: () => {
           gsap.set(
-            [visualGroupRef.value, ...headingTargets, descriptionRef.value, ctaWrapRef.value],
+            [visualGroupRef.value, eyebrowRef.value, ...headingTargets, descriptionRef.value, ctaWrapRef.value],
             { clearProps: "willChange" },
           );
           setupScrollMotion();
@@ -154,6 +157,12 @@ onMounted(async () => {
           duration: 1.65,
           ease: "power3.out",
         }, 0)
+        .to(eyebrowRef.value, {
+          autoAlpha: 1,
+          y: 0,
+          duration: 0.72,
+          ease: "power3.out",
+        }, 0.05)
         .to(headingTargets, {
           autoAlpha: 1,
           yPercent: 0,
@@ -228,7 +237,7 @@ onBeforeUnmount(() => {
 
     <!--
       內容容器：標題、說明文字、CTA 共用同一組水平內距，
-      並用 max-w-wide 對齊下方 About 的容器，捲動接縫才不會歪。
+      水平內距與 Navigation 的 logo 左緣完全相同（nav 外距＋內距加總），標題永遠跟 logo 對齊。
 
       垂直定位分兩種：
       - lg 以上：justify-center，人像在右、文字在左，互不重疊。
@@ -239,20 +248,30 @@ onBeforeUnmount(() => {
     -->
     <div
       ref="contentRef"
-      class="relative z-20 mx-auto flex h-full min-h-[100svh] w-full max-w-wide flex-col justify-end px-8 pb-[5svh] sm:pb-[7svh] lg:justify-center lg:px-16 lg:pb-0"
+      class="relative z-20 flex h-full min-h-[100svh] w-full flex-col justify-end px-5 pb-[5svh] sm:px-9 sm:pb-[7svh] lg:justify-center lg:px-12 lg:pb-0 xl:px-16"
       style="transform-origin: left center;"
     >
       <div class="flex w-full min-w-0 max-w-full flex-col">
+        <!-- 深底用 text-brand（brand-ink 是淺底用，壓在黑底上對比不夠）。
+             text-eyebrow 的 12px 是給英文大寫的，中文太小，這裡放大。 -->
+        <p
+          ref="eyebrowRef"
+          class="mb-4 flex items-center gap-2.5 text-eyebrow text-[0.8125rem] tracking-[0.12em] text-brand sm:text-sm lg:mb-6 lg:text-base"
+        >
+          <span class="inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-brand"></span>
+          {{ eyebrow }}
+        </p>
+
         <!-- 標題區塊（原本 HeroTitle.vue） -->
         <div ref="headingWrapRef" class="flex flex-col gap-6 md:gap-10 lg:gap-14">
           <!--
             外層 span 的 overflow-hidden 是進場遮罩用的，它同時也會把
             超出寬度的字「無聲裁掉」（不會出現捲軸，字就是消失）。
             所以內層不能用 whitespace-nowrap：文案一加長就會少字。
-            改由 max-w-[13ch] 控制每行字數，超過就換行；
+            改由 max-w-[11em] 控制每行字數（中文一字約 1em，ch 是量英文數字的），超過就換行；
             text-balance 讓換行後不會掉出一個孤字。
           -->
-          <h1 class="max-w-[13ch] text-balance text-display text-white">
+          <h1 class="max-w-[11em] text-balance text-display text-white max-sm:text-[clamp(1.875rem,9vw,2.5rem)]">
             <!-- <span :ref="(el) => setHeadingRef(el as Element | null, 0)" class="block">
               {{ headingLine1 }}
             </span> -->
@@ -270,7 +289,7 @@ onBeforeUnmount(() => {
 
           <p
             ref="descriptionRef"
-            class="max-w-[52ch] text-body-lg text-white/75"
+            class="max-w-[30em] text-pretty text-body-lg text-white/75"
           >
             {{ description }}
           </p>

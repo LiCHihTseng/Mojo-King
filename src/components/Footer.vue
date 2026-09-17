@@ -107,9 +107,9 @@ const handleFooterLinkClick = (event: MouseEvent, hash: string) => {
             </p>
           </div>
 
-          <!-- 手機：導覽與 email 併成同一列（各佔一半），桌機維持兩欄並排 -->
-          <div class="flex gap-8 sm:gap-16">
-            <div class="min-w-0 flex-1 sm:flex-none">
+          <!-- 手機：導覽與 email 上下疊成一欄（並排時 email 只剩半寬會被切斷），sm 以上兩欄並排 -->
+          <div class="flex flex-col gap-6 sm:flex-row sm:gap-16">
+            <div class="min-w-0">
               <ul class="flex flex-col gap-2 text-sm text-white/70 sm:text-base lg:text-lg">
                 <li><a href="#about" class="transition-colors hover:text-brand" @click="handleFooterLinkClick($event, '#about')">關於慕玖</a></li>
                 <li><a href="#service" class="transition-colors hover:text-brand" @click="handleFooterLinkClick($event, '#service')">服務內容</a></li>
@@ -117,7 +117,7 @@ const handleFooterLinkClick = (event: MouseEvent, hash: string) => {
               </ul>
             </div>
 
-            <div class="min-w-0 flex-1 sm:flex-none">
+            <div class="min-w-0">
               <ul class="flex flex-col gap-2 text-sm text-white/70 sm:text-base lg:text-lg">
                 <li>
                   <a
